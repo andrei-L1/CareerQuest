@@ -1,5 +1,5 @@
 <?php
-require '../dbcon.php';
+require '../config/dbcon.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Sanitize inputs

@@ -1,6 +1,6 @@
 <?php
 session_start(); 
-require '../dbcon.php';
+require '../config/dbcon.php';
 $error = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($student && password_verify($password, $student['stud_password'])) {
         $_SESSION['stud_id'] = $student['stud_id'];
         $_SESSION['entity'] = 'student';  
-        header("Location: ../homepage/dashboard.php");
+        header("Location: ../views/dashboard.php");
         exit();
     } else {
         $error = "Invalid email or password.";
