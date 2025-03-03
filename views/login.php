@@ -62,7 +62,7 @@
     <div class="container">
         <div class="card-container">
             <!-- User Login Card -->
-            <a href="login_user.php" class="text-decoration-none">
+            <a href="../auth/login_user.php" class="text-decoration-none">
                 <div class="card">
                     <svg class="user-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                         <path d="M12 2a5 5 0 11-5 5 5 5 0 015-5zm-7 17a7 7 0 0114 0v1H5v-1z"/>
@@ -72,7 +72,7 @@
             </a>
 
             <!-- Student Login Card -->
-            <a href="login_student.php" class="text-decoration-none">
+            <a href="../auth/login_student.php" class="text-decoration-none">
                 <div class="card">
                     <svg class="student-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                         <path d="M12 2L1 7l11 5 9-4.09V13h2V7L12 2zm0 9.65L3.24 7 12 3.35 20.76 7 12 11.65zm-2 3.35v1.79c-.73.21-1.41.58-2 1.08v-2.87h2zm4 0h2v2.87a4.95 4.95 0 00-2-1.08V15zm-2 1.14c1.9 0 3.45 1.55 3.45 3.45H6.55c0-1.9 1.55-3.45 3.45-3.45z"/>

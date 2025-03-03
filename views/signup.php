@@ -98,7 +98,7 @@
                 </div>
             </div>
         </form>
-        <p class="text-center mt-3">Already have an account? <a href="../auth/login.php">Login here</a></p>
+        <p class="text-center mt-3">Already have an account? <a href="login.php">Login here</a></p>
     </div>
     <script src="../assests/signup.js"></script>
 </body>
