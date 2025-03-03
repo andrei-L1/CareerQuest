@@ -34,11 +34,12 @@
                 </li>
 
                 <!-- Login & Signup Buttons -->
-                <li class="nav-item ms-2">
-                    <a class="btn btn-outline-primary px-3" href="login.php">Login</a>
+                <li class="nav-item">
+                    <a class="btn btn-primary text-white px-3" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a>
                 </li>
+
                 <li class="nav-item ms-2">
-                    <a class="btn btn-primary text-white px-3" href="signup.php">Sign Up</a>
+                    <a class="btn btn-primary text-white px-3" href="./views/signup.php">Sign Up</a>
                 </li>
             </ul>
         </div>
