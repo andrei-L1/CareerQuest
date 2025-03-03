@@ -1,6 +1,6 @@
 <?php
 session_start();
-require '../dbcon.php';  // Ensure database connection is included
+require '../config/dbcon.php';  
 
 // Redirect to login if not authenticated
 if (!isset($_SESSION['user_id']) && !isset($_SESSION['stud_id'])) {

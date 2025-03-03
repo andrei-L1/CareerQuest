@@ -32,7 +32,7 @@
         <div class="progress mb-3">
             <div id="progressBar" class="progress-bar" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
         </div>
-        <form method="POST" action="signup_handler.php" id="signupForm">
+        <form method="POST" action="../controllers/signup_handler.php" id="signupForm">
             <!-- Step 1: Select Entity -->
             <div id="step-1">
                 <h5>Step 1: Choose Your Role</h5>
@@ -98,7 +98,7 @@
                 </div>
             </div>
         </form>
-        <p class="text-center mt-3">Already have an account? <a href="login.php">Login here</a></p>
+        <p class="text-center mt-3">Already have an account? <a href="../auth/login.php">Login here</a></p>
     </div>
     <script src="../assests/signup.js"></script>
 </body>
