@@ -289,62 +289,78 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['stud_id'])) {
         <div class="container">
             <h2 class="text-center mb-5" data-aos="fade-up">What Our Users Say</h2>
             <div class="row">
+                <!-- Testimonial 1 -->
                 <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="100">
-                    <div class="card shadow-sm h-100">
-                        <div class="card-body">
-                            <p class="card-text">"This platform helped me land my dream job right after graduation!"</p>
-                            <p class="text-muted">— Jane Doe, Software Engineer</p>
+                    <div class="card border-0 shadow-sm h-100 rounded-3 hover-effect">
+                        <div class="card-body text-center p-4">
+                            <p class="card-text fs-5 text-muted mb-3">"This platform helped me land my dream job right after graduation!"</p>
+                            <p class="text-muted mb-0">— Jane Doe, Software Engineer</p>
                         </div>
                     </div>
                 </div>
+                <!-- Testimonial 2 -->
                 <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="200">
-                    <div class="card shadow-sm h-100">
-                        <div class="card-body">
-                            <p class="card-text">"We found the perfect candidate for our team in just a few days."</p>
-                            <p class="text-muted">— John Smith, Hiring Manager</p>
+                    <div class="card border-0 shadow-sm h-100 rounded-3 hover-effect">
+                        <div class="card-body text-center p-4">
+                            <p class="card-text fs-5 text-muted mb-3">"We found the perfect candidate for our team in just a few days."</p>
+                            <p class="text-muted mb-0">— John Smith, Hiring Manager</p>
                         </div>
                     </div>
                 </div>
+                <!-- Testimonial 3 -->
                 <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="300">
-                    <div class="card shadow-sm h-100">
-                        <div class="card-body">
-                            <p class="card-text">"Networking with professionals here has been invaluable for my career growth."</p>
-                            <p class="text-muted">— Emily Johnson, Marketing Professional</p>
+                    <div class="card border-0 shadow-sm h-100 rounded-3 hover-effect">
+                        <div class="card-body text-center p-4">
+                            <p class="card-text fs-5 text-muted mb-3">"Networking with professionals here has been invaluable for my career growth."</p>
+                            <p class="text-muted mb-0">— Emily Johnson, Marketing Professional</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
     </section>
-
-    <!-- Featured Jobs -->
+    
     <section class="container py-5">
         <h2 class="text-center mb-5" data-aos="fade-up">Featured Jobs</h2>
         <div class="row">
+            <!-- Job 1 -->
             <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="100">
-                <div class="card shadow-sm h-100">
+                <div class="card shadow-sm h-100 border-0">
                     <div class="card-body">
                         <h5 class="card-title">Software Engineer</h5>
                         <p class="card-text">Join a leading tech company and work on cutting-edge projects.</p>
-                        <a href="#" class="btn btn-primary">Apply Now</a>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">Location: San Francisco, CA</small>
+                            <a href="#" class="btn btn-primary">Apply Now</a>
+                        </div>
                     </div>
                 </div>
             </div>
+            
+            <!-- Job 2 -->
             <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="200">
-                <div class="card shadow-sm h-100">
+                <div class="card shadow-sm h-100 border-0">
                     <div class="card-body">
                         <h5 class="card-title">Marketing Manager</h5>
                         <p class="card-text">Lead marketing campaigns for a global brand.</p>
-                        <a href="#" class="btn btn-primary">Apply Now</a>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">Location: New York, NY</small>
+                            <a href="#" class="btn btn-primary">Apply Now</a>
+                        </div>
                     </div>
                 </div>
             </div>
+            
+            <!-- Job 3 -->
             <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="300">
-                <div class="card shadow-sm h-100">
+                <div class="card shadow-sm h-100 border-0">
                     <div class="card-body">
                         <h5 class="card-title">Data Analyst</h5>
                         <p class="card-text">Work with big data and drive business decisions.</p>
-                        <a href="#" class="btn btn-primary">Apply Now</a>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">Location: Remote</small>
+                            <a href="#" class="btn btn-primary">Apply Now</a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -352,34 +368,122 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['stud_id'])) {
     </section>
 
     <section class="container py-5">
-    <h2 class="text-center mb-5" data-aos="fade-up">Frequently Asked Questions</h2>
-    <div class="accordion" id="faqAccordion">
-        <div class="accordion-item" data-aos="fade-up" data-aos-delay="100">
-            <h2 class="accordion-header" id="headingOne">
-                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                    How do I create a profile?
-                </button>
-            </h2>
-            <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
-                <div class="accordion-body">
-                    Creating a profile is easy! Just sign up, fill in your details, and start exploring opportunities.
+        <h2 class="text-center mb-5" data-aos="fade-up">Frequently Asked Questions</h2>
+        <div class="accordion" id="faqAccordion">
+            <!-- Question 1 -->
+            <div class="accordion-item" data-aos="fade-up" data-aos-delay="100">
+                <h2 class="accordion-header" id="headingOne">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                        How do I create a profile?
+                    </button>
+                </h2>
+                <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        Creating a profile is easy! Just sign up, fill in your details, and start exploring opportunities.
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="accordion-item" data-aos="fade-up" data-aos-delay="200">
-            <h2 class="accordion-header" id="headingTwo">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                    Is the platform free to use?
-                </button>
-            </h2>
-            <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
-                <div class="accordion-body">
-                    Yes, our platform is completely free for students and professionals. Employers may have premium options.
+            
+            <!-- Question 2 -->
+            <div class="accordion-item" data-aos="fade-up" data-aos-delay="200">
+                <h2 class="accordion-header" id="headingTwo">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                        Is the platform free to use?
+                    </button>
+                </h2>
+                <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        Yes, our platform is completely free for students and professionals. Employers may have premium options.
+                    </div>
                 </div>
             </div>
-         </div>
+            
+            <!-- Question 3 -->
+            <div class="accordion-item" data-aos="fade-up" data-aos-delay="300">
+                <h2 class="accordion-header" id="headingThree">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                        How can I find job opportunities?
+                    </button>
+                </h2>
+                <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        Students can find jobs and internships in their field of study by browsing through our job listings. Set up alerts to never miss an opportunity!
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question 4 -->
+            <div class="accordion-item" data-aos="fade-up" data-aos-delay="400">
+                <h2 class="accordion-header" id="headingFour">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                        Can I post a job as an employer?
+                    </button>
+                </h2>
+                <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        Yes, employers can post job listings, view candidate profiles, and contact potential candidates directly through the platform. Premium features may offer more visibility.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question 5 -->
+            <div class="accordion-item" data-aos="fade-up" data-aos-delay="500">
+                <h2 class="accordion-header" id="headingFive">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                        Can professionals access career guidance and mentoring?
+                    </button>
+                </h2>
+                <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        Yes, professionals can network with other industry experts, access mentoring sessions, and share their knowledge to help others grow in their careers.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question 6 -->
+            <div class="accordion-item" data-aos="fade-up" data-aos-delay="600">
+                <h2 class="accordion-header" id="headingSix">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSix" aria-expanded="false" aria-controls="collapseSix">
+                        How do I update my profile information?
+                    </button>
+                </h2>
+                <div id="collapseSix" class="accordion-collapse collapse" aria-labelledby="headingSix" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        To update your profile, simply log in, go to your account settings, and make changes to your information, such as job preferences, skills, and contact details.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question 7 -->
+            <div class="accordion-item" data-aos="fade-up" data-aos-delay="700">
+                <h2 class="accordion-header" id="headingSeven">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSeven" aria-expanded="false" aria-controls="collapseSeven">
+                        How do I get notifications for job updates?
+                    </button>
+                </h2>
+                <div id="collapseSeven" class="accordion-collapse collapse" aria-labelledby="headingSeven" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        You can set up job alerts based on your preferences (role, location, etc.) so you receive notifications via email when new job opportunities match your criteria.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Question 8 -->
+            <div class="accordion-item" data-aos="fade-up" data-aos-delay="800">
+                <h2 class="accordion-header" id="headingEight">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEight" aria-expanded="false" aria-controls="collapseEight">
+                        How can I contact support if I need help?
+                    </button>
+                </h2>
+                <div id="collapseEight" class="accordion-collapse collapse" aria-labelledby="headingEight" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        If you need assistance, you can contact our support team through the help section of the platform or by sending an email to support@ourplatform.com.
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
+
 
     <!-- Call-to-Action Banner -->
     <section class="bg-dark text-white text-center py-5">
