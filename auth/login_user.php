@@ -1,32 +1,85 @@
 <?php
-session_start(); 
-if (isset($_SESSION['user_id']) && isset($_SESSION['stud_id'])) {
+// Secure session settings (must be before session_start)
+ini_set('session.cookie_httponly', 1);
+ini_set('session.cookie_secure', 1);
+ini_set('session.use_only_cookies', 1);
+
+session_start();
+session_regenerate_id(true);
+
+// Redirect if already logged in
+if (isset($_SESSION['user_id']) || isset($_SESSION['stud_id'])) {
     header("Location: ../views/dashboard.php");
     exit();
-  }
+}
+
 require '../config/dbcon.php';
+
+// Enforce security settings on PDO
+$conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+
 $error = "";
 
+// Brute force protection settings
+$max_attempts = 5;
+$lockout_time = 300; // 5 minutes (300 seconds)
+
+// Initialize session variables if not set
+if (!isset($_SESSION['login_attempts'])) {
+    $_SESSION['login_attempts'] = 0;
+}
+if (!isset($_SESSION['lockout_time'])) {
+    $_SESSION['lockout_time'] = 0;
+}
+
+// Check if the user is locked out
+$remaining_time = max(0, $_SESSION['lockout_time'] - time());
+
+if ($_SESSION['login_attempts'] >= $max_attempts && $remaining_time > 0) {
+    $error = "Too many failed login attempts. Try again in <span id='countdown'>{$remaining_time}</span> seconds.";
+} elseif ($remaining_time <= 0) {
+    $_SESSION['login_attempts'] = 0;
+    $_SESSION['lockout_time'] = 0;
+}
+
+// Stop processing if locked out
+if (!empty($error)) {
+    exit();
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = $_POST['email'];
+    $email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
     $password = $_POST['password'];
 
-    $stmt = $conn->prepare("SELECT * FROM user WHERE user_email = :email");
-    $stmt->bindParam(':email', $email);
-    $stmt->execute();
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($user && password_verify($password, $user['user_password'])) {
-        $_SESSION['user_id'] = $user['user_id'];
-        $_SESSION['role_id'] = $user['role_id'];
-        $_SESSION['entity'] = 'user';  
-        header("Location: ../views/dashboard.php");
-        exit();
+    if (!$email) {
+        $error = "Invalid email format.";
     } else {
-        $error = "Invalid email or password.";
+        $stmt = $conn->prepare("SELECT * FROM user WHERE user_email = :email");
+        $stmt->bindParam(':email', $email, PDO::PARAM_STR);
+        $stmt->execute();
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($user && password_verify($password, $user['user_password'])) {
+            $_SESSION['user_id'] = $user['user_id'];
+            $_SESSION['role_id'] = $user['role_id'];
+            $_SESSION['entity'] = 'user';
+            $_SESSION['login_attempts'] = 0; // Reset on successful login
+            $_SESSION['lockout_time'] = 0;
+            header("Location: ../views/dashboard.php");
+            exit();
+        } else {
+            $_SESSION['login_attempts']++; // Increment failed attempt counter
+            if ($_SESSION['login_attempts'] >= $max_attempts) {
+                $_SESSION['lockout_time'] = time() + $lockout_time; // Set lockout expiration
+                $error = "Too many failed login attempts. Try again in 5m 0s.";
+            } else {
+                $error = "Invalid email or password.";
+            }
+        }
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -126,4 +179,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <p class="text-center mt-2"><a href="login_student.php">Not an Employer or a Proffesional? Click here.</a></p>
     </div>
 </body>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    let countdownElement = document.getElementById("countdown");
+
+    if (countdownElement) {
+        let timeLeft = parseInt(countdownElement.innerText);
+
+        function updateCountdown() {
+            if (timeLeft > 0) {
+                timeLeft--;
+                countdownElement.innerText = timeLeft;
+                setTimeout(updateCountdown, 1000);
+            } else {
+                location.reload(); // Refresh page when countdown reaches 0
+            }
+        }
+
+        updateCountdown();
+    }
+});
+</script>
+
 </html>

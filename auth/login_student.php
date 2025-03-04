@@ -1,31 +1,83 @@
 <?php
+// Secure session settings (must be before session_start)
+ini_set('session.cookie_httponly', 1);
+ini_set('session.cookie_secure', 1);
+ini_set('session.use_only_cookies', 1);
+
 session_start(); 
-if (isset($_SESSION['user_id']) && isset($_SESSION['stud_id'])) {
-  header("Location: ../views/dashboard.php");
-  exit();
+session_regenerate_id(true);
+
+// Redirect if already logged in
+if (isset($_SESSION['user_id']) || isset($_SESSION['stud_id'])) {
+    header("Location: ../views/dashboard.php");
+    exit();
 }
+
 require '../config/dbcon.php';
+
+// Enforce security settings on PDO
+$conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+
 $error = "";
 
+// Brute force protection settings
+$max_attempts = 5;
+$lockout_time = 300; // 5 minutes (300 seconds)
+
+if (!isset($_SESSION['login_attempts'])) {
+    $_SESSION['login_attempts'] = 0;
+}
+if (!isset($_SESSION['lockout_time'])) {
+    $_SESSION['lockout_time'] = 0;
+}
+
+// Check if the user is locked out
+$remaining_time = max(0, $_SESSION['lockout_time'] - time());
+
+if ($_SESSION['login_attempts'] >= $max_attempts && $remaining_time > 0) {
+    $error = "Too many failed login attempts. Try again in <span id='countdown'>{$remaining_time}</span> seconds.";
+} elseif ($remaining_time <= 0) {
+    $_SESSION['login_attempts'] = 0;
+    $_SESSION['lockout_time'] = 0;
+}
+
+// Stop processing if locked out
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = $_POST['email'];
+    if (!empty($error)) {
+        exit(); // Stop processing if locked out
+    }
+
+    $email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
     $password = $_POST['password'];
 
-    $stmt = $conn->prepare("SELECT * FROM student WHERE stud_email = :email");
-    $stmt->bindParam(':email', $email);
-    $stmt->execute();
-    $student = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($student && password_verify($password, $student['stud_password'])) {
-        $_SESSION['stud_id'] = $student['stud_id'];
-        $_SESSION['entity'] = 'student';  
-        header("Location: ../views/dashboard.php");
-        exit();
+    if (!$email) {
+        $error = "Invalid email format.";
     } else {
-        $error = "Invalid email or password.";
+        $stmt = $conn->prepare("SELECT * FROM student WHERE stud_email = :email");
+        $stmt->bindParam(':email', $email, PDO::PARAM_STR);
+        $stmt->execute();
+        $student = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($student && password_verify($password, $student['stud_password'])) {
+            $_SESSION['stud_id'] = $student['stud_id'];
+            $_SESSION['entity'] = 'student';
+            $_SESSION['login_attempts'] = 0; // Reset on successful login
+            $_SESSION['lockout_time'] = 0;
+            header("Location: ../views/dashboard.php");
+            exit();
+        } else {
+            $_SESSION['login_attempts']++; // Increment failed attempt counter
+            if ($_SESSION['login_attempts'] >= $max_attempts) {
+                $_SESSION['lockout_time'] = time() + $lockout_time; // Set lockout expiration
+                $error = "Too many failed login attempts. Try again in 5m 0s.";
+            } else {
+                $error = "Invalid email or password.";
+            }
+        }
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -110,6 +162,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php if ($error): ?>
             <div class="alert alert-danger mb-3"><?= $error ?></div>
         <?php endif; ?>
+
         <form method="POST" action="login_student.php">
             <div class="mb-3">
                 <label class="form-label">Email:</label>
@@ -126,4 +179,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <p class="text-center mt-2"><a href="login_user.php">Not a Student? Click Here.</a></p>
     </div>
 </body>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    let countdownElement = document.getElementById("countdown");
+
+    if (countdownElement) {
+        let timeLeft = parseInt(countdownElement.innerText);
+
+        function updateCountdown() {
+            if (timeLeft > 0) {
+                timeLeft--;
+                countdownElement.innerText = timeLeft;
+                setTimeout(updateCountdown, 1000);
+            } else {
+                location.reload(); // Refresh page when countdown reaches 0
+            }
+        }
+
+        updateCountdown();
+    }
+});
+</script>
+
 </html>
