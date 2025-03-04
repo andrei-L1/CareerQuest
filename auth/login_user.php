@@ -90,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
             font-family: 'Arial', sans-serif;
             display: flex;
             align-items: center;
@@ -151,17 +151,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 0 4px;
         }
         .btn-primary {
-            background: #007bff;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            background: linear-gradient(45deg, #0A2647, #2C7865);
             border: none;
             border-radius: 8px;
             padding: 0.75rem;
             font-size: 16px;
             font-weight: 500;
-            transition: background 0.3s ease;
             width: 100%;
         }
         .btn-primary:hover {
-            background: #0056b3;
+            background: linear-gradient(45deg, #2C7865, #0A2647);
+            transform: translateY(-2px);
         }
         .alert-danger {
             background: #ffebee;
@@ -279,6 +280,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         });
     </script>
 </body>
-
-
 </html>

@@ -1,0 +1,1 @@
+<span id='countdown'>{$remaining_time}</span>
