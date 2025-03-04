@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $conn->prepare("INSERT INTO user (user_email, user_password, role_id, user_first_name, user_last_name) 
                                     VALUES (:email, :password, :role_id, :first_name, :last_name)");
             $stmt->bindParam(':role_id', $role_id, PDO::PARAM_INT);
-        } else {
+        } else if ($entity === 'student') {
             $institution = trim($_POST['institution']);
             if (empty($institution)) {
                 throw new Exception("Institution field is required.");
@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $conn->commit(); // Commit transaction
 
-        header("Location: ../auth/login.php");
+        header("Location: ../index.php");
         exit();
     } catch (Exception $e) {
         $conn->rollBack(); // Rollback if something goes wrong

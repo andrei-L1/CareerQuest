@@ -35,7 +35,7 @@
 
                 <!-- Login & Signup Buttons -->
                 <li class="nav-item">
-                    <a class="btn btn-primary text-white px-3" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Login</a>
+                    <a class="btn btn-primary text-white px-3" href="./auth/login_student.php">Login</a>
                 </li>
 
                 <li class="nav-item ms-2">
