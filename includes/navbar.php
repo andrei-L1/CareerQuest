@@ -42,15 +42,27 @@
                     </ul>
                 </li>
 
-                <!-- Login Button -->
+
+                <!-- Login Button (Triggers Login Modal) -->
                 <li class="nav-item">
-                    <a class="btn btn-primary text-white px-3" href="./auth/login_student.php" style="background-color: var(--primary-color); border-color: var(--primary-color);">Login</a>
+                    <button class="btn btn-primary text-white px-3" 
+                        style="background-color: var(--primary-color); border-color: var(--primary-color);" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#loginModal">
+                        Login
+                    </button>
                 </li>
 
-                <!-- Sign Up Button -->
+                <!-- Sign Up Button (Triggers Sign Up Modal) -->
                 <li class="nav-item ms-2">
-                    <a class="btn btn-outline-primary px-3" href="./views/register_student.php" style="color: var(--primary-color); border-color: var(--primary-color);">Sign Up</a>
+                    <button class="btn btn-outline-primary px-3" 
+                        style="color: var(--primary-color); border-color: var(--primary-color);" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#signupModal">
+                        Sign Up
+                    </button>
                 </li>
+
             </ul>
         </div>
     </div>

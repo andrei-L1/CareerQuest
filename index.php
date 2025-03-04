@@ -134,6 +134,68 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['stud_id'])) {
             background-color: white;
             color: var(--primary-color);
         }
+
+
+            /* MODAL */
+        .modal-header {
+            position: relative;
+            padding: 1rem;
+        }
+        
+        .btn-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+        }
+        .role-card {
+            border: none;
+            transition: all 0.3s ease;
+            background: var(--primary-color);
+            border-radius: 1rem;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .role-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.15));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .role-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+
+        .role-card:hover::before {
+            opacity: 1;
+        }
+
+        .bg-gradient-primary-hover {
+            background: linear-gradient(45deg, var(--primary-color), #1C4B82);
+        }
+
+        .bg-gradient-success-hover {
+            background: linear-gradient(45deg, var(--secondary-color), #3AA68D);
+        }
+
+        .bg-gradient-info-hover {
+            background: linear-gradient(45deg, #1E3C72, #2A5298);
+        }
+
+        .icon-container {
+            transition: transform 0.3s ease;
+        }
+
+        .role-card:hover .icon-container {
+            transform: scale(1.1);
+        }
     </style>
 </head>
 <body>
@@ -327,6 +389,149 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['stud_id'])) {
             <a href="#" class="btn btn-light btn-lg" data-aos="fade-up" data-aos-delay="200">Sign Up Now</a>
         </div>
     </section>
+
+    
+    <!-- Role Selection Modal -->
+    <section>
+        <div class="modal fade" id="signupModal" tabindex="-1" aria-labelledby="roleSelectionModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header border-0 pb-0">
+                        <div class="w-100 text-center">
+                            <h3 class="modal-title fw-bold display-6" id="roleSelectionModalLabel">Get Started</h3>
+                            <p class="text-muted">Pick Your Role to Get Started</p>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row g-4">
+                            <!-- Student Role -->
+                            <div class="col-12">
+                                <a href="views/register_student.php" class="card role-card h-100 text-decoration-none bg-gradient-primary-hover">
+                                    <div class="card-body d-flex align-items-center gap-4 py-4">
+                                        <div class="icon-container bg-white bg-opacity-25 p-3 rounded-circle">
+                                            <i class="fas fa-user-graduate fa-2x text-white"></i>
+                                        </div>
+                                        <div class="text-start">
+                                            <h4 class="text-white mb-1">Student</h4>
+                                            <p class="text-white text-opacity-75 mb-0">Find jobs, internships, and career guidance</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <!-- Employer Role -->
+                            <div class="col-12">
+                                <a href="views/register_user.php" class="card role-card h-100 text-decoration-none bg-gradient-success-hover">
+                                    <div class="card-body d-flex align-items-center gap-4 py-4">
+                                        <div class="icon-container bg-white bg-opacity-25 p-3 rounded-circle">
+                                            <i class="fas fa-briefcase fa-2x text-white"></i>
+                                        </div>
+                                        <div class="text-start">
+                                            <h4 class="text-white mb-1">Employer</h4>
+                                            <p class="text-white text-opacity-75 mb-0">Post jobs and find qualified candidates</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <!-- Professional Role -->
+                            <div class="col-12">
+                                <a href="views/register_user.php" class="card role-card h-100 text-decoration-none bg-gradient-info-hover">
+                                    <div class="card-body d-flex align-items-center gap-4 py-4">
+                                        <div class="icon-container bg-white bg-opacity-25 p-3 rounded-circle">
+                                            <i class="fas fa-user-tie fa-2x text-white"></i>
+                                        </div>
+                                        <div class="text-start">
+                                            <h4 class="text-white mb-1">Professional</h4>
+                                            <p class="text-white text-opacity-75 mb-0">Network, mentor, and access opportunities</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <p class="text-muted small text-center w-100 mb-0">
+                            Already have an account? 
+                            <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal"  class="text-decoration-none">Sign In</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Login Modal -->
+        <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header border-0 pb-0">
+                        <div class="w-100 text-center">
+                            <h3 class="modal-title fw-bold display-6" id="loginModalLabel">Welcome Aboard</h3>
+                            <p class="text-muted">Pick Your Role to Get Started</p>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row g-4">
+                            <!-- Student Login -->
+                            <div class="col-12">
+                                <a href="auth/login_student.php" class="card role-card h-100 text-decoration-none bg-gradient-primary-hover">
+                                    <div class="card-body d-flex align-items-center gap-4 py-4">
+                                        <div class="icon-container bg-white bg-opacity-25 p-3 rounded-circle">
+                                            <i class="fas fa-user-graduate fa-2x text-white"></i>
+                                        </div>
+                                        <div class="text-start">
+                                            <h4 class="text-white mb-1">Student</h4>
+                                            <p class="text-white text-opacity-75 mb-0">Access jobs, internships, and career resources</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <!-- Employer Login -->
+                            <div class="col-12">
+                                <a href="auth/login_user.php" class="card role-card h-100 text-decoration-none bg-gradient-success-hover">
+                                    <div class="card-body d-flex align-items-center gap-4 py-4">
+                                        <div class="icon-container bg-white bg-opacity-25 p-3 rounded-circle">
+                                            <i class="fas fa-briefcase fa-2x text-white"></i>
+                                        </div>
+                                        <div class="text-start">
+                                            <h4 class="text-white mb-1">Employer</h4>
+                                            <p class="text-white text-opacity-75 mb-0">Post jobs and find qualified candidates</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <!-- Professional Login -->
+                            <div class="col-12">
+                                <a href="auth/login_user.php" class="card role-card h-100 text-decoration-none bg-gradient-info-hover">
+                                    <div class="card-body d-flex align-items-center gap-4 py-4">
+                                        <div class="icon-container bg-white bg-opacity-25 p-3 rounded-circle">
+                                            <i class="fas fa-user-tie fa-2x text-white"></i>
+                                        </div>
+                                        <div class="text-start">
+                                            <h4 class="text-white mb-1">Professional</h4>
+                                            <p class="text-white text-opacity-75 mb-0">Connect, mentor, and explore opportunities</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <p class="text-muted small text-center w-100 mb-0">
+                            Don't have an account? 
+                            <a href="#" data-bs-toggle="modal" data-bs-target="#signupModal" class="text-decoration-none">Sign Up</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
 
     <?php include 'includes/footer.php'; ?>
 

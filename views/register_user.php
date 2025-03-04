@@ -195,7 +195,8 @@
             </div>
         </form>
         <p class="text-center mt-3">Are you a Student? <a href="register_student.php">Create an Account here</a></p>
-        <p class="text-center mt-3">Already have an account? <a href="login.php">Login here</a></p>
+        <p class="text-center mt-2"><a href="../index.php">Back to Home</a></p>
+        <p class="text-center mt-3">Already have an account? <a href="../auth/login_user.php">Login here</a></p>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
