@@ -1,5 +1,9 @@
 <?php
-  session_start(); // Start session if needed for authentication check
+  session_start();
+  if (isset($_SESSION['user_id']) && isset($_SESSION['stud_id'])) {
+    header("Location: views/dashboard.php");
+    exit();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">

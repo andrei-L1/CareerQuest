@@ -1,5 +1,9 @@
 <?php
 session_start();
+if (!isset($_SESSION['user_id']) && !isset($_SESSION['stud_id'])) {
+    header("Location: ../index.php");
+    exit();
+  }
 require '../config/dbcon.php';  
 
 // Redirect to login if not authenticated
