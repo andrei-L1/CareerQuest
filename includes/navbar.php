@@ -4,26 +4,35 @@
 
 <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
     <div class="container">
-        <a class="navbar-brand fw-bold text-primary" href="index.php">Career Platform</a>
+        <!-- Brand Logo -->
+        <a class="navbar-brand fw-bold" href="index.php" style="color: var(--primary-color);">Career Platform</a>
+
+        <!-- Toggle Button for Mobile -->
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
+        <!-- Navbar Links -->
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
+                <!-- Find Jobs -->
                 <li class="nav-item">
-                    <a class="nav-link <?php echo ($currentPage == 'jobs.php') ? 'active text-primary fw-bold' : ''; ?>" href="jobs.php">Find Jobs</a>
+                    <a class="nav-link <?php echo ($currentPage == 'jobs.php') ? 'active fw-bold' : ''; ?>" href="jobs.php" style="color: var(--primary-color);">Find Jobs</a>
                 </li>
+
+                <!-- Networking -->
                 <li class="nav-item">
-                    <a class="nav-link <?php echo ($currentPage == 'network.php') ? 'active text-primary fw-bold' : ''; ?>" href="network.php">Networking</a>
+                    <a class="nav-link <?php echo ($currentPage == 'network.php') ? 'active fw-bold' : ''; ?>" href="network.php" style="color: var(--primary-color);">Networking</a>
                 </li>
+
+                <!-- Forums -->
                 <li class="nav-item">
-                    <a class="nav-link <?php echo ($currentPage == 'forums.php') ? 'active text-primary fw-bold' : ''; ?>" href="forums.php">Forums</a>
+                    <a class="nav-link <?php echo ($currentPage == 'forums.php') ? 'active fw-bold' : ''; ?>" href="forums.php" style="color: var(--primary-color);">Forums</a>
                 </li>
-                
+
                 <!-- Dropdown for More -->
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="moreDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <a class="nav-link dropdown-toggle" href="#" id="moreDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: var(--primary-color);">
                         More
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="moreDropdown">
@@ -33,13 +42,14 @@
                     </ul>
                 </li>
 
-                <!-- Login & Signup Buttons -->
+                <!-- Login Button -->
                 <li class="nav-item">
-                    <a class="btn btn-primary text-white px-3" href="./auth/login_student.php">Login</a>
+                    <a class="btn btn-primary text-white px-3" href="./auth/login_student.php" style="background-color: var(--primary-color); border-color: var(--primary-color);">Login</a>
                 </li>
 
+                <!-- Sign Up Button -->
                 <li class="nav-item ms-2">
-                    <a class="btn btn-primary text-white px-3" href="./views/register_student.php">Sign Up</a>
+                    <a class="btn btn-outline-primary px-3" href="./views/register_student.php" style="color: var(--primary-color); border-color: var(--primary-color);">Sign Up</a>
                 </li>
             </ul>
         </div>
