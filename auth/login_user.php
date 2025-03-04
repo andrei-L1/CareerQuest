@@ -87,16 +87,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Login</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body {
-            background: #f0f2f5;
+            background: linear-gradient(135deg, #667eea, #764ba2);
             font-family: 'Arial', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
         }
         .login-container {
             background: #fff;
             padding: 2.5rem;
             border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
             width: 100%;
             max-width: 400px;
             animation: fadeIn 0.5s ease-in-out;
@@ -109,21 +115,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: #333;
             margin-bottom: 1.5rem;
             font-weight: 600;
+            text-align: center;
+        }
+        .form-group {
+            position: relative;
+            margin-bottom: 1.5rem;
         }
         .form-control {
             border: 1px solid #ddd;
             border-radius: 8px;
             padding: 0.75rem;
             font-size: 14px;
-            transition: border-color 0.3s ease;
+            transition: all 0.3s ease;
         }
         .form-control:focus {
             border-color: #007bff;
-            box-shadow: none;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
         }
         .form-label {
-            color: #555;
-            font-weight: 500;
+            position: absolute;
+            top: 50%;
+            left: 0.75rem;
+            transform: translateY(-50%);
+            color: #999;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+        .form-control:focus + .form-label,
+        .form-control:not(:placeholder-shown) + .form-label {
+            top: 0;
+            font-size: 12px;
+            color: #007bff;
+            background: #fff;
+            padding: 0 4px;
         }
         .btn-primary {
             background: #007bff;
@@ -133,6 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 16px;
             font-weight: 500;
             transition: background 0.3s ease;
+            width: 100%;
         }
         .btn-primary:hover {
             background: #0056b3;
@@ -143,6 +169,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: #c62828;
             border-radius: 8px;
             padding: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        .social-login {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1.5rem;
+        }
+        .social-login .btn {
+            flex: 1;
+            margin: 0 0.5rem;
+            border-radius: 8px;
+            padding: 0.5rem;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .social-login .btn:hover {
+            transform: translateY(-2px);
+        }
+        .social-login .btn-google {
+            background: #db4437;
+            color: #fff;
+        }
+        .social-login .btn-facebook {
+            background: #3b5998;
+            color: #fff;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .text-muted {
+            color: #777;
         }
         a {
             color: #007bff;
@@ -152,53 +209,76 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         a:hover {
             text-decoration: underline;
         }
-        .text-muted {
-            color: #777;
+        .remember-me {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .remember-me input {
+            margin-right: 0.5rem;
+        }
+        .remember-me label {
+            margin: 0;
+            color: #555;
         }
     </style>
 </head>
-<body class="d-flex align-items-center justify-content-center vh-100">
+<body>
     <div class="login-container">
-        <h3 class="text-center mb-4">Login</h3>
+        <h3>Login</h3>
         <?php if ($error): ?>
-            <div class="alert alert-danger mb-3"><?= $error ?></div>
+            <div class="alert alert-danger"><?= $error ?></div>
         <?php endif; ?>
         <form method="POST" action="login_user.php">
-            <div class="mb-3">
-                <label class="form-label">Email:</label>
-                <input type="email" name="email" class="form-control" placeholder="Enter your email" required>
+            <div class="form-group">
+                <input type="email" name="email" class="form-control" placeholder=" " required>
+                <label class="form-label">Email</label>
             </div>
-            <div class="mb-3">
-                <label class="form-label">Password:</label>
-                <input type="password" name="password" class="form-control" placeholder="Enter your password" required>
+            <div class="form-group">
+                <input type="password" name="password" class="form-control" placeholder=" " required>
+                <label class="form-label">Password</label>
             </div>
-            <button type="submit" class="btn btn-primary w-100">Login</button>
+            <div class="remember-me">
+                <input type="checkbox" id="remember" name="remember">
+                <label for="remember">Remember Me</label>
+            </div>
+            <button type="submit" class="btn btn-primary">Login</button>
         </form>
+        <div class="social-login">
+            <button type="button" class="btn btn-google">
+                <i class="fab fa-google"></i> Google
+            </button>
+            <button type="button" class="btn btn-facebook">
+                <i class="fab fa-facebook"></i> Facebook
+            </button>
+        </div>
         <p class="text-center mt-3 text-muted">Don't have an account? <a href="../views/register_user.php">Sign up here</a></p>
         <p class="text-center mt-2"><a href="../index.php">Back to Home</a></p>
-        <p class="text-center mt-2"><a href="login_student.php">Not an Employer or a Proffesional? Click here.</a></p>
+        <p class="text-center mt-2"><a href="login_student.php">Not an Employer or a Professional? Click here.</a></p>
     </div>
-</body>
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    let countdownElement = document.getElementById("countdown");
 
-    if (countdownElement) {
-        let timeLeft = parseInt(countdownElement.innerText);
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let countdownElement = document.getElementById("countdown");
 
-        function updateCountdown() {
-            if (timeLeft > 0) {
-                timeLeft--;
-                countdownElement.innerText = timeLeft;
-                setTimeout(updateCountdown, 1000);
-            } else {
-                location.reload(); // Refresh page when countdown reaches 0
+            if (countdownElement) {
+                let timeLeft = parseInt(countdownElement.innerText);
+
+                function updateCountdown() {
+                    if (timeLeft > 0) {
+                        timeLeft--;
+                        countdownElement.innerText = timeLeft;
+                        setTimeout(updateCountdown, 1000);
+                    } else {
+                        location.reload(); // Refresh page when countdown reaches 0
+                    }
+                }
+
+                updateCountdown();
             }
-        }
+        });
+    </script>
+</body>
 
-        updateCountdown();
-    }
-});
-</script>
 
 </html>
