@@ -37,6 +37,7 @@
 <body class="d-flex align-items-center justify-content-center vh-100 bg-light">
     <div class="card p-4 shadow-lg" style="width: 400px;">
         <h3 class="text-center">Create an Account</h3>
+        <h6 class="text-center">Register as an Emplyer/Professional</h6>
         <div class="progress mb-3">
             <div id="progressBar" class="progress-bar" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
         </div>
@@ -103,6 +104,7 @@
                 </div>
             </div>
         </form>
+        <p class="text-center mt-3">Are you a Student? <a href="register_student.php">Craete an Account here</a></p>
         <p class="text-center mt-3">Already have an account? <a href="login.php">Login here</a></p>
     </div>
 <script src="../assests/createaccount.js"></script>

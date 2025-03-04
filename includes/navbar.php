@@ -39,7 +39,7 @@
                 </li>
 
                 <li class="nav-item ms-2">
-                    <a class="btn btn-primary text-white px-3" href="./views/signup.php">Sign Up</a>
+                    <a class="btn btn-primary text-white px-3" href="./views/register_student.php">Sign Up</a>
                 </li>
             </ul>
         </div>
