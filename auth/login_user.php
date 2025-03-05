@@ -51,25 +51,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$email) {
         $error = "Invalid email format.";
     } else {
-        $stmt = $conn->prepare("SELECT * FROM user WHERE user_email = :email");
+       
+        $stmt = $conn->prepare("
+            SELECT user.*, actor.actor_id 
+            FROM user 
+            JOIN actor ON user.user_id = actor.entity_id
+            WHERE user.user_email = :email
+        ");
+        
         $stmt->bindParam(':email', $email, PDO::PARAM_STR);
         $stmt->execute();
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user && password_verify($password, $user['user_password'])) {
-            // Successful login: Reset attempts and lockout
+            // ✅ Store actor_id in session
             $_SESSION['user_id'] = $user['user_id'];
+            $_SESSION['actor_id'] = $user['actor_id']; 
             $_SESSION['role_id'] = $user['role_id'];
             $_SESSION['entity'] = 'user';
             $_SESSION['login_attempts'] = 0;
             $_SESSION['lockout_time'] = 0;
 
-           require '../controllers/auth_redirect.php';
+            require '../controllers/auth_redirect.php';
             exit();
         } else {
-            // Failed login attempt
             $_SESSION['login_attempts']++;
-
             if ($_SESSION['login_attempts'] >= $max_attempts) {
                 $_SESSION['lockout_time'] = time() + $lockout_time;
                 $error = "Too many failed login attempts. Try again in <span id='countdown'>{$lockout_time}</span> seconds.";

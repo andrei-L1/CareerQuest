@@ -51,7 +51,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$email) {
         $error = "Invalid email format.";
     } else {
-        $stmt = $conn->prepare("SELECT * FROM student WHERE stud_email = :email");
+        $stmt = $conn->prepare("
+            SELECT student.*, actor.actor_id 
+            FROM student 
+            JOIN actor ON student.stud_id = actor.entity_id
+            WHERE student.stud_email = :email
+        ");        
         $stmt->bindParam(':email', $email, PDO::PARAM_STR);
         $stmt->execute();
         $student = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -59,6 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($student && password_verify($password, $student['stud_password'])) {
             // Successful login: Reset attempts and lockout
             $_SESSION['stud_id'] = $student['stud_id'];
+            $_SESSION['actor_id'] = $user['actor_id']; 
             $_SESSION['entity'] = 'student';
             $_SESSION['login_attempts'] = 0;
             $_SESSION['lockout_time'] = 0;
