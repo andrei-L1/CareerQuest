@@ -39,7 +39,6 @@ $remaining_time = max(0, $_SESSION['lockout_time'] - $current_time);
 if ($_SESSION['login_attempts'] >= $max_attempts && $remaining_time > 0) {
     $error = "Too many failed login attempts. Try again in <span id='countdown'>{$remaining_time}</span> seconds.";
 }
-
 // Process form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($remaining_time > 0) {
@@ -63,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['entity'] = 'student';
             $_SESSION['login_attempts'] = 0;
             $_SESSION['lockout_time'] = 0;
-            
+
             require '../controllers/auth_redirect.php';
             exit();
         } else {

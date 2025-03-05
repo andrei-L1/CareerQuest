@@ -37,11 +37,8 @@ $current_time = time();
 $remaining_time = max(0, $_SESSION['lockout_time'] - $current_time);
 
 if ($_SESSION['login_attempts'] >= $max_attempts && $remaining_time > 0) {
-    $minutes = floor($remaining_time / 60);
-    $seconds = $remaining_time % 60;
-    $error = "Too many failed login attempts. Try again in <span id='countdown'>{$minutes}:{$seconds}</span>.";
+    $error = "Too many failed login attempts. Try again in <span id='countdown'>{$remaining_time}</span> seconds.";
 }
-
 // Process form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($remaining_time > 0) {
@@ -75,9 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($_SESSION['login_attempts'] >= $max_attempts) {
                 $_SESSION['lockout_time'] = time() + $lockout_time;
-                $minutes = floor($lockout_time / 60);
-                $seconds = $lockout_time % 60;
-                $error = "Too many failed login attempts. Try again in <span id='countdown'>{$minutes}:{$seconds}</span>.";
+                $error = "Too many failed login attempts. Try again in <span id='countdown'>{$lockout_time}</span> seconds.";
             } else {
                 $error = "Invalid email or password.";
             }
@@ -266,25 +261,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
+     document.addEventListener("DOMContentLoaded", function () {
             let countdownElement = document.getElementById("countdown");
 
             if (countdownElement) {
-                let timeLeft = parseInt(countdownElement.innerText);
+                let timeLeft = parseInt(countdownElement.innerText.replace(/\D/g, '')); // Extract number
 
                 function updateCountdown() {
                     if (timeLeft > 0) {
                         timeLeft--;
-                        countdownElement.innerText = timeLeft;
+                        
+                        let minutes = Math.floor(timeLeft / 60);
+                        let seconds = timeLeft % 60;
+                        countdownElement.innerText = `${minutes}m ${seconds}s`;
+
                         setTimeout(updateCountdown, 1000);
                     } else {
-                        location.reload(); // Refresh page when countdown reaches 0
+                        location.reload(); 
                     }
                 }
 
                 updateCountdown();
             }
         });
+
     </script>
 </body>
 </html>
