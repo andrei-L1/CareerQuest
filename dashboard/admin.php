@@ -23,34 +23,6 @@ require "../controllers/admin_dashboard.php";
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     <!-- Custom Styles -->
     <link rel="stylesheet" href="../assests/admin.css">
-    <style>
-        
-        .dark-mode {
-            background-color: #1a1a1a;
-            color: #ffffff;
-        }
-
-        .dark-mode .card {
-            background-color: #2d2d2d;
-            color: #ffffff;
-        }
-
-        .card {
-            transition: transform 0.2s, box-shadow 0.2s;
-            border: none;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
-        }
-
-        .spinner-border {
-            width: 3rem;
-            height: 3rem;
-        }
-    </style>
 </head>
 <body class="fade-in">
     <!-- Main Content -->
