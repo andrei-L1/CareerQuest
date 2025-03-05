@@ -9,7 +9,7 @@ session_regenerate_id(true);
 
 // Redirect if already logged in
 if (isset($_SESSION['user_id']) || isset($_SESSION['stud_id'])) {
-    header("Location: ../views/dashboard.php");
+    require '../controllers/auth_redirect.php';
     exit();
 }
 
@@ -24,7 +24,7 @@ $error = "";
 $max_attempts = 5;
 $lockout_time = 300; // 5 minutes (300 seconds)
 
-// Initialize session variables if not set
+// Initialize session values if not set
 if (!isset($_SESSION['login_attempts'])) {
     $_SESSION['login_attempts'] = 0;
 }
@@ -32,22 +32,22 @@ if (!isset($_SESSION['lockout_time'])) {
     $_SESSION['lockout_time'] = 0;
 }
 
-// Check if the user is locked out
-$remaining_time = max(0, $_SESSION['lockout_time'] - time());
+// Check if user is locked out
+$current_time = time();
+$remaining_time = max(0, $_SESSION['lockout_time'] - $current_time);
 
 if ($_SESSION['login_attempts'] >= $max_attempts && $remaining_time > 0) {
-    $error = "Too many failed login attempts. Try again in <span id='countdown'>{$remaining_time}</span> seconds.";
-} elseif ($remaining_time <= 0) {
-    $_SESSION['login_attempts'] = 0;
-    $_SESSION['lockout_time'] = 0;
+    $minutes = floor($remaining_time / 60);
+    $seconds = $remaining_time % 60;
+    $error = "Too many failed login attempts. Try again in <span id='countdown'>{$minutes}:{$seconds}</span>.";
 }
 
-// Stop processing if locked out
-if (!empty($error)) {
-    exit();
-}
-
+// Process form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if ($remaining_time > 0) {
+        exit(); // Stop processing if locked out
+    }
+
     $email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
     $password = $_POST['password'];
 
@@ -60,18 +60,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user && password_verify($password, $user['user_password'])) {
+            // Successful login: Reset attempts and lockout
             $_SESSION['user_id'] = $user['user_id'];
             $_SESSION['role_id'] = $user['role_id'];
             $_SESSION['entity'] = 'user';
-            $_SESSION['login_attempts'] = 0; // Reset on successful login
+            $_SESSION['login_attempts'] = 0;
             $_SESSION['lockout_time'] = 0;
-            header("Location: ../views/dashboard.php");
+
+           require '../controllers/auth_redirect.php';
             exit();
         } else {
-            $_SESSION['login_attempts']++; // Increment failed attempt counter
+            // Failed login attempt
+            $_SESSION['login_attempts']++;
+
             if ($_SESSION['login_attempts'] >= $max_attempts) {
-                $_SESSION['lockout_time'] = time() + $lockout_time; // Set lockout expiration
-                $error = "Too many failed login attempts. Try again in 5m 0s.";
+                $_SESSION['lockout_time'] = time() + $lockout_time;
+                $minutes = floor($lockout_time / 60);
+                $seconds = $lockout_time % 60;
+                $error = "Too many failed login attempts. Try again in <span id='countdown'>{$minutes}:{$seconds}</span>.";
             } else {
                 $error = "Invalid email or password.";
             }
@@ -79,6 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">

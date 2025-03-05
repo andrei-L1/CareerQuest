@@ -33,3 +33,132 @@
          </div>
         </div>
     </section>
+
+
+
+
+
+
+
+
+views/dashboard.php 
+
+    <?php
+ini_set('session.use_only_cookies', 1);
+ini_set('session.cookie_httponly', 1);
+session_start();
+session_regenerate_id(true); // Prevent session fixation attacks
+
+if (!isset($_SESSION['user_id']) && !isset($_SESSION['stud_id'])) {
+    header("Location: ../index.php");
+    exit();
+}
+
+require '../config/dbcon.php';
+
+$entity = $_SESSION['entity'] ?? null;
+$name = "";
+$role_name = "User"; // Default role
+
+// Redirect if session data is inconsistent
+if (($entity === 'student' && !isset($_SESSION['stud_id'])) || ($entity === 'user' && !isset($_SESSION['user_id']))) {
+    header("Location: ../auth/login.php");
+    exit();
+}
+
+try {
+    if ($entity === 'student') {
+        $stud_id = $_SESSION['stud_id'];
+        $stmt = $conn->prepare("SELECT stud_first_name, stud_last_name, stud_email, institution FROM student WHERE stud_id = :stud_id LIMIT 1");
+        $stmt->bindParam(':stud_id', $stud_id, PDO::PARAM_INT);
+        $stmt->execute();
+        $student = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($student) {
+            $name = htmlspecialchars($student['stud_first_name'] . ' ' . $student['stud_last_name']);
+        }
+    } elseif ($entity === 'user') {
+        $user_id = $_SESSION['user_id'];
+        $stmt = $conn->prepare("
+            SELECT u.user_first_name, u.user_last_name, r.role_title 
+            FROM user u
+            LEFT JOIN role r ON u.role_id = r.role_id
+            WHERE u.user_id = :user_id
+            LIMIT 1
+        ");
+        $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+        $stmt->execute();
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($user) {
+            $name = htmlspecialchars($user['user_first_name'] . ' ' . $user['user_last_name']);
+            $role_name = htmlspecialchars($user['role_title'] ?? 'User');
+        }
+    }
+} catch (PDOException $e) {
+    error_log("Database error: " . $e->getMessage());
+    die("Something went wrong. Please try again later.");
+}
+
+// Redirect admin users immediately
+if ($entity === 'user' && isset($user) && $role_name === 'Admin') {
+    header("Location: ../admin/admin.php");
+    exit();
+}
+// Redirect admin users immediately
+if ($entity === 'user' && isset($user) && $role_name === 'Employer') {
+    header("Location: ../admin/admin.php");
+    exit();
+}
+// Redirect admin users immediately
+if ($entity === 'user' && isset($user) && $role_name === 'Professional') {
+    header("Location: ../admin/admin.php");
+    exit();
+}
+// Redirect admin users immediately
+if ($entity === 'user' && isset($user) && $role_name === 'Moderator') {
+    header("Location: ../admin/admin.php");
+    exit();
+}
+
+if ($entity === 'student' && isset($student)) {
+    header("Location: ../admin/admin.php");
+    exit();
+}
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+</head>
+<body>
+    <h1>Welcome, <?= $name; ?>!</h1>
+
+    <?php if ($entity === 'student' && isset($student)): ?>
+        <h2>Student Dashboard</h2>
+        <p>You are a student. Here are your details:</p>
+        <ul>
+            <li>Email: <?= htmlspecialchars($student['stud_email']); ?></li>
+            <li>Institution: <?= htmlspecialchars($student['institution']); ?></li>
+        </ul>
+        <a href="student_profile.php">Edit Profile</a><br>
+        <a href="view_jobs.php">View Job Postings</a><br>
+    <?php elseif ($entity === 'user' && isset($user)): ?>
+        <h2><?= $role_name; ?> Dashboard</h2>
+        <p>You are logged in as a <?= $role_name; ?>.</p>
+        <?php if ($role_name === 'Employer'): ?>
+            <a href="post_job.php">Post a Job</a><br>
+            <a href="view_applications.php">View Applications</a><br>
+        <?php elseif ($role_name === 'Professional'): ?>
+            <a href="update_profile.php">Update Profile</a><br>
+            <a href="view_jobs.php">View Job Postings</a><br>
+        <?php elseif ($role_name === 'Moderator'): ?>
+            <a href="manage_forum.php">Manage Forum</a><br>
+        <?php endif; ?>
+    <?php endif; ?>
+
+    <a href="../auth/logout.php">Logout</a>
+</body>
+</html>

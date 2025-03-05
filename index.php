@@ -1,9 +1,33 @@
 <?php
 session_start();
-if (isset($_SESSION['user_id']) && isset($_SESSION['stud_id'])) {
-    header("Location: views/dashboard.php");
+if (isset($_SESSION['user_id'])) { 
+
+    if (isset($_SESSION['role_id'])) {
+        switch ($_SESSION['role_id']) {
+            case 1: 
+                header("Location: dashboard/admin.php");
+                break;
+            case 2: 
+                header("Location: dashboard/employer.php");
+                break;
+            case 3: 
+                header("Location: dashboard/professional.php");
+                break;
+            default:
+                header("Location: dashboard/moderator.php"); 
+                break;
+        }
+    } else {
+        session_destroy();
+        header("Location: index.php"); 
+    }
+    exit();
+} elseif (isset($_SESSION['stud_id'])) {
+ 
+    header("Location: dashboard/student.php");
     exit();
 }
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -44,7 +68,7 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['stud_id'])) {
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(10, 38, 71, 0.7); /* Navy Blue with opacity */
+            background: rgba(10, 38, 71, 0.94); 
         }
 
         .hero-content {
