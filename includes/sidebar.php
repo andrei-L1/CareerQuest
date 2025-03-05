@@ -5,7 +5,7 @@ $sidebar_menu = [
     ["Job Postings", "fas fa-briefcase", "#"],
     ["Analytics", "fas fa-chart-line", "#"],
     ["Forum Moderation", "fas fa-comments", "#"],
-    ["Settings", "fas fa-cog", "#"]
+    ["Settings", "fas fa-cog", "#"],
+    ["Logout", "fas fa-sign-out-alt", "../auth/logout.php"] 
 ];
 ?>
-
