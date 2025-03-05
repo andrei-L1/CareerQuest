@@ -22,11 +22,182 @@ require "../controllers/admin_dashboard.php";
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     <!-- Custom Styles -->
-    <link rel="stylesheet" href="../assests/admin.css">
+    <style>
+        :root {
+            --primary-color: #0A2647; /* Navy Blue */
+            --secondary-color: #2C7865; /* Teal */
+            --accent-color: #FFD700; /* Gold */
+            --background-light: #F5F5F5; /* Light Gray */
+            --text-dark: #333333; /* Dark Gray */
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            background-color: var(--background-light);
+            color: var(--text-dark);
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            background-color: var(--primary-color);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px; /* Default width */
+            padding-top: 20px;
+            box-shadow: 2px 0 10px var(--shadow-color);
+            transition: width 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            width: 60px; /* Collapsed width */
+        }
+
+        .sidebar .nav-link {
+            color: white;
+            padding: 10px 20px;
+            margin: 5px 0;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar.collapsed .nav-link {
+            justify-content: center; /* Center icons when collapsed */
+        }
+
+        .sidebar.collapsed .nav-link span {
+            display: none; /* Hide text when collapsed */
+        }
+
+        .sidebar .nav-link i {
+            margin-right: 10px;
+        }
+
+        .sidebar .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .sidebar .nav-link.active {
+            background-color: var(--accent-color);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .sidebar-toggle {
+            cursor: pointer;
+            padding: 10px;
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .sidebar-toggle i {
+            color: white;
+        }
+
+        .main-content {
+            margin-left: 60px; 
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-content.collapsed {
+            margin-left: 250px;
+        }
+
+        /* Card Styles */
+        .card {
+            border: none;
+            border-radius: 10px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px var(--shadow-color);
+        }
+
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px;
+            border-bottom: none;
+        }
+
+        .card-title {
+            margin-bottom: 0;
+            font-size: 1.25rem;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* Dark Mode Styles */
+        .dark-mode {
+            background-color: #121212;
+            color: #ffffff;
+        }
+
+        .dark-mode .sidebar {
+            background-color: #1e1e1e;
+        }
+
+        .dark-mode .card {
+            background-color: #2d2d2d;
+            color: #ffffff;
+        }
+
+        .dark-mode .card-header {
+            background-color: #1e1e1e;
+        }
+
+        .dark-mode .list-group-item {
+            background-color: #2d2d2d;
+            color: #ffffff;
+        }
+
+        .dark-mode .alert-warning {
+            background-color: #332701;
+            color: #ffc107;
+        }
+
+        .dark-mode .alert-info {
+            background-color: #002b36;
+            color: #17a2b8;
+        }
+    </style>
 </head>
 <body class="fade-in">
+
+    <!-- Sidebar -->
+    <nav class="sidebar collapsed" id="sidebar">
+    <div class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-chevron-right"></i>
+    </div>
+    <div class="sidebar-sticky pt-3">
+        <ul class="nav flex-column">
+            <?php foreach ($sidebar_menu as $item): ?>
+                <li class="nav-item">
+                    <a class="nav-link <?php if ($item[0] === "Dashboard") echo 'active'; ?>" href="<?= $item[2] ?>" <?= $item[0] === "Logout" ? 'onclick="confirmLogout(event)"' : '' ?>>
+                        <i class="<?= $item[1] ?> me-2"></i>
+                        <span><?= $item[0] ?></span> 
+                    </a>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    </div>
+</nav>
+
+
     <!-- Main Content -->
-    <main class="main-content">
+    <main class="main-content" id="mainContent">
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
             <h1 class="h2">Welcome Aboard <?php echo htmlspecialchars($_SESSION['user_first_name']); ?>!</h1>
             <button class="btn btn-outline-secondary" id="darkModeToggle" data-bs-toggle="tooltip" data-bs-placement="top" title="Toggle Dark Mode">
@@ -98,58 +269,57 @@ require "../controllers/admin_dashboard.php";
         <div class="row fade-in">
             <!-- Recent Activity Section -->
             <div class="col-md-8">
-    <div class="card shadow-lg">
-        <div class="card-header ">
-            <h5 class="card-title mb-0">Recent Activity</h5>
-        </div>
-        <div class="card-body">
-            <ul class="list-group list-group-flush">
-                <?php if (!empty($recentActivities)): ?>
-                    <?php foreach ($recentActivities as $activity): ?>
-                        <li class="list-group-item d-flex align-items-center p-3 mb-3 border rounded shadow-sm hover-shadow">
-                            <?php 
-                                // Choose icon based on activity type
-                                $icon = '';
-                                switch ($activity['activity_type']) {
-                                    case 'User registered':
-                                        $icon = 'fas fa-user-plus';  // User registration icon
-                                        break;
-                                    case 'Login':
-                                        $icon = 'fas fa-sign-in-alt';  // Login icon
-                                        break;
-                                    case 'Logout':
-                                        $icon = 'fas fa-sign-out-alt'; // Logout icon
-                                        break;
-                                    case 'Password changed':
-                                        $icon = 'fas fa-key';  // Password change icon
-                                        break;
-                                    default:
-                                        $icon = 'fas fa-cogs';  // Default icon for other activities
-                                        break;
-                                }
-                            ?>
-                            <span class="icon-container me-3">
-                                <i class="<?= $icon ?> fs-3 text-primary"></i> <!-- Larger, colored icons -->
-                            </span>
-                            <div class="activity-details">
-                                <?php if ($activity['activity_type'] === 'User registered' && !empty($activity['user_type'])): ?>
-                                    <span class="badge bg-success"><?= htmlspecialchars($activity['user_type']) ?></span>
-                                    <strong><?= htmlspecialchars($activity['entity_name']) ?></strong>
-                                <?php else: ?>
-                                    <span class="badge bg-secondary"><?= htmlspecialchars($activity['activity_type']) ?></span>
-                                    <strong><?= htmlspecialchars($activity['entity_name']) ?></strong>
-                                <?php endif; ?>
-                            </div>
-                        </li>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <li class="list-group-item text-center">No recent activity</li>
-                <?php endif; ?>
-            </ul>
-        </div>
-    </div>
-</div>
-
+                <div class="card shadow-lg">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Recent Activity</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <?php if (!empty($recentActivities)): ?>
+                                <?php foreach ($recentActivities as $activity): ?>
+                                    <li class="list-group-item d-flex align-items-center p-3 mb-3 border rounded shadow-sm hover-shadow">
+                                        <?php 
+                                            // Choose icon based on activity type
+                                            $icon = '';
+                                            switch ($activity['activity_type']) {
+                                                case 'User registered':
+                                                    $icon = 'fas fa-user-plus';  // User registration icon
+                                                    break;
+                                                case 'Login':
+                                                    $icon = 'fas fa-sign-in-alt';  // Login icon
+                                                    break;
+                                                case 'Logout':
+                                                    $icon = 'fas fa-sign-out-alt'; // Logout icon
+                                                    break;
+                                                case 'Password changed':
+                                                    $icon = 'fas fa-key';  // Password change icon
+                                                    break;
+                                                default:
+                                                    $icon = 'fas fa-cogs';  // Default icon for other activities
+                                                    break;
+                                            }
+                                        ?>
+                                        <span class="icon-container me-3">
+                                            <i class="<?= $icon ?> fs-3 text-primary"></i> <!-- Larger, colored icons -->
+                                        </span>
+                                        <div class="activity-details">
+                                            <?php if ($activity['activity_type'] === 'User registered' && !empty($activity['user_type'])): ?>
+                                                <span class="badge bg-success"><?= htmlspecialchars($activity['user_type']) ?></span>
+                                                <strong><?= htmlspecialchars($activity['entity_name']) ?></strong>
+                                            <?php else: ?>
+                                                <span class="badge bg-secondary"><?= htmlspecialchars($activity['activity_type']) ?></span>
+                                                <strong><?= htmlspecialchars($activity['entity_name']) ?></strong>
+                                            <?php endif; ?>
+                                        </div>
+                                    </li>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <li class="list-group-item text-center">No recent activity</li>
+                            <?php endif; ?>
+                        </ul>
+                    </div>
+                </div>
+            </div>
 
             <!-- Notifications Section -->
             <div class="col-md-4">
@@ -183,6 +353,36 @@ require "../controllers/admin_dashboard.php";
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
     <!-- Custom Scripts -->
     <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.getElementById('mainContent');
+            const toggleIcon = sidebarToggle.querySelector('i');  // Select the icon inside the toggle button
+
+            // Set the initial state of the sidebar to be collapsed
+            if (!sidebar.classList.contains('collapsed')) {
+                sidebar.classList.add('collapsed');
+                toggleIcon.classList.remove('fa-chevron-left');
+                toggleIcon.classList.add('fa-chevron-right');
+            }
+
+            sidebarToggle.addEventListener('click', () => {
+                // Toggle the collapsed class on both sidebar and main content
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('collapsed');
+
+                // Change the icon based on whether the sidebar is collapsed or not
+                if (sidebar.classList.contains('collapsed')) {
+                    toggleIcon.classList.remove('fa-chevron-left');
+                    toggleIcon.classList.add('fa-chevron-right');  // Change to right chevron when collapsed
+                } else {
+                    toggleIcon.classList.remove('fa-chevron-right');
+                    toggleIcon.classList.add('fa-chevron-left');  // Change to left chevron when expanded
+                }
+            });
+        });
+
+
         // Dark Mode Toggle
         const darkModeToggle = document.getElementById('darkModeToggle');
         darkModeToggle.addEventListener('click', () => {
@@ -256,11 +456,13 @@ require "../controllers/admin_dashboard.php";
                 }
             });
         });
+
+
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../assests/logout.js"></script>
+    <!-- SweetAlert2 CSS & JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="../assests/logout.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 </html>
