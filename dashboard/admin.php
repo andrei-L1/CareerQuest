@@ -21,6 +21,7 @@ require "../controllers/admin_dashboard.php";
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="../assests/sidebar.css">
     <!-- Custom Styles -->
     <style>
         :root {
@@ -38,78 +39,15 @@ require "../controllers/admin_dashboard.php";
             font-family: 'Poppins', sans-serif;
         }
 
-        /* Sidebar Styles */
-        .sidebar {
-            background-color: var(--primary-color);
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 250px; /* Default width */
-            padding-top: 20px;
-            box-shadow: 2px 0 10px var(--shadow-color);
-            transition: width 0.3s ease;
-        }
-
-        .sidebar.collapsed {
-            width: 60px; /* Collapsed width */
-        }
-
-        .sidebar .nav-link {
-            color: white;
-            padding: 10px 20px;
-            margin: 5px 0;
-            border-radius: 5px;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-        }
-
-        .sidebar.collapsed .nav-link {
-            justify-content: center; /* Center icons when collapsed */
-        }
-
-        .sidebar.collapsed .nav-link span {
-            display: none; /* Hide text when collapsed */
-        }
-
-        .sidebar .nav-link i {
-            margin-right: 10px;
-        }
-
-        .sidebar .nav-link:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-            transform: translateX(5px);
-        }
-
-        .sidebar .nav-link.active {
-            background-color: var(--accent-color);
-            color: var(--primary-color);
-            font-weight: 600;
-        }
-
-        .sidebar-toggle {
-            cursor: pointer;
-            padding: 10px;
-            text-align: center;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .sidebar-toggle i {
-            color: white;
-        }
-
         .main-content {
-            margin-left: 60px; 
+            margin-left: 250px; /* Adjust this when sidebar is open */
             padding: 20px;
             transition: margin-left 0.3s ease;
         }
 
-        .main-content.collapsed {
-            margin-left: 250px;
+        .sidebar.collapsed + .main-content {
+            margin-left: 60px; /* Adjust when sidebar is collapsed */
         }
-
         /* Card Styles */
         .card {
             border: none;
@@ -184,8 +122,12 @@ require "../controllers/admin_dashboard.php";
         <div class="sidebar-sticky pt-3">
             <ul class="nav flex-column">
                 <?php foreach ($sidebar_menu as $item): ?>
+                    <?php 
+                        // Check if the menu item matches the current page
+                        $is_active = ($current_page == basename($item[2])) ? 'active' : ''; 
+                    ?>
                     <li class="nav-item">
-                        <a class="nav-link <?php if ($item[0] === "Dashboard") echo 'active'; ?>" href="<?= $item[2] ?>" <?= $item[0] === "Logout" ? 'onclick="confirmLogout(event)"' : '' ?>>
+                        <a class="nav-link <?= $is_active ?>" href="<?= $item[2] ?>" <?= $item[0] === "Logout" ? 'onclick="confirmLogout(event)"' : '' ?>>
                             <i class="<?= $item[1] ?> me-2"></i>
                             <span><?= $item[0] ?></span> 
                         </a>
@@ -344,60 +286,20 @@ require "../controllers/admin_dashboard.php";
                 </div>
             </div>
         </div>
-    </main>
-
+    </main>    
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- DataTables JS -->
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
     <!-- Custom Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../assests/logout.js"></script>
+    <script src="../assests/sidebar_toggle.js"></script>
+    <!-- SweetAlert2 CSS & JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
      
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const sidebarToggle = document.getElementById('sidebarToggle');
-            const sidebar = document.querySelector('.sidebar');
-            const mainContent = document.getElementById('mainContent');
-            const toggleIcon = sidebarToggle.querySelector('i');  // Select the icon inside the toggle button
-
-            // Set the initial state of the sidebar to be collapsed
-            if (!sidebar.classList.contains('collapsed')) {
-                sidebar.classList.add('collapsed');
-                toggleIcon.classList.remove('fa-chevron-left');
-                toggleIcon.classList.add('fa-chevron-right');
-            }
-
-            sidebarToggle.addEventListener('click', () => {
-                // Toggle the collapsed class on both sidebar and main content
-                sidebar.classList.toggle('collapsed');
-                mainContent.classList.toggle('collapsed');
-
-                // Change the icon based on whether the sidebar is collapsed or not
-                if (sidebar.classList.contains('collapsed')) {
-                    toggleIcon.classList.remove('fa-chevron-left');
-                    toggleIcon.classList.add('fa-chevron-right');  // Change to right chevron when collapsed
-                } else {
-                    toggleIcon.classList.remove('fa-chevron-right');
-                    toggleIcon.classList.add('fa-chevron-left');  // Change to left chevron when expanded
-                }
-            });
-        });
-
-        // Dark Mode Toggle
-        const darkModeToggle = document.getElementById('darkModeToggle');
-        darkModeToggle.addEventListener('click', () => {
-            document.body.classList.toggle('dark-mode');
-            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
-            darkModeToggle.innerHTML = document.body.classList.contains('dark-mode') ?
-                '<i class="fas fa-sun"></i> Light Mode' : '<i class="fas fa-moon"></i> Dark Mode';
-        });
-
-        // Check for saved dark mode preference
-        if (localStorage.getItem('darkMode') === 'true') {
-            document.body.classList.add('dark-mode');
-            darkModeToggle.innerHTML = '<i class="fas fa-sun"></i> Light Mode';
-        }
-
         // Initialize tooltips
         const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
         tooltipTriggerList.map((tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl));
@@ -458,9 +360,5 @@ require "../controllers/admin_dashboard.php";
         });
     </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="../assests/logout.js"></script>
-    <!-- SweetAlert2 CSS & JS -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 </html>
