@@ -1,5 +1,4 @@
 <?php
-require "../config/dbcon.php";
 include "../includes/sidebar.php";
 require "../controllers/chart_query.php";
 require "../controllers/admin_dashboard.php";
@@ -24,6 +23,20 @@ require "../controllers/admin_dashboard.php";
     <link rel="stylesheet" href="../assests/sidebar.css">
     <!-- Custom Styles -->
     <style>
+
+         /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--background-light);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 10px;
+        }
         :root {
             --primary-color: #0A2647; /* Navy Blue */
             --secondary-color: #2C7865; /* Teal */
