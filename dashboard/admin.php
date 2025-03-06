@@ -178,22 +178,22 @@ require "../controllers/admin_dashboard.php";
 
     <!-- Sidebar -->
     <nav class="sidebar collapsed" id="sidebar">
-    <div class="sidebar-toggle" id="sidebarToggle">
-        <i class="fas fa-chevron-right"></i>
-    </div>
-    <div class="sidebar-sticky pt-3">
-        <ul class="nav flex-column">
-            <?php foreach ($sidebar_menu as $item): ?>
-                <li class="nav-item">
-                    <a class="nav-link <?php if ($item[0] === "Dashboard") echo 'active'; ?>" href="<?= $item[2] ?>" <?= $item[0] === "Logout" ? 'onclick="confirmLogout(event)"' : '' ?>>
-                        <i class="<?= $item[1] ?> me-2"></i>
-                        <span><?= $item[0] ?></span> 
-                    </a>
-                </li>
-            <?php endforeach; ?>
-        </ul>
-    </div>
-</nav>
+        <div class="sidebar-toggle" id="sidebarToggle">
+            <i class="fas fa-chevron-right"></i>
+        </div>
+        <div class="sidebar-sticky pt-3">
+            <ul class="nav flex-column">
+                <?php foreach ($sidebar_menu as $item): ?>
+                    <li class="nav-item">
+                        <a class="nav-link <?php if ($item[0] === "Dashboard") echo 'active'; ?>" href="<?= $item[2] ?>" <?= $item[0] === "Logout" ? 'onclick="confirmLogout(event)"' : '' ?>>
+                            <i class="<?= $item[1] ?> me-2"></i>
+                            <span><?= $item[0] ?></span> 
+                        </a>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+    </nav>
 
 
     <!-- Main Content -->
@@ -352,6 +352,7 @@ require "../controllers/admin_dashboard.php";
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
     <!-- Custom Scripts -->
+     
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const sidebarToggle = document.getElementById('sidebarToggle');
@@ -381,7 +382,6 @@ require "../controllers/admin_dashboard.php";
                 }
             });
         });
-
 
         // Dark Mode Toggle
         const darkModeToggle = document.getElementById('darkModeToggle');
@@ -456,8 +456,6 @@ require "../controllers/admin_dashboard.php";
                 }
             });
         });
-
-
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
