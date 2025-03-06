@@ -277,7 +277,7 @@ require "../controllers/admin_dashboard.php";
                         <ul class="list-group list-group-flush">
                             <?php if (!empty($recentActivities)): ?>
                                 <?php foreach ($recentActivities as $activity): ?>
-                                    <li class="list-group-item d-flex align-items-center p-3 mb-3 border rounded shadow-sm hover-shadow">
+                                    <li class="list-group-item d-flex align-items-center p-2 mb-2 border rounded shadow-sm hover-shadow">
                                         <?php 
                                             // Choose icon based on activity type
                                             $icon = '';
