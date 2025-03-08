@@ -162,3 +162,18 @@ if ($entity === 'student' && isset($student)) {
     <a href="../auth/logout.php">Logout</a>
 </body>
 </html>
+
+
+
+
+
+
+.main-content {
+            margin-left: 250px; /* Adjust this when sidebar is open */
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+
+        .sidebar.collapsed + .main-content {
+            margin-left: 60px; /* Adjust when sidebar is collapsed */
+        }

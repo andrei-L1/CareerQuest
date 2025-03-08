@@ -53,14 +53,16 @@ require "../controllers/admin_dashboard.php";
         }
 
         .main-content {
-            margin-left: 250px; /* Adjust this when sidebar is open */
+            margin-left: 350px; 
+            margin-right: 150px;
             padding: 20px;
             transition: margin-left 0.3s ease;
         }
 
         .sidebar.collapsed + .main-content {
-            margin-left: 60px; /* Adjust when sidebar is collapsed */
+            margin-left: 200px; /
         }
+
         /* Card Styles */
         .card {
             border: none;

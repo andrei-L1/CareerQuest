@@ -42,13 +42,14 @@ require "../controllers/admin_user_management.php";
         }
 
         .main-content {
-            margin-left: 250px;
+            margin-left: 350px;
+            margin-right: 150px;
             padding: 20px;
             transition: margin-left 0.3s ease;
         }
 
         .sidebar.collapsed + .main-content {
-            margin-left: 60px;
+            margin-left: 200px;
         }
 
         .card {
