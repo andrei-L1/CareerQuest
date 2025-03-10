@@ -793,18 +793,16 @@ require "../controllers/admin_user_management.php";
             let filter = this.value.toLowerCase();
             let rows = document.querySelectorAll(`#${tableId} tbody tr`);
 
-            rows.forEach(row => {
-                let text = row.textContent.toLowerCase();
-                row.style.display = text.includes(filter) ? "" : "none";
+                rows.forEach(row => {
+                    let text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(filter) ? "" : "none";
+                });
             });
-        });
-    }
+        }
 
-    // Apply filtering for both tables
-    filterTable("searchActiveUsers", "activeUsersTable");
-    filterTable("searchDeletedUsers", "deletedUsersTable");
-</script>
-
-
+        // Apply filtering for both tables
+        filterTable("searchActiveUsers", "activeUsersTable");
+        filterTable("searchDeletedUsers", "deletedUsersTable");
+    </script>
 </body>
 </html>
