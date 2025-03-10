@@ -75,19 +75,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             } elseif ($entity === 'student') {
                 $institution = trim($_POST['institution'] ?? '');
+                $status = 'active';
                 if (empty($institution)) {
                     throw new Exception("Institution field is required.");
                 }
             
                 // Insert student into database
-                $stmt = $conn->prepare("INSERT INTO student (stud_no, stud_email, stud_password, stud_first_name, stud_last_name, institution) 
-                                        VALUES (:studno, :email, :password, :first_name, :last_name, :institution)");
+                $stmt = $conn->prepare("INSERT INTO student (stud_no, stud_email, stud_password, stud_first_name, stud_last_name, institution, `status`) 
+                                        VALUES (:studno, :email, :password, :first_name, :last_name, :institution,:active)");
                 $stmt->bindParam(':studno', $studno, PDO::PARAM_STR);
                 $stmt->bindParam(':email', $email, PDO::PARAM_STR);
                 $stmt->bindParam(':password', $hashed_password, PDO::PARAM_STR);
                 $stmt->bindParam(':first_name', $first_name, PDO::PARAM_STR);
                 $stmt->bindParam(':last_name', $last_name, PDO::PARAM_STR);
                 $stmt->bindParam(':institution', $institution, PDO::PARAM_STR);
+                $stmt->bindParam(':active', $status, PDO::PARAM_STR);
             
                 if (!$stmt->execute()) {
                     throw new Exception("Error inserting student.");

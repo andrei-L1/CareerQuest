@@ -184,8 +184,7 @@
                     <select name="role_id" class="form-select">
                         <option value="1">Employer</option>
                         <option value="2">Professional</option>
-                        <option value="3">Moderator</option>
-                        <option value="4">Admin</option>
+                        <option value="4">admin</option>
                     </select>
                 </div>
                 <div class="d-flex justify-content-between mt-4">

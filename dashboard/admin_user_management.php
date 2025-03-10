@@ -226,12 +226,26 @@ require "../controllers/admin_user_management.php";
         </div>
 
         <!-- User Table -->
+<!-- Bootstrap Tabs -->
+<ul class="nav nav-tabs" id="userTabs" role="tablist">
+    <li class="nav-item">
+        <a class="nav-link active" id="active-tab" data-bs-toggle="tab" href="#activeUsers" role="tab">Active Users</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="deleted-tab" data-bs-toggle="tab" href="#deletedUsers" role="tab">Deleted Users</a>
+    </li>
+</ul>
+
+<!-- Tab Content -->
+<div class="tab-content mt-3">
+    
+    <!-- Active Users -->
+    <div class="tab-pane fade show active" id="activeUsers" role="tabpanel">
         <div class="card">
             <div class="card-body">
-                <table id="userTable" class="table table-striped" style="width:100%">
+                <table id="activeUsersTable" class="table table-striped">
                     <thead>
                         <tr>
-                            <th><input type="checkbox" id="selectAll"></th>
                             <th>ID</th>
                             <th>Name</th>
                             <th>Email</th>
@@ -242,42 +256,72 @@ require "../controllers/admin_user_management.php";
                     </thead>
                     <tbody>
                         <?php foreach ($users as $user): ?>
-                            <tr>
-                                <td><input type="checkbox" class="userCheckbox"></td>
-                                <td><?= htmlspecialchars($user['actor_id']) ?></td>
-                                <td><?= htmlspecialchars($user['first_name'] . ' ' . $user['last_name']) ?></td>
-                                <td><?= htmlspecialchars($user['email']) ?></td>
-                                <td><?= htmlspecialchars($user['role_name']) ?></td>
-                                <td>
-                                    <span class="badge 
-                                        <?php 
-                                            if ($user['status'] === 'Active') {
-                                                echo 'bg-success'; 
-                                            } elseif ($user['status'] === 'Pending') {
-                                                echo 'bg-warning'; 
-                                            } elseif ($user['status'] === 'Inactive') {
-                                                echo 'bg-danger'; 
-                                            } else {
-                                                echo 'bg-success';
-                                            }
-                                        ?>">
-                                        <?= htmlspecialchars($user['status']) ?>
-                                    </span>
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-primary btn-action" data-bs-toggle="modal" data-bs-target="#editUserModal">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-danger btn-action" onclick="confirmDelete()">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
+                            <?php if ($user['status'] === 'active'): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($user['actor_id']) ?></td>
+                                    <td><?= htmlspecialchars($user['first_name'] . ' ' . $user['last_name']) ?></td>
+                                    <td><?= htmlspecialchars($user['email']) ?></td>
+                                    <td><?= htmlspecialchars($user['role_name']) ?></td>
+                                    <td><span class="badge bg-success"><?= htmlspecialchars($user['status']) ?></span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary btn-action" data-bs-toggle="modal" data-bs-target="#editUserModal">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger btn-action deleteUserBtn" data-id="<?= $user['actor_id'] ?>">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
                         <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
         </div>
+    </div>
+
+    <!-- Deleted Users -->
+    <div class="tab-pane fade" id="deletedUsers" role="tabpanel">
+        <div class="card">
+            <div class="card-body">
+                <table id="deletedUsersTable" class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($deletedusers as $deletedusers): ?>
+                            <?php if ($deletedusers['status'] === 'Deleted'): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($deletedusers['actor_id']) ?></td>
+                                    <td><?= htmlspecialchars($deletedusers['first_name'] . ' ' . $deletedusers['last_name']) ?></td>
+                                    <td><?= htmlspecialchars($deletedusers['email']) ?></td>
+                                    <td><?= htmlspecialchars($deletedusers['role_name']) ?></td>
+                                    <td><span class="badge bg-danger"><?= htmlspecialchars($deletedusers['status']) ?></span></td>
+                                    <td>
+                                    <button class="btn btn-sm btn-success btn-action restoreUserBtn" data-id="<?= $deletedusers['actor_id'] ?>">
+                                        <i class="fas fa-undo"></i> Restore
+                                    </button>
+
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
 
    <!-- Add User Modal -->
 <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
@@ -383,8 +427,7 @@ require "../controllers/admin_user_management.php";
                             <div class="mb-3">
                                 <label for="editUserStatus" class="form-label">Status</label>
                                 <select class="form-select" id="editUserStatus" required>
-                                    <option value="Active">Active</option>
-                                    <option value="Pending">Pending</option>
+                                    <option value="Active">acctive</option>
                                     <option value="Inactive">Inactive</option>
                                 </select>
                             </div>
@@ -404,7 +447,12 @@ require "../controllers/admin_user_management.php";
         <div class="spinner-border text-primary" role="status">
             <span class="visually-hidden">Loading...</span>
         </div>
-    </div>
+    </div>  
+        <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- SweetAlert -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -575,11 +623,12 @@ require "../controllers/admin_user_management.php";
 
         if (entityType === "student") {
             formData.append("institution", institution || "Unknown");
+            formData.append("status", "active");
         } else {
             let roleDropdown = document.getElementById("userRole");
             let roleTitle = roleDropdown.options[roleDropdown.selectedIndex].text;
             formData.append("role", roleTitle);
-            formData.append("status", "Pending");
+            formData.append("status", "active");
         }
 
         fetch("../controllers/admin_user_management.php", {
@@ -623,6 +672,120 @@ require "../controllers/admin_user_management.php";
                 helpText.classList.add("d-none");
             }
         });
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll(".deleteUserBtn").forEach(button => {
+                button.addEventListener("click", function () {
+                    const userId = this.getAttribute("data-id");
+
+                    Swal.fire({
+                        title: "Are you sure?",
+                        text: "You won't be able to revert this!",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#d33",
+                        cancelButtonColor: "#3085d6",
+                        confirmButtonText: "Yes, delete it!"
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            fetch("admin_user_management.php", { 
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/x-www-form-urlencoded",
+                                },
+                                body: `delete_id=${userId}`,
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                Swal.fire({
+                                    icon: data.status === "success" ? "success" : "error",
+                                    title: data.status === "success" ? "Deleted!" : "Error!",
+                                    text: data.message,
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                                if (data.status === "success") {
+                                location.reload();
+                                }
+                            })
+                            .catch(error => console.error("Error:", error));
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll(".restoreUserBtn").forEach(button => {
+                button.addEventListener("click", function () {
+                    const userId = this.getAttribute("data-id");
+                    
+                    if (!userId) {
+                        console.error("Error: No user ID found.");
+                        return;
+                    }
+
+                    console.log("Restore User ID:", userId); // Debugging
+
+                    Swal.fire({
+                        title: "Are you sure?",
+                        text: "You want to restore this user?",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#28a745",
+                        cancelButtonColor: "#d33",
+                        confirmButtonText: "Yes, restore!",
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            fetch("admin_user_management.php", {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: `restore_id=${userId}`,
+})
+.then(response => response.text())  // Get raw text response
+.then(text => {
+    console.log("Raw response:", text);  // Debugging
+    return JSON.parse(text);  // Convert to JSON
+})
+.then(data => {
+    if (data.status === "success") {
+        Swal.fire({
+            icon: "success",
+            title: "Restored!",
+            text: data.message,
+            timer: 2000,
+            showConfirmButton: false
+        });
+        setTimeout(() => location.reload(), 2000);
+    } else {
+        Swal.fire({
+            icon: "error",
+            title: "Error!",
+            text: data.message,
+        });
+    }
+})
+.catch(error => {
+    console.error("Fetch Error:", error);
+    Swal.fire({
+        title: "Error!",
+        text: "Invalid server response. Check console for details.",
+        icon: "error",
+    });
+});
+
+                        }
+                    });
+                });
+            });
+        });
+
     </script>
 
 </body>
