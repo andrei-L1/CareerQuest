@@ -226,220 +226,224 @@ require "../controllers/admin_user_management.php";
         </div>
 
         <!-- User Table -->
-<!-- Bootstrap Tabs -->
-<ul class="nav nav-tabs" id="userTabs" role="tablist">
-    <li class="nav-item">
-        <a class="nav-link active" id="active-tab" data-bs-toggle="tab" href="#activeUsers" role="tab">Active Users</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" id="deleted-tab" data-bs-toggle="tab" href="#deletedUsers" role="tab">Deleted Users</a>
-    </li>
-</ul>
+            
+    <!-- Bootstrap Tabs -->
+    <ul class="nav nav-tabs" id="userTabs" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" id="active-tab" data-bs-toggle="tab" href="#activeUsers" role="tab">Active Users</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="deleted-tab" data-bs-toggle="tab" href="#deletedUsers" role="tab">Deleted Users</a>
+        </li>
+    </ul>
 
-<!-- Tab Content -->
-<div class="tab-content mt-3">
-    
-    <!-- Active Users -->
-    <div class="tab-pane fade show active" id="activeUsers" role="tabpanel">
-        <div class="card">
-            <div class="card-body">
-                <table id="activeUsersTable" class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($users as $user): ?>
-                            <?php if ($user['status'] === 'active'): ?>
-                                <tr>
-                                    <td><?= htmlspecialchars($user['actor_id']) ?></td>
-                                    <td><?= htmlspecialchars($user['first_name'] . ' ' . $user['last_name']) ?></td>
-                                    <td><?= htmlspecialchars($user['email']) ?></td>
-                                    <td><?= htmlspecialchars($user['role_name']) ?></td>
-                                    <td><span class="badge bg-success"><?= htmlspecialchars($user['status']) ?></span></td>
-                                    <td>
-                                        <button class="btn btn-sm btn-primary btn-action" data-bs-toggle="modal" data-bs-target="#editUserModal">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger btn-action deleteUserBtn" data-id="<?= $user['actor_id'] ?>">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            <?php endif; ?>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Deleted Users -->
-    <div class="tab-pane fade" id="deletedUsers" role="tabpanel">
-        <div class="card">
-            <div class="card-body">
-                <table id="deletedUsersTable" class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($deletedusers as $deletedusers): ?>
-                            <?php if ($deletedusers['status'] === 'Deleted'): ?>
-                                <tr>
-                                    <td><?= htmlspecialchars($deletedusers['actor_id']) ?></td>
-                                    <td><?= htmlspecialchars($deletedusers['first_name'] . ' ' . $deletedusers['last_name']) ?></td>
-                                    <td><?= htmlspecialchars($deletedusers['email']) ?></td>
-                                    <td><?= htmlspecialchars($deletedusers['role_name']) ?></td>
-                                    <td><span class="badge bg-danger"><?= htmlspecialchars($deletedusers['status']) ?></span></td>
-                                    <td>
-                                    <button class="btn btn-sm btn-success btn-action restoreUserBtn" data-id="<?= $deletedusers['actor_id'] ?>">
-                                        <i class="fas fa-undo"></i> Restore
-                                    </button>
-
-                                    </td>
-                                </tr>
-                            <?php endif; ?>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-</div>
-
-
-
-   <!-- Add User Modal -->
-<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content bg-dark text-light border-secondary">
-            <div class="modal-header border-secondary">
-                <h5 class="modal-title" id="addUserModalLabel">Add User</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div id="responseMessage" class="alert d-none" role="alert"></div>
-                <form id="addUserForm">
-                    <!-- Select Entity -->
-                    <div class="mb-3">
-                        <label for="entityType" class="form-label">Sign Up As</label>
-                        <select class="form-select bg-secondary text-light border-secondary" id="entityType" name="entityType" required onchange="toggleFields()">
-                            <option value="">Select</option>
-                            <option value="user">User</option>
-                            <option value="student">Student</option>
-                        </select>
-                    </div>
-
-                    <!-- Personal Information -->
-                    <div class="mb-3">
-                        <label for="firstName" class="form-label">First Name</label>
-                        <input type="text" class="form-control bg-secondary text-light border-secondary" id="firstName" name="first_name" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="lastName" class="form-label">Last Name</label>
-                        <input type="text" class="form-control bg-secondary text-light border-secondary" id="lastName" name="last_name" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="userEmail" class="form-label">Email</label>
-                        <input type="email" class="form-control bg-secondary text-light border-secondary" id="userEmail" name="email" required>
-                    </div>
-
-                    <!-- Password Fields -->
-                    <div class="mb-3">
-                        <label for="userPassword" class="form-label">Password</label>
-                        <input type="password" class="form-control bg-secondary text-light border-secondary" id="userPassword" name="password" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="confirmPassword" class="form-label">Confirm Password</label>
-                        <input type="password" class="form-control bg-secondary text-light border-secondary" id="confirmPassword" name="confirm_password" required>
-                        <small id="passwordHelp" class="text-danger d-none">Passwords do not match.</small>
-                    </div>
-
-                    <!-- Conditional Fields -->
-                    <div id="userFields" class="mb-3 d-none">
-                        <label for="userRole" class="form-label">Role</label>
-                        <select class="form-select bg-secondary text-light border-secondary" id="userRole" name="role_id">
-                            <option value="1">Employer</option>
-                            <option value="2">Professional</option>
-                            <option value="3">Moderator</option>
-                            <option value="4">Admin</option>
-                        </select>
-                    </div>
-                    <div id="studentFields" class="mb-3 d-none">
-                        <label for="institution" class="form-label">Institution</label>
-                        <input type="text" class="form-control bg-secondary text-light border-secondary" id="institution" name="institution">
-                    </div>
-
-                    <div id="errorMessage" class="text-danger"></div>
-                </form>
-            </div>
-            <div class="modal-footer border-secondary">
-                <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" onclick="submitUser()">Save</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-
-        <!-- Edit User Modal -->
-        <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form>
-                            <div class="mb-3">
-                                <label for="editUserName" class="form-label">Name</label>
-                                <input type="text" class="form-control" id="editUserName" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="editUserEmail" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="editUserEmail" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="editUserRole" class="form-label">Role</label>
-                                <select class="form-select" id="editUserRole" required>
-                                    <option value="Student">Student</option>
-                                    <option value="Employer">Employer</option>
-                                    <option value="Professional">Professional</option>
-                                    <option value="Moderator">Moderator</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="editUserStatus" class="form-label">Status</label>
-                                <select class="form-select" id="editUserStatus" required>
-                                    <option value="Active">acctive</option>
-                                    <option value="Inactive">Inactive</option>
-                                </select>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary">Save Changes</button>
-                    </div>
+    <!-- Tab Content -->
+    <div class="tab-content mt-3">
+        
+        <!-- Active Users -->
+        <div class="tab-pane fade show active" id="activeUsers" role="tabpanel">
+            <div class="card">
+                <div class="card-body">
+                <input type="text" id="searchActiveUsers" class="form-control mb-3" placeholder="Search Active Users...">
+                    <table id="activeUsersTable" class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($users as $user): ?>
+                                <?php if ($user['status'] === 'active'): ?>
+                                    <tr>
+                                        <td><?= htmlspecialchars($user['actor_id']) ?></td>
+                                        <td><?= htmlspecialchars($user['first_name'] . ' ' . $user['last_name']) ?></td>
+                                        <td><?= htmlspecialchars($user['email']) ?></td>
+                                        <td><?= htmlspecialchars($user['role_name']) ?></td>
+                                        <td><span class="badge bg-success"><?= htmlspecialchars($user['status']) ?></span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary btn-action" data-bs-toggle="modal" data-bs-target="#editUserModal">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-danger btn-action deleteUserBtn" data-id="<?= $user['actor_id'] ?>">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
+
+        <!-- Deleted Users -->
+        <div class="tab-pane fade" id="deletedUsers" role="tabpanel">
+            <div class="card">
+                <div class="card-body">
+                <input type="text" id="searchDeletedUsers" class="form-control mb-3" placeholder="Search Deleted Users...">
+                    <table id="deletedUsersTable" class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($deletedusers as $deletedusers): ?>
+                                <?php if ($deletedusers['status'] === 'Deleted'): ?>
+                                    <tr>
+                                        <td><?= htmlspecialchars($deletedusers['actor_id']) ?></td>
+                                        <td><?= htmlspecialchars($deletedusers['first_name'] . ' ' . $deletedusers['last_name']) ?></td>
+                                        <td><?= htmlspecialchars($deletedusers['email']) ?></td>
+                                        <td><?= htmlspecialchars($deletedusers['role_name']) ?></td>
+                                        <td><span class="badge bg-danger"><?= htmlspecialchars($deletedusers['status']) ?></span></td>
+                                        <td>
+                                        <button class="btn btn-sm btn-success btn-action restoreUserBtn" data-id="<?= $deletedusers['actor_id'] ?>">
+                                            <i class="fas fa-undo"></i> Restore
+                                        </button>
+
+                                        </td>
+                                    </tr>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+
+    <!-- Add User Modal -->
+    <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-light border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title" id="addUserModalLabel">Add User</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="responseMessage" class="alert d-none" role="alert"></div>
+                    <form id="addUserForm">
+                        <!-- Select Entity -->
+                        <div class="mb-3">
+                            <label for="entityType" class="form-label">Sign Up As</label>
+                            <select class="form-select bg-secondary text-light border-secondary" id="entityType" name="entityType" required onchange="toggleFields()">
+                                <option value="">Select</option>
+                                <option value="user">User</option>
+                                <option value="student">Student</option>
+                            </select>
+                        </div>
+
+                        <!-- Personal Information -->
+                        <div class="mb-3">
+                            <label for="firstName" class="form-label">First Name</label>
+                            <input type="text" class="form-control bg-secondary text-light border-secondary" id="firstName" name="first_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="lastName" class="form-label">Last Name</label>
+                            <input type="text" class="form-control bg-secondary text-light border-secondary" id="lastName" name="last_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="userEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control bg-secondary text-light border-secondary" id="userEmail" name="email" required>
+                        </div>
+
+                        <!-- Password Fields -->
+                        <div class="mb-3">
+                            <label for="userPassword" class="form-label">Password</label>
+                            <input type="password" class="form-control bg-secondary text-light border-secondary" id="userPassword" name="password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirmPassword" class="form-label">Confirm Password</label>
+                            <input type="password" class="form-control bg-secondary text-light border-secondary" id="confirmPassword" name="confirm_password" required>
+                            <small id="passwordHelp" class="text-danger d-none">Passwords do not match.</small>
+                        </div>
+
+                        <!-- Conditional Fields -->
+                        <div id="userFields" class="mb-3 d-none">
+                            <label for="userRole" class="form-label">Role</label>
+                            <select class="form-select bg-secondary text-light border-secondary" id="userRole" name="role_id">
+                                <option value="1">Employer</option>
+                                <option value="2">Professional</option>
+                                <option value="3">Moderator</option>
+                                <option value="4">Admin</option>
+                            </select>
+                        </div>
+                        <div id="studentFields" class="mb-3 d-none">
+                            <label for="institution" class="form-label">Institution</label>
+                            <input type="text" class="form-control bg-secondary text-light border-secondary" id="institution" name="institution">
+                        </div>
+
+                        <div id="errorMessage" class="text-danger"></div>
+                    </form>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="submitUser()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Edit User Modal -->
+    <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-light"> <!-- Dark mode applied here -->
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="mb-3">
+                            <label for="editUserName" class="form-label">Name</label>
+                            <input type="text" class="form-control bg-secondary text-light border-0" id="editUserName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editUserEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control bg-secondary text-light border-0" id="editUserEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editUserRole" class="form-label">Role</label>
+                            <select class="form-select bg-secondary text-light border-0" id="editUserRole" required>
+                                <option value="Student">Student</option>
+                                <option value="Employer">Employer</option>
+                                <option value="Professional">Professional</option>
+                                <option value="Moderator">Moderator</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editUserStatus" class="form-label">Status</label>
+                            <select class="form-select bg-secondary text-light border-0" id="editUserStatus" required>
+                                <option value="Active">Active</option> <!-- Fixed typo -->
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     </main>
 
       <!-- Loading Spinner -->
@@ -448,28 +452,24 @@ require "../controllers/admin_user_management.php";
             <span class="visually-hidden">Loading...</span>
         </div>
     </div>  
-        <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- SweetAlert -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+            <!-- jQuery -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <!-- SweetAlert -->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- DataTables JS -->
+        <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+        <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+        <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+        <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+        <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+        <!-- Custom Scripts -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="../assests/logout.js"></script>
+        <script src="../assests/sidebar_toggle.js" defer></script>
 
-
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- DataTables JS -->
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-    <!-- Custom Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="../assests/logout.js"></script>
-    <script src="../assests/sidebar_toggle.js" defer></script>
-    <!-- SweetAlert2 CSS & JS -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-        
     <!-- Custom Scripts -->
     <script>
     // Enhanced JavaScript
@@ -742,43 +742,43 @@ require "../controllers/admin_user_management.php";
                     }).then((result) => {
                         if (result.isConfirmed) {
                             fetch("admin_user_management.php", {
-    method: "POST",
-    headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: `restore_id=${userId}`,
-})
-.then(response => response.text())  // Get raw text response
-.then(text => {
-    console.log("Raw response:", text);  // Debugging
-    return JSON.parse(text);  // Convert to JSON
-})
-.then(data => {
-    if (data.status === "success") {
-        Swal.fire({
-            icon: "success",
-            title: "Restored!",
-            text: data.message,
-            timer: 2000,
-            showConfirmButton: false
-        });
-        setTimeout(() => location.reload(), 2000);
-    } else {
-        Swal.fire({
-            icon: "error",
-            title: "Error!",
-            text: data.message,
-        });
-    }
-})
-.catch(error => {
-    console.error("Fetch Error:", error);
-    Swal.fire({
-        title: "Error!",
-        text: "Invalid server response. Check console for details.",
-        icon: "error",
-    });
-});
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/x-www-form-urlencoded",
+                            },
+                            body: `restore_id=${userId}`,
+                        })
+                        .then(response => response.text())  // Get raw text response
+                        .then(text => {
+                            console.log("Raw response:", text);  // Debugging
+                            return JSON.parse(text);  // Convert to JSON
+                        })
+                        .then(data => {
+                            if (data.status === "success") {
+                                Swal.fire({
+                                    icon: "success",
+                                    title: "Restored!",
+                                    text: data.message,
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                                setTimeout(() => location.reload(), 2000);
+                            } else {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Error!",
+                                    text: data.message,
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Fetch Error:", error);
+                            Swal.fire({
+                                title: "Error!",
+                                text: "Invalid server response. Check console for details.",
+                                icon: "error",
+                            });
+                        });
 
                         }
                     });
@@ -787,6 +787,26 @@ require "../controllers/admin_user_management.php";
         });
 
     </script>
+    <script>
+    function filterTable(inputId, tableId) {
+        document.getElementById(inputId).addEventListener("keyup", function () {
+            let filter = this.value.toLowerCase();
+            let rows = document.querySelectorAll(`#${tableId} tbody tr`);
+
+            rows.forEach(row => {
+                let text = row.textContent.toLowerCase();
+                row.style.display = text.includes(filter) ? "" : "none";
+            });
+        });
+    }
+
+    // Apply filtering for both tables
+    filterTable("searchActiveUsers", "activeUsersTable");
+    filterTable("searchDeletedUsers", "deletedUsersTable");
+</script>
+
+
+
 
 </body>
 </html>
