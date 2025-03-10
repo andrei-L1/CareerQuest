@@ -806,7 +806,5 @@ require "../controllers/admin_user_management.php";
 </script>
 
 
-
-
 </body>
 </html>
