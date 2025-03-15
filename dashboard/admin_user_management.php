@@ -212,19 +212,6 @@ require "../controllers/admin_user_management.php";
             </div>
         </div>
 
-        <!-- Bulk Actions -->
-        <div class="bulk-actions mb-3">
-            <button class="btn btn-danger me-2" id="deleteSelected">
-                <i class="fas fa-trash me-2"></i> Delete Selected
-            </button>
-            <button class="btn btn-warning me-2" id="changeStatusSelected">
-                <i class="fas fa-sync me-2"></i> Change Status
-            </button>
-            <button class="btn btn-success" id="exportUsers">
-                <i class="fas fa-file-export me-2"></i> Export
-            </button>
-        </div>
-
         <!-- User Table -->
             
     <!-- Bootstrap Tabs -->
@@ -517,73 +504,6 @@ require "../controllers/admin_user_management.php";
                 }
             });
         }
-
-        // Bulk Delete with SweetAlert2
-        document.getElementById('deleteSelected').addEventListener('click', function () {
-            const selectedUsers = document.querySelectorAll('.userCheckbox:checked');
-            if (selectedUsers.length > 0) {
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: "You won't be able to revert this!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Yes, delete them!'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        Swal.fire(
-                            'Deleted!',
-                            'The selected users have been deleted.',
-                            'success'
-                        );
-                        // Perform bulk delete action
-                    }
-                });
-            } else {
-                Swal.fire(
-                    'No Selection',
-                    'Please select at least one user.',
-                    'warning'
-                );
-            }
-        });
-
-        // Bulk Change Status with SweetAlert2
-        document.getElementById('changeStatusSelected').addEventListener('click', function () {
-            const selectedUsers = document.querySelectorAll('.userCheckbox:checked');
-            if (selectedUsers.length > 0) {
-                Swal.fire({
-                    title: 'Change Status',
-                    input: 'select',
-                    inputOptions: {
-                        'Active': 'Active',
-                        'Pending': 'Pending',
-                        'Inactive': 'Inactive'
-                    },
-                    inputPlaceholder: 'Select a status',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Change'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        Swal.fire(
-                            'Changed!',
-                            'The status has been updated.',
-                            'success'
-                        );
-                        // Perform bulk status change action
-                    }
-                });
-            } else {
-                Swal.fire(
-                    'No Selection',
-                    'Please select at least one user.',
-                    'warning'
-                );
-            }
-        });
 
     });
     </script>
