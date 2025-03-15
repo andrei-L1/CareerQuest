@@ -191,6 +191,12 @@
 
             <!-- Step 3: Additional Information -->
             <div id="step-3" class="d-none">
+                <?php
+                if (isset($_GET['message'])) {
+                    $error_message = htmlspecialchars($_GET['message'], ENT_QUOTES, 'UTF-8');
+                    echo '<div class="alert alert-danger" role="alert">' . $error_message . '</div>';
+                }
+                ?>
                 <h5>Step 3: Additional Information</h5>
                 <div class="input-group mb-3">
                     <span class="input-group-text"><i class="fas fa-school"></i></span>
