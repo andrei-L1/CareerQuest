@@ -39,6 +39,7 @@ $remaining_time = max(0, $_SESSION['lockout_time'] - $current_time);
 if ($_SESSION['login_attempts'] >= $max_attempts && $remaining_time > 0) {
     $error = "Too many failed login attempts. Try again in <span id='countdown'>{$remaining_time}</span> seconds.";
 }
+
 // Process form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($remaining_time > 0) {
@@ -56,35 +57,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             FROM student 
             JOIN actor ON student.stud_id = actor.entity_id
             WHERE student.stud_email = :email
+            AND student.stud_status = 'active'
         ");        
         $stmt->bindParam(':email', $email, PDO::PARAM_STR);
         $stmt->execute();
         $student = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($student && password_verify($password, $student['stud_password'])) {
-            // Successful login: Reset attempts and lockout
-            $_SESSION['stud_id'] = $student['stud_id'];
-            $_SESSION['actor_id'] = $user['actor_id']; 
-            $_SESSION['entity'] = 'student';
-            $_SESSION['login_attempts'] = 0;
-            $_SESSION['lockout_time'] = 0;
+        if ($student) {
+            if (password_verify($password, $student['stud_password'])) {
+                // Successful login: Reset attempts and lockout
+                $_SESSION['stud_id'] = $student['stud_id'];
+                $_SESSION['actor_id'] = $student['actor_id']; // Fixed variable name
+                $_SESSION['entity'] = 'student';
+                $_SESSION['login_attempts'] = 0;
+                $_SESSION['lockout_time'] = 0;
 
-            require '../controllers/auth_redirect.php';
-            exit();
-        } else {
-            // Failed login attempt
-            $_SESSION['login_attempts']++;
-
-            if ($_SESSION['login_attempts'] >= $max_attempts) {
-                $_SESSION['lockout_time'] = time() + $lockout_time;
-                $error = "Too many failed login attempts. Try again in <span id='countdown'>{$lockout_time}</span> seconds.";
+                require '../controllers/auth_redirect.php';
+                exit();
             } else {
                 $error = "Invalid email or password.";
             }
+        } else {
+            $error = "Invalid email, password, or inactive account.";
+        }
+
+        // Failed login attempt
+        $_SESSION['login_attempts']++;
+
+        if ($_SESSION['login_attempts'] >= $max_attempts) {
+            $_SESSION['lockout_time'] = time() + $lockout_time;
+            $error = "Too many failed login attempts. Try again in <span id='countdown'>{$lockout_time}</span> seconds.";
         }
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
