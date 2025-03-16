@@ -1,18 +1,43 @@
 <?php
+// Secure session settings
 ini_set('session.use_only_cookies', 1);
 ini_set('session.cookie_httponly', 1);
 session_start();
 session_regenerate_id(true); // Prevent session fixation attacks
 
+require '../config/dbcon.php';
+
+// Session Timeout (15 min)
+$session_timeout = 900; // 900 seconds = 15 minutes
+if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > $session_timeout)) {
+    session_unset();
+    session_destroy();
+    header("Location: ../auth/login.php?session_expired=1");
+    exit();
+}
+$_SESSION['last_activity'] = time();
+
+// Prevent Session Hijacking
+if (!isset($_SESSION['user_agent'])) {
+    $_SESSION['user_agent'] = $_SERVER['HTTP_USER_AGENT'];
+}
+if (!isset($_SESSION['user_ip'])) {
+    $_SESSION['user_ip'] = $_SERVER['REMOTE_ADDR'];
+}
+if ($_SESSION['user_agent'] !== $_SERVER['HTTP_USER_AGENT'] || $_SESSION['user_ip'] !== $_SERVER['REMOTE_ADDR']) {
+    session_unset();
+    session_destroy();
+    header("Location: ../auth/login.php");
+    exit();
+}
+
+// Ensure user is logged in
 if (!isset($_SESSION['user_id']) && !isset($_SESSION['stud_id'])) {
     header("Location: ../index.php");
     exit();
 }
 
-require '../config/dbcon.php';
-
 $entity = $_SESSION['entity'] ?? null;
-$role_name = "User"; // Default role
 
 // Redirect if session data is inconsistent
 if (($entity === 'student' && !isset($_SESSION['stud_id'])) || ($entity === 'user' && !isset($_SESSION['user_id']))) {
@@ -52,22 +77,20 @@ try {
             exit();
         }
 
-        $role_name = $user['role_title'] ?? 'User';
+        $role_name = htmlspecialchars($user['role_title'] ?? 'User', ENT_QUOTES, 'UTF-8');
 
-        // Redirect users based on their role
-        switch ($role_name) {
-            case 'Admin':
-                header("Location: ../dashboard/admin.php");
-                break;
-            case 'Employer':
-                header("Location: ../dashboard/employer.php");
-                break;
-            case 'Professional':
-                header("Location: ../dashboard/professional.php");
-                break;
-            case 'Moderator':
-                header("Location: ../dashboard/moderator.php");
-                break;
+        // Allowed redirect pages
+        $allowed_redirects = [
+            'Admin' => '../dashboard/admin.php',
+            'Employer' => '../dashboard/employer.php',
+            'Professional' => '../dashboard/professional.php',
+            'Moderator' => '../dashboard/moderator.php',
+        ];
+
+        if (isset($allowed_redirects[$role_name])) {
+            header("Location: " . $allowed_redirects[$role_name]);
+        } else {
+            header("Location: ../dashboard/user.php"); // Default redirect
         }
         exit();
     }
