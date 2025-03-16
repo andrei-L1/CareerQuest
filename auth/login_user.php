@@ -57,15 +57,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             FROM user 
             JOIN actor ON user.user_id = actor.entity_id
             WHERE user.user_email = :email
-            AND user.status = 'active'
         ");
         
         $stmt->bindParam(':email', $email, PDO::PARAM_STR);
         $stmt->execute();
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
+        
         if ($user) {
-            if (password_verify($password, $user['user_password'])) {
+            if ($user['status'] === 'Deleted') {
+                $error = "Your account has been deactivated. Please contact support.";
+            } elseif (password_verify($password, $user['user_password'])) {
+
+
+              // ✅ Destroy previous session to prevent login conflicts
+                session_unset();
+                session_destroy();
+                session_start();
+                session_regenerate_id(true);
+
                 // ✅ Store actor_id in session
                 $_SESSION['user_id'] = $user['user_id'];
                 $_SESSION['actor_id'] = $user['actor_id']; 
@@ -73,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['entity'] = 'user';
                 $_SESSION['login_attempts'] = 0;
                 $_SESSION['lockout_time'] = 0;
-
+        
                 require '../controllers/auth_redirect.php';
                 exit();
             } else {
@@ -82,6 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $error = "Invalid email, password, or inactive account.";
         }
+        
 
         // Failed login attempt
         $_SESSION['login_attempts']++;

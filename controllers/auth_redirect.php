@@ -90,7 +90,12 @@ try {
         if (isset($allowed_redirects[$role_name])) {
             header("Location: " . $allowed_redirects[$role_name]);
         } else {
-            header("Location: ../dashboard/user.php"); // Default redirect
+            // ✅ Destroy previous session to prevent login conflicts
+            session_unset();
+            session_destroy();
+            session_start();
+            session_regenerate_id(true);
+            header("Location: ../index.php"); // Default redirect
         }
         exit();
     }

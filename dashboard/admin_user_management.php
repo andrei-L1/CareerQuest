@@ -308,7 +308,6 @@ require "../controllers/admin_user_management.php";
                 </div>
             </div>
         </div>
-
     </div>
 
 
@@ -595,101 +594,50 @@ require "../controllers/admin_user_management.php";
     </script>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            document.querySelectorAll(".deleteUserBtn").forEach(button => {
-                button.addEventListener("click", function () {
-                    const userId = this.getAttribute("data-id");
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".deleteUserBtn, .restoreUserBtn").forEach(button => {
+            button.addEventListener("click", function () {
+                const userId = this.getAttribute("data-id");
+                const isDelete = this.classList.contains("deleteUserBtn");
 
-                    Swal.fire({
-                        title: "Are you sure?",
-                        text: "You won't be able to revert this!",
-                        icon: "warning",
-                        showCancelButton: true,
-                        confirmButtonColor: "#d33",
-                        cancelButtonColor: "#3085d6",
-                        confirmButtonText: "Yes, delete it!"
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            fetch("admin_user_management.php", { 
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/x-www-form-urlencoded",
-                                },
-                                body: `delete_id=${userId}`,
-                            })
-                            .then(response => response.json())
-                            .then(data => {
-                                Swal.fire({
-                                    icon: data.status === "success" ? "success" : "error",
-                                    title: data.status === "success" ? "Deleted!" : "Error!",
-                                    text: data.message,
-                                    timer: 2000,
-                                    showConfirmButton: false
-                                });
-                                if (data.status === "success") {
-                                location.reload();
-                                }
-                            })
-                            .catch(error => console.error("Error:", error));
-                        }
-                    });
-                });
-            });
-        });
-    </script>
+                if (!userId) {
+                    console.error("Error: No user ID found.");
+                    return;
+                }
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            document.querySelectorAll(".restoreUserBtn").forEach(button => {
-                button.addEventListener("click", function () {
-                    const userId = this.getAttribute("data-id");
-                    
-                    if (!userId) {
-                        console.error("Error: No user ID found.");
-                        return;
-                    }
+                console.log(`${isDelete ? "Deleting" : "Restoring"} User ID:`, userId);
 
-                    console.log("Restore User ID:", userId); // Debugging
-
-                    Swal.fire({
-                        title: "Are you sure?",
-                        text: "You want to restore this user?",
-                        icon: "warning",
-                        showCancelButton: true,
-                        confirmButtonColor: "#28a745",
-                        cancelButtonColor: "#d33",
-                        confirmButtonText: "Yes, restore!",
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            fetch("admin_user_management.php", {
+                Swal.fire({
+                    title: isDelete ? "Are you sure?" : "Restore this user?",
+                    text: isDelete ? "You won't be able to revert this!" : "This will reactivate the user.",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: isDelete ? "#d33" : "#28a745",
+                    cancelButtonColor: isDelete ? "#3085d6" : "#d33",
+                    confirmButtonText: isDelete ? "Yes, delete it!" : "Yes, restore!",
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch("admin_user_management.php", {
                             method: "POST",
                             headers: {
                                 "Content-Type": "application/x-www-form-urlencoded",
                             },
-                            body: `restore_id=${userId}`,
+                            body: `${isDelete ? "delete_id" : "restore_id"}=${userId}`,
                         })
-                        .then(response => response.text())  // Get raw text response
+                        .then(response => response.text())  
                         .then(text => {
-                            console.log("Raw response:", text);  // Debugging
-                            return JSON.parse(text);  // Convert to JSON
+                            console.log("Raw response:", text);  
+                            return JSON.parse(text);  
                         })
                         .then(data => {
-                            if (data.status === "success") {
-                                Swal.fire({
-                                    icon: "success",
-                                    title: "Restored!",
-                                    text: data.message,
-                                    timer: 2000,
-                                    showConfirmButton: false
-                                });
-                                setTimeout(() => location.reload(), 2000);
-                            } else {
-                                Swal.fire({
-                                    icon: "error",
-                                    title: "Error!",
-                                    text: data.message,
-                                });
-                            }
+                            Swal.fire({
+                                icon: data.status === "success" ? "success" : "error",
+                                title: data.status === "success" ? (isDelete ? "Deleted!" : "Restored!") : "Error!",
+                                text: data.message,
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                            if (data.status === "success") setTimeout(() => location.reload(), 2000);
                         })
                         .catch(error => {
                             console.error("Fetch Error:", error);
@@ -699,13 +647,11 @@ require "../controllers/admin_user_management.php";
                                 icon: "error",
                             });
                         });
-
-                        }
-                    });
+                    }
                 });
             });
         });
-
+    });
     </script>
     <script>
     function filterTable(inputId, tableId) {

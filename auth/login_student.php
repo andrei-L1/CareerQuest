@@ -57,21 +57,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             FROM student 
             JOIN actor ON student.stud_id = actor.entity_id
             WHERE student.stud_email = :email
-            AND student.status = 'active'
         ");        
         $stmt->bindParam(':email', $email, PDO::PARAM_STR);
         $stmt->execute();
         $student = $stmt->fetch(PDO::FETCH_ASSOC);
-
+        
         if ($student) {
-            if (password_verify($password, $student['stud_password'])) {
-                // Successful login: Reset attempts and lockout
+            if ($student['status'] === 'Deleted') {
+                $error = "Your account has been deactivated. Please contact support.";
+            } elseif (password_verify($password, $student['stud_password'])) {
+
+                // ✅ Destroy previous session to prevent login conflicts
+                session_unset();
+                session_destroy();
+                session_start();
+                session_regenerate_id(true);
+                
+                // ✅ Successful login
                 $_SESSION['stud_id'] = $student['stud_id'];
-                $_SESSION['actor_id'] = $student['actor_id']; // Fixed variable name
+                $_SESSION['actor_id'] = $student['actor_id']; 
                 $_SESSION['entity'] = 'student';
                 $_SESSION['login_attempts'] = 0;
                 $_SESSION['lockout_time'] = 0;
-
+        
                 require '../controllers/auth_redirect.php';
                 exit();
             } else {

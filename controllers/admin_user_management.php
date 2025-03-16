@@ -147,8 +147,33 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["delete_id"])) {
         $conn->beginTransaction();
 
         $actor_id = $_POST["delete_id"];
+
+        // Fetch entity details from actor table
+        $stmt = $conn->prepare("SELECT entity_type, entity_id FROM actor WHERE actor_id = :actor_id");
+        $stmt->execute([":actor_id" => $actor_id]);
+        $entity = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$entity) {
+            throw new Exception("Invalid actor ID.");
+        }
+
+        $entityType = $entity["entity_type"];
+        $entityId = $entity["entity_id"];
+
+        // Soft delete from actor table
         $stmt = $conn->prepare("UPDATE actor SET deleted_at = NOW() WHERE actor_id = :actor_id");
         $stmt->execute([":actor_id" => $actor_id]);
+
+        // Update status in the user or student table
+        if ($entityType === "user") {
+            $stmt = $conn->prepare("UPDATE user SET status = 'Deleted', deleted_at = NOW() WHERE user_id = :entity_id");
+        } elseif ($entityType === "student") {
+            $stmt = $conn->prepare("UPDATE student SET status = 'Deleted', deleted_at = NOW() WHERE stud_id = :entity_id");
+        }
+
+        if (isset($stmt)) {
+            $stmt->execute([":entity_id" => $entityId]);
+        }
 
         $conn->commit();
         echo json_encode(["status" => "success", "message" => "User soft deleted successfully."]);
@@ -165,8 +190,33 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["restore_id"])) {
         $conn->beginTransaction();
 
         $actor_id = $_POST["restore_id"];
+
+        // Fetch entity details from actor table
+        $stmt = $conn->prepare("SELECT entity_type, entity_id FROM actor WHERE actor_id = :actor_id");
+        $stmt->execute([":actor_id" => $actor_id]);
+        $entity = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$entity) {
+            throw new Exception("Invalid actor ID.");
+        }
+
+        $entityType = $entity["entity_type"];
+        $entityId = $entity["entity_id"];
+
+        // Restore actor (remove deleted_at)
         $stmt = $conn->prepare("UPDATE actor SET deleted_at = NULL WHERE actor_id = :actor_id");
         $stmt->execute([":actor_id" => $actor_id]);
+
+        // Update status back to "Active" in user or student table
+        if ($entityType === "user") {
+            $stmt = $conn->prepare("UPDATE user SET status = 'active', deleted_at = NULL WHERE user_id = :entity_id");
+        } elseif ($entityType === "student") {
+            $stmt = $conn->prepare("UPDATE student SET status = 'active', deleted_at = NULL WHERE stud_id = :entity_id");
+        }
+
+        if (isset($stmt)) {
+            $stmt->execute([":entity_id" => $entityId]);
+        }
 
         $conn->commit();
         echo json_encode(["status" => "success", "message" => "User restored successfully."]);
@@ -176,5 +226,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["restore_id"])) {
     }
     exit;
 }
+
 
 ?>
