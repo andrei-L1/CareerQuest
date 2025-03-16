@@ -45,6 +45,7 @@ function validatePassword() {
     const passwordRegex = /^(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).{6,}$/;
     let isValid = true;
 
+    // Validate password strength
     if (!passwordRegex.test(passwordValue)) {
         passwordHelp.textContent = "Password must be at least 6 characters, include an uppercase letter, and a special character.";
         passwordHelp.classList.remove("d-none");
@@ -55,7 +56,8 @@ function validatePassword() {
         passwordField.classList.remove("is-invalid");
     }
 
-    if (passwordValue !== confirmPasswordValue) {
+    // Validate password match, but only if the user has started typing in confirm field
+    if (confirmPasswordValue.length > 0 && passwordValue !== confirmPasswordValue) {
         confirmPasswordHelp.textContent = "Passwords do not match.";
         confirmPasswordHelp.classList.remove("d-none");
         confirmPasswordField.classList.add("is-invalid");
