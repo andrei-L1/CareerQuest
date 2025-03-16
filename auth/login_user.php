@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             FROM user 
             JOIN actor ON user.user_id = actor.entity_id
             WHERE user.user_email = :email
-            AND user.user_status = 'active'
+            AND user.status = 'active'
         ");
         
         $stmt->bindParam(':email', $email, PDO::PARAM_STR);
