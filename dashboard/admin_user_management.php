@@ -247,7 +247,13 @@ require "../controllers/admin_user_management.php";
                             <?php foreach ($users as $user): ?>
                                 <?php if ($user['status'] === 'active'): ?>
                                     <tr>
-                                        <td><?= htmlspecialchars($user['actor_id']) ?></td>
+                                        <td><?= htmlspecialchars($user['actor_id']) ?>
+                                            <?php if ($user['entity_type'] === 'user'): ?>
+                                                U-<?= htmlspecialchars($user['entity_id']) ?>
+                                            <?php elseif ($user['entity_type'] === 'student'): ?>
+                                                S-<?= htmlspecialchars($user['entity_id']) ?>
+                                            <?php endif; ?>
+                                       </td>
                                         <td><?= htmlspecialchars($user['first_name'] . ' ' . $user['last_name']) ?></td>
                                         <td><?= htmlspecialchars($user['email']) ?></td>
                                         <td><?= htmlspecialchars($user['role_name']) ?></td>
@@ -399,32 +405,37 @@ require "../controllers/admin_user_management.php";
                         <div class="mb-3">
                             <label for="editUserName" class="form-label">Name</label>
                             <input type="text" class="form-control bg-secondary text-light border-0" id="editUserName" required>
+                            <input type="hidden" id="editUserId">
                         </div>
                         <div class="mb-3">
                             <label for="editUserEmail" class="form-label">Email</label>
                             <input type="email" class="form-control bg-secondary text-light border-0" id="editUserEmail" required>
                         </div>
+                        
                         <div class="mb-3">
                             <label for="editUserRole" class="form-label">Role</label>
-                            <select class="form-select bg-secondary text-light border-0" id="editUserRole" required>
-                                <option value="Student">Student</option>
-                                <option value="Employer">Employer</option>
-                                <option value="Professional">Professional</option>
-                                <option value="Moderator">Moderator</option>
+                            <select class="form-select bg-secondary text-light border-0" id="editUserRole" name="role" required>
+                                <?php foreach ($roles as $role): ?>
+                                    <option value="<?= htmlspecialchars($role['role_id']) ?>" 
+                                        <?= ($role['role_id'] == $current_role_id) ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($role['role_title']) ?>
+                                    </option>
+                                <?php endforeach; ?>
                             </select>
                         </div>
+
                         <div class="mb-3">
                             <label for="editUserStatus" class="form-label">Status</label>
                             <select class="form-select bg-secondary text-light border-0" id="editUserStatus" required>
-                                <option value="Active">Active</option> <!-- Fixed typo -->
-                                <option value="Inactive">Inactive</option>
+                                <option value="active">Active</option> 
+                                <option value="Deleted">Inactive</option>
                             </select>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer border-secondary">
                     <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary">Save Changes</button>
+                    <button type="button" class="btn btn-primary" id="saveUserChanges">Save Changes</button>
                 </div>
             </div>
         </div>
@@ -432,8 +443,8 @@ require "../controllers/admin_user_management.php";
 
     </main>
 
-      <!-- Loading Spinner -->
-      <div class="loading-spinner">
+    <!-- Loading Spinner -->
+    <div class="loading-spinner">
         <div class="spinner-border text-primary" role="status">
             <span class="visually-hidden">Loading...</span>
         </div>
@@ -653,6 +664,7 @@ require "../controllers/admin_user_management.php";
         });
     });
     </script>
+    
     <script>
     function filterTable(inputId, tableId) {
         document.getElementById(inputId).addEventListener("keyup", function () {
@@ -670,5 +682,102 @@ require "../controllers/admin_user_management.php";
         filterTable("searchActiveUsers", "activeUsersTable");
         filterTable("searchDeletedUsers", "deletedUsersTable");
     </script>
+
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // Edit User Modal - Pre-fill data
+    document.querySelectorAll(".btn-action").forEach(button => {
+        button.addEventListener("click", function () {
+            let row = this.closest("tr"); // Get the row of the clicked button
+            let actorId = row.querySelector("td:first-child").textContent.trim();
+            let fullName = row.querySelector("td:nth-child(2)").textContent.trim();
+            let email = row.querySelector("td:nth-child(3)").textContent.trim();
+            let roleTitle = row.querySelector("td:nth-child(4)").textContent.trim();
+            let status = row.querySelector("td:nth-child(5) span").textContent.trim();
+
+            let roleDropdown = document.getElementById("editUserRole");
+            let roleId = null;
+
+            // Find role_id corresponding to the role title
+            for (let option of roleDropdown.options) {
+                if (option.textContent.trim() === roleTitle) {
+                    roleId = option.value;
+                    break;
+                }
+            }
+
+            // Handle name splitting more safely
+            let nameParts = fullName.split(" ");
+            let firstName = nameParts[0] || "";
+            let lastName = nameParts.slice(1).join(" ") || "";
+
+            // Fill the modal fields
+            document.getElementById("editUserName").value = fullName;
+            document.getElementById("editUserEmail").value = email;
+            document.getElementById("editUserRole").value = roleId || ""; // Assign role_id
+            document.getElementById("editUserStatus").value = status;
+            document.getElementById("editUserId").value = actorId; // Hidden field to store ID
+
+            // Disable role dropdown if student has no role
+            if (!roleId) {  
+                roleDropdown.disabled = true;
+            } else {
+                roleDropdown.disabled = false;
+            }
+        });
+    });
+
+    // Save Changes - Edit User AJAX
+    document.getElementById("saveUserChanges").addEventListener("click", function () {
+        let actorId = document.getElementById("editUserId").value;
+        let name = document.getElementById("editUserName").value.trim();
+        let email = document.getElementById("editUserEmail").value.trim();
+        let roleId = document.getElementById("editUserRole").value.trim(); // Now sends role_id
+        let status = document.getElementById("editUserStatus").value.trim();
+
+        let nameParts = name.split(" ");
+        let firstName = nameParts[0] || "";
+        let lastName = nameParts.slice(1).join(" ") || "";
+
+        // Disable button to prevent multiple clicks
+        let saveButton = document.getElementById("saveUserChanges");
+        saveButton.disabled = true;
+
+        fetch("../controllers/admin_user_management.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+                edit_id: actorId,
+                first_name: firstName,
+                last_name: lastName,
+                email: email,
+                role: roleId,  // Now correctly sending role_id
+                status: status
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === "success") {
+                alert("User updated successfully!");
+                location.reload();
+            } else {
+                alert("Error: " + data.message);
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("Something went wrong. Please try again.");
+        })
+        .finally(() => {
+            saveButton.disabled = false; // Re-enable button after processing
+        });
+    });
+});
+
+
+</script>
+
 </body>
 </html>

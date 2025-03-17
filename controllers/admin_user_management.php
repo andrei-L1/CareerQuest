@@ -1,5 +1,29 @@
 <?php
 require "../config/dbcon.php";
+// Initialize the variable to avoid the warning
+$current_role_id = null;
+
+// Fetch user details and role ID if `user_id` is provided
+if (isset($_GET['user_id'])) {
+    $userStmt = $conn->prepare("SELECT role_id FROM user WHERE user_id = :user_id");
+    $userStmt->execute([":user_id" => $_GET['user_id']]);
+    $user = $userStmt->fetch(PDO::FETCH_ASSOC);
+    $current_role_id = $user['role_id'] ?? null; // Assign role_id if available, otherwise remain null
+}
+
+// Fetch all roles
+$roleStmt = $conn->prepare("SELECT role_id, role_title FROM role ORDER BY role_title ASC");
+$roleStmt->execute();
+$roles = $roleStmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Fetch Roles Function
+function fetchRoles() {
+    global $conn;
+    $stmt = $conn->prepare("SELECT role_id, role_title FROM role");
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
 
 function fetchUsers() {
     global $conn; 
@@ -220,6 +244,101 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["restore_id"])) {
 
         $conn->commit();
         echo json_encode(["status" => "success", "message" => "User restored successfully."]);
+    } catch (Exception $e) {
+        $conn->rollBack();
+        echo json_encode(["status" => "error", "message" => $e->getMessage()]);
+    }
+    exit;
+}
+
+
+// Edit User Function
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["edit_id"])) {
+    try {
+        $conn->beginTransaction();
+
+        $actor_id = $_POST["edit_id"];
+        $first_name = trim($_POST['first_name'] ?? '');
+        $last_name = trim($_POST['last_name'] ?? '');
+        $email = isset($_POST['email']) ? filter_var(trim($_POST['email']), FILTER_VALIDATE_EMAIL) : null;
+        $status = $_POST['status'] ?? 'active';
+        $role_id = $_POST['role'] ?? null;
+
+        if (!$email || empty($first_name) || empty($last_name)) {
+            throw new Exception("All fields are required.");
+        }
+
+        // Fetch entity details
+        $stmt = $conn->prepare("SELECT entity_type, entity_id FROM actor WHERE actor_id = :actor_id");
+        $stmt->execute([':actor_id' => $actor_id]);
+        $entity = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$entity) {
+            throw new Exception("Invalid actor ID.");
+        }
+
+        $entityType = $entity["entity_type"];
+        $entityId = $entity["entity_id"];
+
+        if ($entityType === 'user') {
+            // Role-to-UserType Mapping (Only for 'user' entity type)
+            $roleToUserType = [
+                "1" => "Employer",    
+                "2" => "Professional",  
+                "3" => "Moderator",     
+                "4" => "Admin"         
+            ];
+       
+            // Determine user_type based on role_id (default to NULL if role_id doesn't exist in mapping)
+            $user_type = $roleToUserType[$role_id] ?? null;
+
+            // Validate role_id
+            if ($role_id) {
+                $roleStmt = $conn->prepare("SELECT role_id FROM role WHERE role_id = :role_id");
+                $roleStmt->execute([':role_id' => $role_id]);
+                if (!$roleStmt->fetch(PDO::FETCH_ASSOC)) {
+                    throw new Exception("Invalid role selected.");
+                }
+            }
+
+            // Update user table
+            $stmt = $conn->prepare("UPDATE user 
+                                    SET user_first_name = :first_name, 
+                                        user_last_name = :last_name, 
+                                        user_email = :email, 
+                                        role_id = :role_id, 
+                                        user_type = :user_type,
+                                        status = :status 
+                                    WHERE user_id = :entity_id");
+            $stmt->execute([
+                ":first_name" => $first_name,
+                ":last_name" => $last_name,
+                ":email" => $email,
+                ":role_id" => $role_id,
+                ":user_type" => $user_type,  // Updating user_type only for 'user' entity
+                ":status" => $status,
+                ":entity_id" => $entityId,
+            ]);
+
+        } elseif ($entityType === 'student') {
+            // Update student table (No role or user_type)
+            $stmt = $conn->prepare("UPDATE student 
+                                    SET stud_first_name = :first_name, 
+                                        stud_last_name = :last_name, 
+                                        stud_email = :email, 
+                                        status = :status 
+                                    WHERE stud_id = :entity_id");
+            $stmt->execute([
+                ":first_name" => $first_name,
+                ":last_name" => $last_name,
+                ":email" => $email,
+                ":status" => $status,
+                ":entity_id" => $entityId,
+            ]);
+        }
+
+        $conn->commit();
+        echo json_encode(["status" => "success", "message" => "User updated successfully."]);
     } catch (Exception $e) {
         $conn->rollBack();
         echo json_encode(["status" => "error", "message" => $e->getMessage()]);

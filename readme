@@ -177,3 +177,8 @@ if ($entity === 'student' && isset($student)) {
         .sidebar.collapsed + .main-content {
             margin-left: 60px; /* Adjust when sidebar is collapsed */
         }
+
+
+
+
+DO EDIT USER DETAILS NEXT BRO
