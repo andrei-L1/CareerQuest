@@ -181,4 +181,100 @@ if ($entity === 'student' && isset($student)) {
 
 
 
+
+
+
+
+
+        document.addEventListener("DOMContentLoaded", function () {
+    // Edit User Modal - Pre-fill data from backend
+    document.querySelectorAll(".btn-action").forEach(button => {
+        button.addEventListener("click", function () {
+            let row = this.closest("tr"); // Get the row of the clicked button
+            let actorId = row.querySelector("td:first-child").textContent.trim();
+            
+            fetch(`../controllers/get_user.php?user_id=${actorId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error(data.error);
+                        alert("Error: " + data.error);
+                    } else {
+                        document.getElementById("editUserFirstName").value = data.first_name || '';
+                        document.getElementById("editUserMiddleName").value = data.middle_name || '';
+                        document.getElementById("editUserLastName").value = data.last_name || '';
+                        document.getElementById("editUserEmail").value = data.email || '';
+
+                        // Role handling
+                        let roleDropdown = document.getElementById("editUserRole");
+                        roleDropdown.value = data.role_id || ''; // Assign role_id
+                        roleDropdown.disabled = !data.role_id; // Disable if no role
+
+                        if (!data.role_id) {
+                            roleDropdown.innerHTML = '<option selected>Cannot be edited</option>';
+                            roleDropdown.disabled = true;
+                        } else {
+                            roleDropdown.value = data.role_id || '';
+                        }
+
+                        document.getElementById("editUserStatus").value = data.status || '';
+                        document.getElementById("editUserId").value = actorId; // Store ID in hidden field
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching user data:", error);
+                    alert("Failed to load user data.");
+                });
+        });
+    });
+
+    // Save Changes - Edit User AJAX
+    document.getElementById("saveUserChanges").addEventListener("click", function () {
+        let actorId = document.getElementById("editUserId").value;
+        let firstName = document.getElementById("editUserFirstName").value.trim();
+        let middleName = document.getElementById("editUserMiddleName").value.trim();
+        let lastName = document.getElementById("editUserLastName").value.trim();
+        let email = document.getElementById("editUserEmail").value.trim();
+        let roleId = document.getElementById("editUserRole").value.trim(); // Now sends role_id
+        let status = document.getElementById("editUserStatus").value.trim();
+
+        let saveButton = document.getElementById("saveUserChanges");
+        saveButton.disabled = true; // Disable to prevent multiple clicks
+
+        fetch("../controllers/admin_user_management.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+                edit_id: actorId,
+                first_name: firstName,
+                middle_name: middleName,
+                last_name: lastName,
+                email: email,
+                role: roleId,
+                status: status
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === "success") {
+                alert("User updated successfully!");
+                location.reload();
+            } else {
+                alert("Error: " + data.message);
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("Something went wrong. Please try again.");
+        })
+        .finally(() => {
+            saveButton.disabled = false; 
+        });
+    });
+});
+
+
+
+
+
 DO EDIT USER DETAILS NEXT BRO

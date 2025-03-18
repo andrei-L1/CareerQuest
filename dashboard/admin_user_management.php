@@ -176,6 +176,48 @@ require "../controllers/admin_user_management.php";
             background-color: var(--secondary-color) !important;
         }
     </style>
+    <style>
+   
+        .stats-container {
+            width: 100%;
+            padding: 20px;
+        }
+        .stat-card {
+    
+            padding: 20px;
+            color: white;
+            text-align: left;
+       
+            border: none;
+            border-radius: 10px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+
+        }
+        .blue { background-color: #007bff; }
+        .green { background-color: #28a745; }
+        .yellow { background-color: #ffc107; color: black; }
+        .red { background-color: #dc3545; }
+        .purple { background-color: #6f42c1; }
+        .stat-card.orange {
+            background-color: #ff9800; 
+            color: white;
+        }
+
+        .stat-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .stat-value {
+            font-size: 40px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px var(--shadow-color);
+        }
+    </style>
 </head>
 <body class="fade-in">
     <!-- Sidebar -->
@@ -200,6 +242,7 @@ require "../controllers/admin_user_management.php";
             </ul>
         </div>
     </nav>
+    
 
    <!-- Main Content -->
    <main class="main-content">
@@ -211,6 +254,48 @@ require "../controllers/admin_user_management.php";
                 </button>
             </div>
         </div>
+
+        <div class="row mb-4 fade-in">
+    <div class="row g-3">
+        <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="stat-card blue">
+                <div class="stat-title">Total Users</div>
+                <div class="stat-value"><?php echo $totalUsers; ?></div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="stat-card green">
+                <div class="stat-title">Students</div>
+                <div class="stat-value"><?php echo $totalStudents; ?></div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="stat-card yellow">
+                <div class="stat-title">Moderators</div>
+                <div class="stat-value"><?php echo $totalModerators; ?></div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="stat-card red">
+                <div class="stat-title">Professionals</div>
+                <div class="stat-value"><?php echo $totalProfessionals; ?></div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="stat-card orange">
+                <div class="stat-title">Employers</div>
+                <div class="stat-value"><?php echo $totalEmployers; ?></div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 col-sm-6">
+            <div class="stat-card purple">
+                <div class="stat-title">Admins</div>
+                <div class="stat-value"><?php echo $totalAdmins; ?></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 
         <!-- User Table -->
             
@@ -402,10 +487,18 @@ require "../controllers/admin_user_management.php";
                 </div>
                 <div class="modal-body">
                     <form>
+
                         <div class="mb-3">
-                            <label for="editUserName" class="form-label">Name</label>
-                            <input type="text" class="form-control bg-secondary text-light border-0" id="editUserName" required>
-                            <input type="hidden" id="editUserId">
+                            <label for="editUserFirstName" class="form-label">First Name</label>
+                            <input type="text" class="form-control bg-secondary text-light border-0" id="editUserFirstName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editUserMiddleName" class="form-label">Middle Name</label>
+                            <input type="text" class="form-control bg-secondary text-light border-0" id="editUserMiddleName">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editUserLastName" class="form-label">Last Name</label>
+                            <input type="text" class="form-control bg-secondary text-light border-0" id="editUserLastName" required>
                         </div>
                         <div class="mb-3">
                             <label for="editUserEmail" class="form-label">Email</label>
@@ -413,6 +506,7 @@ require "../controllers/admin_user_management.php";
                         </div>
                         
                         <div class="mb-3">
+                        <input type="hidden" id="editUserId">
                             <label for="editUserRole" class="form-label">Role</label>
                             <select class="form-select bg-secondary text-light border-0" id="editUserRole" name="role" required>
                                 <?php foreach ($roles as $role): ?>
@@ -686,64 +780,57 @@ require "../controllers/admin_user_management.php";
 
 
 <script>
+ 
 document.addEventListener("DOMContentLoaded", function () {
-    // Edit User Modal - Pre-fill data
+    // Edit User Modal - Pre-fill data from backend
     document.querySelectorAll(".btn-action").forEach(button => {
         button.addEventListener("click", function () {
-            let row = this.closest("tr"); // Get the row of the clicked button
+            let row = this.closest("tr"); 
             let actorId = row.querySelector("td:first-child").textContent.trim();
-            let fullName = row.querySelector("td:nth-child(2)").textContent.trim();
-            let email = row.querySelector("td:nth-child(3)").textContent.trim();
-            let roleTitle = row.querySelector("td:nth-child(4)").textContent.trim();
-            let status = row.querySelector("td:nth-child(5) span").textContent.trim();
+            
+            fetch(`../controllers/get_user.php?user_id=${actorId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error(data.error);
+                        Swal.fire("Error!", data.error, "error");
+                    } else {
+                        document.getElementById("editUserFirstName").value = data.first_name || '';
+                        document.getElementById("editUserMiddleName").value = data.middle_name || '';
+                        document.getElementById("editUserLastName").value = data.last_name || '';
+                        document.getElementById("editUserEmail").value = data.email || '';
 
-            let roleDropdown = document.getElementById("editUserRole");
-            let roleId = null;
+                        let roleDropdown = document.getElementById("editUserRole");
+                        roleDropdown.value = data.role_id || '';
+                        roleDropdown.disabled = !data.role_id;
 
-            // Find role_id corresponding to the role title
-            for (let option of roleDropdown.options) {
-                if (option.textContent.trim() === roleTitle) {
-                    roleId = option.value;
-                    break;
-                }
-            }
+                        if (!data.role_id) {
+                            roleDropdown.innerHTML = '<option selected>Cannot be edited</option>';
+                        }
 
-            // Handle name splitting more safely
-            let nameParts = fullName.split(" ");
-            let firstName = nameParts[0] || "";
-            let lastName = nameParts.slice(1).join(" ") || "";
-
-            // Fill the modal fields
-            document.getElementById("editUserName").value = fullName;
-            document.getElementById("editUserEmail").value = email;
-            document.getElementById("editUserRole").value = roleId || ""; // Assign role_id
-            document.getElementById("editUserStatus").value = status;
-            document.getElementById("editUserId").value = actorId; // Hidden field to store ID
-
-            // Disable role dropdown if student has no role
-            if (!roleId) {  
-                roleDropdown.disabled = true;
-            } else {
-                roleDropdown.disabled = false;
-            }
+                        document.getElementById("editUserStatus").value = data.status || '';
+                        document.getElementById("editUserId").value = actorId;
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching user data:", error);
+                    Swal.fire("Error!", "Failed to load user data.", "error");
+                });
         });
     });
 
     // Save Changes - Edit User AJAX
     document.getElementById("saveUserChanges").addEventListener("click", function () {
         let actorId = document.getElementById("editUserId").value;
-        let name = document.getElementById("editUserName").value.trim();
+        let firstName = document.getElementById("editUserFirstName").value.trim();
+        let middleName = document.getElementById("editUserMiddleName").value.trim();
+        let lastName = document.getElementById("editUserLastName").value.trim();
         let email = document.getElementById("editUserEmail").value.trim();
-        let roleId = document.getElementById("editUserRole").value.trim(); // Now sends role_id
+        let roleId = document.getElementById("editUserRole").value.trim();
         let status = document.getElementById("editUserStatus").value.trim();
 
-        let nameParts = name.split(" ");
-        let firstName = nameParts[0] || "";
-        let lastName = nameParts.slice(1).join(" ") || "";
-
-        // Disable button to prevent multiple clicks
         let saveButton = document.getElementById("saveUserChanges");
-        saveButton.disabled = true;
+        saveButton.disabled = true; 
 
         fetch("../controllers/admin_user_management.php", {
             method: "POST",
@@ -751,30 +838,37 @@ document.addEventListener("DOMContentLoaded", function () {
             body: new URLSearchParams({
                 edit_id: actorId,
                 first_name: firstName,
+                middle_name: middleName,
                 last_name: lastName,
                 email: email,
-                role: roleId,  // Now correctly sending role_id
+                role: roleId,
                 status: status
             })
         })
         .then(response => response.json())
         .then(data => {
             if (data.status === "success") {
-                alert("User updated successfully!");
-                location.reload();
+                Swal.fire({
+                    icon: "success",
+                    title: "Updated!",
+                    text: "User updated successfully!",
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => location.reload());
             } else {
-                alert("Error: " + data.message);
+                Swal.fire("Error!", data.message, "error");
             }
         })
         .catch(error => {
             console.error("Error:", error);
-            alert("Something went wrong. Please try again.");
+            Swal.fire("Error!", "Something went wrong. Please try again.", "error");
         })
         .finally(() => {
-            saveButton.disabled = false; // Re-enable button after processing
+            saveButton.disabled = false;
         });
     });
 });
+
 
 
 </script>

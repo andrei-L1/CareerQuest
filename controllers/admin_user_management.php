@@ -254,6 +254,28 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["restore_id"])) {
 }
 
 
+function fetchUserById($user_id) {
+    global $conn; 
+    
+    $sql = "SELECT a.actor_id, a.entity_type, a.entity_id, 
+        COALESCE(u.user_first_name, s.stud_first_name) AS first_name, 
+        COALESCE(u.user_middle_name, s.stud_middle_name) AS middle_name, 
+        COALESCE(u.user_last_name, s.stud_last_name) AS last_name, 
+        COALESCE(u.user_email, s.stud_email) AS email, 
+        COALESCE(u.status, s.status, 'Active') AS status, 
+        COALESCE(r.role_title, 'Student') AS role_name, 
+        u.role_id
+    FROM actor a
+    LEFT JOIN user u ON a.entity_type = 'user' AND a.entity_id = u.user_id
+    LEFT JOIN role r ON u.role_id = r.role_id
+    LEFT JOIN student s ON a.entity_type = 'student' AND a.entity_id = s.stud_id
+    WHERE a.actor_id = :user_id AND a.deleted_at IS NULL";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->execute([':user_id' => $user_id]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
 // Edit User Function
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["edit_id"])) {
     try {
@@ -261,10 +283,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["edit_id"])) {
 
         $actor_id = $_POST["edit_id"];
         $first_name = trim($_POST['first_name'] ?? '');
+        $middle_name = trim($_POST['middle_name'] ?? ''); // Now handling middle name
         $last_name = trim($_POST['last_name'] ?? '');
         $email = isset($_POST['email']) ? filter_var(trim($_POST['email']), FILTER_VALIDATE_EMAIL) : null;
         $status = $_POST['status'] ?? 'active';
-        $role_id = $_POST['role'] ?? null;
+        $role_id = !empty($_POST['role']) ? $_POST['role'] : null; // Handle empty role
 
         if (!$email || empty($first_name) || empty($last_name)) {
             throw new Exception("All fields are required.");
@@ -290,11 +313,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["edit_id"])) {
                 "3" => "Moderator",     
                 "4" => "Admin"         
             ];
-       
+            
             // Determine user_type based on role_id (default to NULL if role_id doesn't exist in mapping)
             $user_type = $roleToUserType[$role_id] ?? null;
 
-            // Validate role_id
+            // Validate role_id if provided
             if ($role_id) {
                 $roleStmt = $conn->prepare("SELECT role_id FROM role WHERE role_id = :role_id");
                 $roleStmt->execute([':role_id' => $role_id]);
@@ -303,9 +326,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["edit_id"])) {
                 }
             }
 
+            // Ensure email is unique
+            $stmt = $conn->prepare("SELECT user_id FROM user WHERE user_email = :email AND user_id != :entity_id");
+            $stmt->execute([":email" => $email, ":entity_id" => $entityId]);
+            if ($stmt->fetch(PDO::FETCH_ASSOC)) {
+                throw new Exception("Email is already in use.");
+            }
+
             // Update user table
             $stmt = $conn->prepare("UPDATE user 
                                     SET user_first_name = :first_name, 
+                                        user_middle_name = :middle_name, 
                                         user_last_name = :last_name, 
                                         user_email = :email, 
                                         role_id = :role_id, 
@@ -314,24 +345,34 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["edit_id"])) {
                                     WHERE user_id = :entity_id");
             $stmt->execute([
                 ":first_name" => $first_name,
+                ":middle_name" => $middle_name, 
                 ":last_name" => $last_name,
                 ":email" => $email,
                 ":role_id" => $role_id,
-                ":user_type" => $user_type,  // Updating user_type only for 'user' entity
+                ":user_type" => $user_type,  
                 ":status" => $status,
                 ":entity_id" => $entityId,
             ]);
 
         } elseif ($entityType === 'student') {
-            // Update student table (No role or user_type)
+            // Ensure email is unique
+            $stmt = $conn->prepare("SELECT stud_id FROM student WHERE stud_email = :email AND stud_id != :entity_id");
+            $stmt->execute([":email" => $email, ":entity_id" => $entityId]);
+            if ($stmt->fetch(PDO::FETCH_ASSOC)) {
+                throw new Exception("Email is already in use.");
+            }
+
+            // Update student table
             $stmt = $conn->prepare("UPDATE student 
                                     SET stud_first_name = :first_name, 
+                                        stud_middle_name = :middle_name, 
                                         stud_last_name = :last_name, 
                                         stud_email = :email, 
                                         status = :status 
                                     WHERE stud_id = :entity_id");
             $stmt->execute([
                 ":first_name" => $first_name,
+                ":middle_name" => $middle_name, 
                 ":last_name" => $last_name,
                 ":email" => $email,
                 ":status" => $status,
@@ -348,5 +389,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["edit_id"])) {
     exit;
 }
 
+$sql = "SELECT 
+            (SELECT COUNT(*) FROM user WHERE status = 'active') + (SELECT COUNT(*) FROM student ) AS total_users,
+            (SELECT COUNT(*) FROM student) AS total_students,
+            (SELECT COUNT(*) FROM user WHERE role_id = 4 AND status = 'active') AS total_admins,
+            (SELECT COUNT(*) FROM user WHERE role_id = 3 AND status = 'active') AS total_moderators,
+            (SELECT COUNT(*) FROM user WHERE role_id = 2 AND status = 'active') AS total_professionals,
+            (SELECT COUNT(*) FROM user WHERE role_id = 1 AND status = 'active') AS total_employers";
+
+$stmt = $conn->query($sql);
+$stats = $stmt->fetch(PDO::FETCH_ASSOC);
+
+$totalUsers = $stats['total_users'];
+$totalStudents = $stats['total_students'];
+$totalAdmins = $stats['total_admins'];
+$totalModerators = $stats['total_moderators'];
+$totalProfessionals = $stats['total_professionals'];
+$totalEmployers = $stats['total_employers'];
 
 ?>
