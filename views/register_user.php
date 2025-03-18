@@ -147,6 +147,10 @@
                 </div>
                 <div class="input-group mb-3">
                     <span class="input-group-text"><i class="fas fa-user"></i></span>
+                    <input type="text" name="middle_name" class="form-control" placeholder="Middle Name (optional)">
+                </div>
+                <div class="input-group mb-3">
+                    <span class="input-group-text"><i class="fas fa-user"></i></span>
                     <input type="text" name="last_name" class="form-control" placeholder="Last Name" required>
                 </div>
                 <input type="hidden" id="entity" name="entity" value="user">
