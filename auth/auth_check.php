@@ -10,14 +10,23 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Fetch user role ID
+// Fetch user role ID & status
 $user_id = $_SESSION['user_id'];
-$stmt = $conn->prepare("SELECT role_id FROM user WHERE user_id = :user_id LIMIT 1");
+$stmt = $conn->prepare("SELECT role_id, status FROM user WHERE user_id = :user_id LIMIT 1");
 $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
 $stmt->execute();
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
 $role_id = (int) ($user['role_id'] ?? 0);
+$status = strtolower(trim($user['status'] ?? '')); // Convert status to lowercase for consistency
+
+// If user is marked as 'deleted', log them out and redirect
+if ($status === 'deleted') {
+    session_unset();
+    session_destroy();
+    header("Location: ../auth/login_user.php?account_deleted=1");
+    exit();
+}
 
 // Role-based access control
 $allowed_roles = [
@@ -45,3 +54,4 @@ if (isset($page_permissions[$current_page]) && !in_array($role_id, $page_permiss
     exit();
 }
 ?>
+    

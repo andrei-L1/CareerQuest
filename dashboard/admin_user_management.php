@@ -381,6 +381,7 @@ require '../auth/auth_check.php';
                             <?php foreach ($deletedusers as $deletedusers): ?>
                                 <?php if ($deletedusers['status'] === 'Deleted'): ?>
                                     <tr>
+                                        <td style="display:none;"><?= htmlspecialchars($user['actor_id']) ?></td>
                                         <td><?= htmlspecialchars($deletedusers['actor_id']) ?></td>
                                         <td><?= htmlspecialchars($deletedusers['first_name'] . ' ' . $deletedusers['middle_name']. ' ' .  $deletedusers['last_name']) ?></td>
                                         <td><?= htmlspecialchars($deletedusers['email']) ?></td>
@@ -390,6 +391,7 @@ require '../auth/auth_check.php';
                                         <button class="btn btn-sm btn-success btn-action restoreUserBtn" data-id="<?= $deletedusers['actor_id'] ?>">
                                             <i class="fas fa-undo"></i> Restore
                                         </button>
+
 
                                         </td>
                                     </tr>
@@ -804,10 +806,6 @@ document.addEventListener("DOMContentLoaded", function () {
                         let roleDropdown = document.getElementById("editUserRole");
                         roleDropdown.value = data.role_id || '';
                         roleDropdown.disabled = !data.role_id;
-
-                        if (!data.role_id) {
-                            roleDropdown.innerHTML = '<option selected>Cannot be edited</option>';
-                        }
 
                         document.getElementById("editUserStatus").value = data.status || '';
                         document.getElementById("editUserId").value = actorId;

@@ -1,8 +1,8 @@
 <?php 
+require "../config/dbcon.php";
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-require "../config/dbcon.php";
 
 // Check if the user is logged in
 if (!isset($_SESSION['user_id'])) {

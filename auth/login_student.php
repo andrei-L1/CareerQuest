@@ -248,6 +248,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <div class="login-container">
         <h3>Student Login</h3>
+                <?php
+        if (isset($_GET['account_deleted'])) {
+            $message = htmlspecialchars($_GET['account_deleted'], ENT_QUOTES, 'UTF-8');
+            echo "<p style='color: red; font-weight: bold;'>Your account has been deleted. Please contact support.</p>";
+        }
+        ?>
         <?php if ($error): ?>
             <div class="alert alert-danger"><?= $error ?></div>
         <?php endif; ?>
