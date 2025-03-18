@@ -21,7 +21,7 @@ $role_id = (int) ($user['role_id'] ?? 0);
 $status = strtolower(trim($user['status'] ?? '')); // Convert status to lowercase for consistency
 
 // If user is marked as 'deleted', log them out and redirect
-if ($status === 'deleted') {
+if ($status === 'Deleted') {
     session_unset();
     session_destroy();
     header("Location: ../auth/login_user.php?account_deleted=1");
