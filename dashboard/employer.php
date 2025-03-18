@@ -2,14 +2,7 @@
 session_start();
 
 require "../config/dbcon.php"; 
-
-// Check if the user is logged in
-if (!isset($_SESSION['user_id'])) {
-    // Redirect unauthorized users to the login page
-    header("Location: ../index.php");
-    exit();
-}
-
+require "../auth/auth_check.php"; 
 
 ?>
 <!DOCTYPE html>
