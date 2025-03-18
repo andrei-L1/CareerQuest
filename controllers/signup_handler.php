@@ -16,6 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }        
         $password = $_POST['password'] ?? null;
         $first_name = trim($_POST['first_name'] ?? '');
+        $middle_name = !empty(trim($_POST['middle_name'] ?? '')) ? trim($_POST['middle_name']) : null;
         $last_name = trim($_POST['last_name'] ?? '');
 
         if (!$email || empty($password) || empty($first_name) || empty($last_name)) {
@@ -68,13 +69,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $user_type = $role['role_title']; 
 
                 // Insert user into database
-                $stmt = $conn->prepare("INSERT INTO user (user_type, user_email, user_password, role_id, user_first_name, user_last_name, `status`) 
-                                        VALUES (:user_type, :email, :password, :role_id, :first_name, :last_name, :active)");
+                $stmt = $conn->prepare("INSERT INTO user (user_type, user_email, user_password, role_id, user_first_name, user_middle_name, user_last_name, `status`) 
+                                        VALUES (:user_type, :email, :password, :role_id, :first_name,:middle_name,:last_name, :active)");
                 $stmt->bindParam(':user_type', $user_type, PDO::PARAM_STR);
                 $stmt->bindParam(':email', $email, PDO::PARAM_STR);
                 $stmt->bindParam(':password', $hashed_password, PDO::PARAM_STR);
                 $stmt->bindParam(':role_id', $role_id, PDO::PARAM_INT);
                 $stmt->bindParam(':first_name', $first_name, PDO::PARAM_STR);
+                if ($middle_name === null) {
+                    $stmt->bindValue(':middle_name', null, PDO::PARAM_NULL);
+                } else {
+                    $stmt->bindValue(':middle_name', $middle_name, PDO::PARAM_STR);
+                }                
                 $stmt->bindParam(':last_name', $last_name, PDO::PARAM_STR);
                 $stmt->bindParam(':active', $status, PDO::PARAM_STR);
 
@@ -89,12 +95,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 // Insert student into database
-                $stmt = $conn->prepare("INSERT INTO student (stud_no, stud_email, stud_password, stud_first_name, stud_last_name, institution, `status`) 
-                                        VALUES (:studno, :email, :password, :first_name, :last_name, :institution,:active)");
+                $stmt = $conn->prepare("INSERT INTO student (stud_no, stud_email, stud_password, stud_first_name, stud_middle_name, stud_last_name, institution, `status`) 
+                                        VALUES (:studno, :email, :password, :first_name, :middle_name, :last_name, :institution,:active)");
                 $stmt->bindParam(':studno', $studno, PDO::PARAM_STR);
                 $stmt->bindParam(':email', $email, PDO::PARAM_STR);
                 $stmt->bindParam(':password', $hashed_password, PDO::PARAM_STR);
                 $stmt->bindParam(':first_name', $first_name, PDO::PARAM_STR);
+                if ($middle_name === null) {
+                    $stmt->bindValue(':middle_name', null, PDO::PARAM_NULL);
+                } else {
+                    $stmt->bindValue(':middle_name', $middle_name, PDO::PARAM_STR);
+                }
                 $stmt->bindParam(':last_name', $last_name, PDO::PARAM_STR);
                 $stmt->bindParam(':institution', $institution, PDO::PARAM_STR);
                 $stmt->bindParam(':active', $status, PDO::PARAM_STR);
