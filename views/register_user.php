@@ -158,6 +158,7 @@
                     <button type="button" class="btn btn-primary w-100 mt-3" onclick="nextStep(2)">Next</button>
                 </div>
             </div>
+
             <!-- Step 2: Password and Email -->
             <div id="step-2" class="d-none">
                 <h5>Step 2: Set Your E-mail and Password</h5>
@@ -169,17 +170,29 @@
                     <span class="input-group-text"><i class="fas fa-lock"></i></span>
                     <input type="password" id="password" name="password" class="form-control" placeholder="Password" required>
                 </div>
+                <ul class="list-unstyled small" id="passwordChecklist">
+                    <li id="lengthCheck" class="text-danger" data-text="At least 6 characters">
+                        <i class="fas fa-times"></i> At least 6 characters
+                    </li>
+                    <li id="uppercaseCheck" class="text-danger" data-text="At least 1 uppercase letter">
+                        <i class="fas fa-times"></i> At least 1 uppercase letter
+                    </li>
+                    <li id="specialCharCheck" class="text-danger" data-text="At least 1 special character">
+                        <i class="fas fa-times"></i> At least 1 special character
+                    </li>
+                </ul>
+
                 <div class="input-group mb-3">
                     <span class="input-group-text"><i class="fas fa-lock"></i></span>
                     <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="Confirm Password" required>
                 </div>
-                <small id="passwordHelp" class="text-danger d-none">Password must be at least 6 characters long, contain 1 uppercase letter, and 1 special character.</small>
                 <small id="confirmPasswordHelp" class="text-danger d-none">Passwords do not match.</small>
                 <div class="d-flex justify-content-between mt-4">
                     <button type="button" class="btn btn-outline-secondary w-50" onclick="prevStep(1)">Back</button>
                     <button type="button" id="nextStep3" class="btn btn-primary w-50" onclick="nextStep(3)" disabled>Next</button>
                 </div>
             </div>
+
             <!-- Step 3: Additional Information -->
             <div id="step-3" class="d-none">
                 <h5>Step 3: Additional Information</h5>
@@ -207,5 +220,79 @@
         AOS.init();
     </script>
     <script src="../assests/createaccount.js"></script>
+    <script>
+    function validatePassword() {
+        const passwordField = document.getElementById("password");
+        const confirmPasswordField = document.getElementById("confirm_password");
+        const confirmPasswordHelp = document.getElementById("confirmPasswordHelp");
+        const nextButton = document.getElementById("nextStep3");
+
+        const passwordValue = passwordField.value.trim();
+        const confirmPasswordValue = confirmPasswordField.value.trim();
+
+        // Validation Rules
+        const lengthCheck = document.getElementById("lengthCheck");
+        const uppercaseCheck = document.getElementById("uppercaseCheck");
+        const specialCharCheck = document.getElementById("specialCharCheck");
+
+        const hasLength = passwordValue.length >= 6;
+        const hasUppercase = /[A-Z]/.test(passwordValue);
+        const hasSpecialChar = /[^a-zA-Z0-9]/.test(passwordValue);
+
+        // Update Checklist
+        updateChecklist(lengthCheck, hasLength);
+        updateChecklist(uppercaseCheck, hasUppercase);
+        updateChecklist(specialCharCheck, hasSpecialChar);
+
+        // Validate password match
+        let isValid = hasLength && hasUppercase && hasSpecialChar;
+        if (confirmPasswordValue.length > 0 && passwordValue !== confirmPasswordValue) {
+            confirmPasswordHelp.classList.remove("d-none");
+            confirmPasswordField.classList.add("is-invalid");
+            isValid = false;
+        } else {
+            confirmPasswordHelp.classList.add("d-none");
+            confirmPasswordField.classList.remove("is-invalid");
+        }
+
+        nextButton.disabled = !isValid;
+    }
+
+    function updateChecklist(element, isValid) {
+    const text = element.getAttribute("data-text"); // Get original text
+
+    if (isValid) {
+        element.classList.remove("text-danger");
+        element.classList.add("text-success");
+        element.innerHTML = `<i class="fas fa-check"></i> ${text}`;
+    } else {
+        element.classList.remove("text-success");
+        element.classList.add("text-danger");
+        element.innerHTML = `<i class="fas fa-times"></i> ${text}`;
+    }
+}
+
+
+document.addEventListener("DOMContentLoaded", () => {
+    const passwordField = document.getElementById("password");
+    const confirmPasswordField = document.getElementById("confirm_password");
+    const passwordChecklist = document.getElementById("passwordChecklist");
+
+    // Validate password on input change
+    passwordField.addEventListener("input", validatePassword);
+    confirmPasswordField.addEventListener("input", validatePassword);
+
+    // Hide checklist when confirm password is focused
+    confirmPasswordField.addEventListener("focus", () => {
+        passwordChecklist.style.display = "none";
+    });
+
+    // Show checklist when password is focused
+    passwordField.addEventListener("focus", () => {
+        passwordChecklist.style.display = "block";
+    });
+});
+
+</script>
 </body>
 </html>
