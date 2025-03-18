@@ -30,6 +30,7 @@ function fetchUsers() {
     
     $sql = "SELECT a.actor_id, a.entity_type, a.entity_id, 
         COALESCE(u.user_first_name, s.stud_first_name) AS first_name, 
+        COALESCE(u.user_middle_name, s.stud_middle_name) AS middle_name, 
         COALESCE(u.user_last_name, s.stud_last_name) AS last_name, 
         COALESCE(u.user_email, s.stud_email) AS email, 
         COALESCE(u.status, s.status, 'Active') AS status, 
@@ -50,6 +51,7 @@ function fetchDeletedUsers() {
     
     $sql = "SELECT a.actor_id, a.entity_type, a.entity_id, 
         COALESCE(u.user_first_name, s.stud_first_name) AS first_name, 
+        COALESCE(u.user_middle_name, s.stud_middle_name) AS middle_name, 
         COALESCE(u.user_last_name, s.stud_last_name) AS last_name, 
         COALESCE(u.user_email, s.stud_email) AS email, 
         'Deleted' AS status, 

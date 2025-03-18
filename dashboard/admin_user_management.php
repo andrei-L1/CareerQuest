@@ -254,7 +254,7 @@ require "../controllers/admin_user_management.php";
                                                 S-<?= htmlspecialchars($user['entity_id']) ?>
                                             <?php endif; ?>
                                        </td>
-                                        <td><?= htmlspecialchars($user['first_name'] . ' ' . $user['last_name']) ?></td>
+                                        <td><?= htmlspecialchars($user['first_name']. ' ' . $user['middle_name']. ' ' . $user['last_name']) ?></td>
                                         <td><?= htmlspecialchars($user['email']) ?></td>
                                         <td><?= htmlspecialchars($user['role_name']) ?></td>
                                         <td><span class="badge bg-success"><?= htmlspecialchars($user['status']) ?></span></td>
@@ -296,7 +296,7 @@ require "../controllers/admin_user_management.php";
                                 <?php if ($deletedusers['status'] === 'Deleted'): ?>
                                     <tr>
                                         <td><?= htmlspecialchars($deletedusers['actor_id']) ?></td>
-                                        <td><?= htmlspecialchars($deletedusers['first_name'] . ' ' . $deletedusers['last_name']) ?></td>
+                                        <td><?= htmlspecialchars($deletedusers['first_name'] . ' ' . $deletedusers['middle_name']. ' ' .  $deletedusers['last_name']) ?></td>
                                         <td><?= htmlspecialchars($deletedusers['email']) ?></td>
                                         <td><?= htmlspecialchars($deletedusers['role_name']) ?></td>
                                         <td><span class="badge bg-danger"><?= htmlspecialchars($deletedusers['status']) ?></span></td>
