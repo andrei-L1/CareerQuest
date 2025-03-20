@@ -43,6 +43,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
 $page_permissions = [
     'admin.php' => $allowed_roles['admin'],
     'admin_user_management.php' => $allowed_roles['admin'],
+    'admin_job_management.php' => $allowed_roles['admin'],
     'employer.php' => $allowed_roles['employer'],
     'professional.php' => $allowed_roles['professional'],
     'moderator.php' => $allowed_roles['moderator'],
