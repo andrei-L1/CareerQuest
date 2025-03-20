@@ -280,163 +280,135 @@ require '../auth/auth_check.php';
     </nav>
     
 
-   <!-- Main Content -->
-   <main class="main-content">
+    <!-- Job Management Panel -->
+    <main class="main-content">
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-            <h1 class="h2">Job Posting Management</h1>
-            <div>
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addJobModal">
-                    <i class="fas fa-plus me-2"></i> Add Job
-                </button>
-            </div>
+            <h1 class="h2">Job Management Panel</h1>
         </div>
 
-<!-- Search Bar -->
-<div class="row mb-4">
-    <div class="col-md-12">
-        <div class="input-group">
-            <input type="text" class="form-control" id="searchJobs" placeholder="Search jobs by title, company, or location">
-            <button class="btn btn-outline-secondary" type="button" id="searchButton">
-                <i class="fas fa-search"></i>
-            </button>
+        <!-- Navigation Tabs -->
+        <ul class="nav nav-tabs" id="jobManagementTabs" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active" id="jobTypeTab" data-bs-toggle="tab" data-bs-target="#jobTypePanel" type="button" role="tab">Job Type Management</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="skillTab" data-bs-toggle="tab" data-bs-target="#skillPanel" type="button" role="tab">Skill Management</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="jobPostingTab" data-bs-toggle="tab" data-bs-target="#jobPostingPanel" type="button" role="tab">Job Posting Management</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="jobSkillTab" data-bs-toggle="tab" data-bs-target="#jobSkillPanel" type="button" role="tab">Job Skill Mapping</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="jobManagementTabsContent">
+            <!-- Job Type Management -->
+            <div class="tab-pane fade show active p-4 bg-light rounded shadow" id="jobTypePanel" role="tabpanel">
+                <h3 class="mb-3 text-primary"><i class="bi bi-briefcase"></i> Manage Job Types</h3>
+
+                <div class="d-flex justify-content-between mb-3">
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addJobTypeModal">
+                        <i class="bi bi-plus-lg"></i> Add Job Type
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <table class="table table-hover table-striped">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Title</th>
+                                    <th>Description</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="jobTypeList">
+                                <!-- Job Types will be loaded dynamically here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Pagination Controls -->
+                <div id="paginationControls" class="mt-3 d-flex justify-content-center"></div>
+            </div>
+
+
+            <!-- Skill Management -->
+            <div class="tab-pane fade" id="skillPanel" role="tabpanel">
+                <h3 class="mt-3">Manage Skills</h3>
+                <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addSkillModal">Add Skill</button>
+                <div id="skillList"></div>
+            </div>
+
+            <!-- Job Posting Management -->
+            <div class="tab-pane fade" id="jobPostingPanel" role="tabpanel">
+                <h3 class="mt-3">Manage Job Postings</h3>
+                <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addJobModal">Add Job</button>
+                <div id="jobPostingList"></div>
+            </div>
+
+            <!-- Job Skill Mapping -->
+            <div class="tab-pane fade" id="jobSkillPanel" role="tabpanel">
+                <h3 class="mt-3">Map Skills to Jobs</h3>
+                <div id="jobSkillMapping"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add Job Type Modal -->
+<div class="modal fade" id="addJobTypeModal" tabindex="-1" aria-labelledby="addJobTypeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Job Type</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addJobTypeForm">
+                    <div class="mb-3">
+                        <label for="jobTypeTitle" class="form-label">Job Type Title</label>
+                        <input type="text" class="form-control" id="jobTypeTitle" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="jobTypeDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="jobTypeDescription" name="description"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
 
-
-        <!-- Job Cards Grid -->
-        <div class="row">
-            <?php
-            // Example job data (replace with your actual data from the database)
-            $jobs = [
-                [
-                    'id' => 1,
-                    'title' => 'Software Engineer',
-                    'company' => 'Tech Corp',
-                    'location' => 'New York, USA',
-                    'status' => 'Active',
-                ],
-                [
-                    'id' => 2,
-                    'title' => 'Product Manager',
-                    'company' => 'Innovate Inc',
-                    'location' => 'San Francisco, USA',
-                    'status' => 'Pending',
-                ],
-                // Add more jobs as needed
-            ];
-
-            foreach ($jobs as $job): ?>
-                <div class="col-lg-4 col-md-6 col-sm-12 mb-4">
-                    <div class="card job-card">
-                        <div class="card-body">
-                            <h5 class="card-title"><?= htmlspecialchars($job['title']) ?></h5>
-                            <p class="card-text"><strong>Company:</strong> <?= htmlspecialchars($job['company']) ?></p>
-                            <p class="card-text"><strong>Location:</strong> <?= htmlspecialchars($job['location']) ?></p>
-                            <p class="card-text">
-                                <strong>Status:</strong> 
-                                <span class="badge <?= $job['status'] === 'Active' ? 'bg-success' : 'bg-warning' ?>">
-                                    <?= htmlspecialchars($job['status']) ?>
-                                </span>
-                            </p>
-                            <div class="actions">
-
-                                <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#viewJobModal">
-                                    <i class="fas fa-eye"></i> View Details
-                                </button>
-                                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editJobModal">
-                                    <i class="fas fa-edit"></i> Edit
-                                </button>
-                                <button class="btn btn-sm btn-danger" onclick="confirmDeleteJob(<?= $job['id'] ?>)">
-                                    <i class="fas fa-trash"></i> Delete
-                                </button>
-                            </div>
-                        </div>
+<!-- Edit Job Type Modal -->
+<div class="modal fade" id="editJobTypeModal" tabindex="-1" aria-labelledby="editJobTypeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Job Type</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editJobTypeForm">
+                    <input type="hidden" id="editJobTypeId" name="id">
+                    <div class="mb-3">
+                        <label for="editJobTypeTitle" class="form-label">Job Type Title</label>
+                        <input type="text" class="form-control" id="editJobTypeTitle" name="title" required>
                     </div>
-                </div>
-            <?php endforeach; ?>
-        </div>
-
-        <!-- Add Job Modal -->
-        <div class="modal fade" id="addJobModal" tabindex="-1" aria-labelledby="addJobModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="addJobModalLabel">Add Job</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <div class="mb-3">
+                        <label for="editJobTypeDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="editJobTypeDescription" name="description"></textarea>
                     </div>
-                    <div class="modal-body">
-                        <form>
-                            <div class="mb-3">
-                                <label for="jobTitle" class="form-label">Title</label>
-                                <input type="text" class="form-control" id="jobTitle" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="jobCompany" class="form-label">Company</label>
-                                <input type="text" class="form-control" id="jobCompany" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="jobLocation" class="form-label">Location</label>
-                                <input type="text" class="form-control" id="jobLocation" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="jobStatus" class="form-label">Status</label>
-                                <select class="form-select" id="jobStatus" required>
-                                    <option value="Active">Active</option>
-                                    <option value="Pending">Pending</option>
-                                    <option value="Closed">Closed</option>
-                                </select>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary">Save</button>
-                    </div>
-                </div>
+                    <button type="submit" class="btn btn-primary">Update</button>
+                </form>
             </div>
         </div>
+    </div>
+</div>
 
-        <!-- Edit Job Modal -->
-        <div class="modal fade" id="editJobModal" tabindex="-1" aria-labelledby="editJobModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="editJobModalLabel">Edit Job</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form>
-                            <div class="mb-3">
-                                <label for="editJobTitle" class="form-label">Title</label>
-                                <input type="text" class="form-control" id="editJobTitle" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="editJobCompany" class="form-label">Company</label>
-                                <input type="text" class="form-control" id="editJobCompany" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="editJobLocation" class="form-label">Location</label>
-                                <input type="text" class="form-control" id="editJobLocation" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="editJobStatus" class="form-label">Status</label>
-                                <select class="form-select" id="editJobStatus" required>
-                                    <option value="Active">Active</option>
-                                    <option value="Pending">Pending</option>
-                                    <option value="Closed">Closed</option>
-                                </select>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary">Save Changes</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
 
     <!-- Loading Spinner -->
     <div class="loading-spinner">
@@ -475,6 +447,137 @@ require '../auth/auth_check.php';
             });
         }
     </script>
+
+
+<script>
+$(document).ready(function() {
+    let currentPage = 1;
+    let totalPages = 1;
+    const limit = 5; // Number of job types per page
+
+    loadJobTypes(currentPage);
+
+    // Load job types with pagination
+    function loadJobTypes(page) {
+        $.ajax({
+            url: '../controllers/admin_job_controller.php',
+            type: 'POST',
+            data: { action: 'fetch', page: page, limit: limit },
+            dataType: 'json',
+            success: function(response) {
+                let rows = ""; // Store generated table rows
+
+                response.jobTypes.forEach(function(jobType) {
+                    rows += `
+                        <tr>
+                            <td>${jobType.job_type_id}</td>
+                            <td>${jobType.job_type_title}</td>
+                            <td>${jobType.job_type_description || 'N/A'}</td>
+                            <td class="text-center">
+                                <button class="btn btn-warning btn-sm edit-job-type" data-id="${jobType.job_type_id}" data-title="${jobType.job_type_title}" data-description="${jobType.job_type_description}">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </button>
+                                <button class="btn btn-danger btn-sm delete-job-type" data-id="${jobType.job_type_id}">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                $('#jobTypeList').html(rows); // Insert rows into tbody
+
+                // Update pagination
+                totalPages = response.totalPages;
+                updatePagination();
+            }
+        });
+    }
+
+    // Update pagination UI
+    function updatePagination() {
+        let paginationHtml = `<nav><ul class="pagination justify-content-center">`;
+
+        if (currentPage > 1) {
+            paginationHtml += `<li class="page-item"><a class="page-link" href="#" data-page="${currentPage - 1}">&laquo; Previous</a></li>`;
+        }
+
+        for (let i = 1; i <= totalPages; i++) {
+            paginationHtml += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                <a class="page-link" href="#" data-page="${i}">${i}</a>
+            </li>`;
+        }
+
+        if (currentPage < totalPages) {
+            paginationHtml += `<li class="page-item"><a class="page-link" href="#" data-page="${currentPage + 1}">Next &raquo;</a></li>`;
+        }
+
+        paginationHtml += `</ul></nav>`;
+
+        $('#paginationControls').html(paginationHtml);
+    }
+
+    // Handle pagination clicks
+    $(document).on('click', '.page-link', function(e) {
+        e.preventDefault();
+        let page = $(this).data('page');
+        if (page !== currentPage) {
+            currentPage = page;
+            loadJobTypes(currentPage);
+        }
+    });
+
+    // Add job type
+    $('#addJobTypeForm').submit(function(e) {
+        e.preventDefault();
+        $.ajax({
+            url: '../controllers/admin_job_controller.php',
+            type: 'POST',
+            data: $(this).serialize() + '&action=add',
+            success: function(response) {
+                $('#addJobTypeModal').modal('hide');
+                loadJobTypes(currentPage);
+                $('#addJobTypeForm')[0].reset();
+            }
+        });
+    });
+
+    // Show edit modal with data
+    $(document).on('click', '.edit-job-type', function() {
+        $('#editJobTypeId').val($(this).data('id'));
+        $('#editJobTypeTitle').val($(this).data('title'));
+        $('#editJobTypeDescription').val($(this).data('description'));
+        $('#editJobTypeModal').modal('show');
+    });
+
+    // Edit job type
+    $('#editJobTypeForm').submit(function(e) {
+        e.preventDefault();
+        $.ajax({
+            url: '../controllers/admin_job_controller.php',
+            type: 'POST',
+            data: $(this).serialize() + '&action=edit',
+            success: function(response) {
+                $('#editJobTypeModal').modal('hide');
+                loadJobTypes(currentPage);
+            }
+        });
+    });
+
+    // Delete job type
+    $(document).on('click', '.delete-job-type', function() {
+        if (!confirm("Are you sure you want to delete this job type?")) return;
+        $.ajax({
+            url: '../controllers/admin_job_controller.php',
+            type: 'POST',
+            data: { action: 'delete', id: $(this).data('id') },
+            success: function(response) {
+                loadJobTypes(currentPage);
+            }
+        });
+    });
+});
+</script>
 
 </body>
 </html>
