@@ -21,6 +21,8 @@ require '../auth/auth_check.php';
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
     <link rel="stylesheet" href="../assests/sidebar.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+
     
     <!-- Custom Styles -->
     <style>
@@ -183,41 +185,58 @@ require '../auth/auth_check.php';
             width: 100%;
             padding: 20px;
         }
+
+
+
+                /* General Card Styling */
         .stat-card {
-    
-            padding: 20px;
+            padding: 10px;
+            text-align: center;
+            border-radius: 12px;
             color: white;
-            text-align: left;
-       
-            border: none;
-            border-radius: 10px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
             overflow: hidden;
-
-        }
-        .blue { background-color: #007bff; }
-        .green { background-color: #28a745; }
-        .yellow { background-color: #ffc107; color: black; }
-        .red { background-color: #dc3545; }
-        .purple { background-color: #6f42c1; }
-        .stat-card.orange {
-            background-color: #ff9800; 
-            color: white;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
         }
 
-        .stat-title {
-            font-size: 18px;
-            font-weight: bold;
-        }
-        .stat-value {
-            font-size: 40px;
-            font-weight: bold;
-            margin-top: 10px;
-        }
         .stat-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 20px var(--shadow-color);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
         }
+
+        /* Icon Styling */
+        .stat-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover .stat-icon {
+            transform: scale(1.1);
+        }
+
+        /* Title and Value */
+        .stat-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        /* Background Colors */
+        .blue { background: #007bff; }
+        .green { background: #28a745; }
+        .yellow { background: #ffc107; }
+        .red { background: #dc3545; }
+        .orange { background: #fd7e14; }
+        .purple { background: #6f42c1; }
+
     </style>
 </head>
 <body class="fade-in">
@@ -249,57 +268,49 @@ require '../auth/auth_check.php';
    <main class="main-content">
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
             <h1 class="h2">User Management</h1>
-            <div>
-                <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addUserModal">
+            <div class="d-flex gap-2">
+                <!-- Add User Button -->
+                <button class="btn btn-primary d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#addUserModal">
                     <i class="fas fa-plus me-2"></i> Add User
                 </button>
+
+                <!-- Export Users Button -->
+                <a href="#" class="btn btn-outline-primary d-flex align-items-center" onclick="confirmExport(event)">
+                    <i class="fas fa-file-export me-2"></i> Export Users
+                </a>
+
             </div>
+
         </div>
 
         <div class="row mb-4 fade-in">
-    <div class="row g-3">
-        <div class="col-lg-2 col-md-4 col-sm-6">
-            <div class="stat-card blue">
-                <div class="stat-title">Total Users</div>
-                <div class="stat-value"><?php echo $totalUsers; ?></div>
+            <div class="row g-3">
+                <?php 
+                    $stats = [
+                        ["Total Users", $totalUsers, "fas fa-users", "blue"],
+                        ["Students", $totalStudents, "fas fa-user-graduate", "green"],
+                        ["Moderators", $totalModerators, "fas fa-user-shield", "yellow"],
+                        ["Professionals", $totalProfessionals, "fas fa-briefcase", "red"],
+                        ["Employers", $totalEmployers, "fas fa-building", "orange"],
+                        ["Admins", $totalAdmins, "fas fa-user-cog", "purple"]
+                    ];
+                    
+                    foreach ($stats as $stat): 
+                ?>
+                <div class="col-lg-2 col-md-4 col-sm-6">
+                    <div class="stat-card <?php echo $stat[3]; ?>">
+                        <div class="stat-icon"><i class="<?php echo $stat[2]; ?>"></i></div>
+                        <div class="stat-title"><?php echo $stat[0]; ?></div>
+                        <div class="stat-value"><?php echo $stat[1]; ?></div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
             </div>
         </div>
-        <div class="col-lg-2 col-md-4 col-sm-6">
-            <div class="stat-card green">
-                <div class="stat-title">Students</div>
-                <div class="stat-value"><?php echo $totalStudents; ?></div>
-            </div>
-        </div>
-        <div class="col-lg-2 col-md-4 col-sm-6">
-            <div class="stat-card yellow">
-                <div class="stat-title">Moderators</div>
-                <div class="stat-value"><?php echo $totalModerators; ?></div>
-            </div>
-        </div>
-        <div class="col-lg-2 col-md-4 col-sm-6">
-            <div class="stat-card red">
-                <div class="stat-title">Professionals</div>
-                <div class="stat-value"><?php echo $totalProfessionals; ?></div>
-            </div>
-        </div>
-        <div class="col-lg-2 col-md-4 col-sm-6">
-            <div class="stat-card orange">
-                <div class="stat-title">Employers</div>
-                <div class="stat-value"><?php echo $totalEmployers; ?></div>
-            </div>
-        </div>
-        <div class="col-lg-2 col-md-4 col-sm-6">
-            <div class="stat-card purple">
-                <div class="stat-title">Admins</div>
-                <div class="stat-value"><?php echo $totalAdmins; ?></div>
-            </div>
-        </div>
-    </div>
-</div>
 
 
-        <!-- User Table -->
-            
+
+
     <!-- Bootstrap Tabs -->
     <ul class="nav nav-tabs" id="userTabs" role="tablist">
         <li class="nav-item">
@@ -312,12 +323,33 @@ require '../auth/auth_check.php';
 
     <!-- Tab Content -->
     <div class="tab-content mt-3">
-        
         <!-- Active Users -->
         <div class="tab-pane fade show active" id="activeUsers" role="tabpanel">
             <div class="card">
                 <div class="card-body">
-                <input type="text" id="searchActiveUsers" class="form-control mb-3" placeholder="Search Active Users...">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <!-- Filter Buttons -->
+                        <div>
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-outline-primary filter-btn" data-role="">All</button>
+                                <button class="btn btn-outline-primary filter-btn" data-role="Employer">Employer</button>
+                                <button class="btn btn-outline-primary filter-btn" data-role="Professional">Professional</button>
+                                <button class="btn btn-outline-primary filter-btn" data-role="Moderator">Moderator</button>
+                                <button class="btn btn-outline-primary filter-btn" data-role="Admin">Admin</button>
+                                <button class="btn btn-outline-primary filter-btn" data-role="Student">Student (No Role)</button>
+                            </div>
+                        </div>
+
+                        <!-- Search Bar -->
+                        <div style="max-width: 300px;">
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" id="searchActiveUsers" class="form-control" placeholder="Search Active Users...">
+                            </div>
+                        </div>
+
+                    </div>
+
                     <table id="activeUsersTable" class="table table-striped">
                         <thead>
                             <tr>
@@ -365,7 +397,27 @@ require '../auth/auth_check.php';
         <div class="tab-pane fade" id="deletedUsers" role="tabpanel">
             <div class="card">
                 <div class="card-body">
-                <input type="text" id="searchDeletedUsers" class="form-control mb-3" placeholder="Search Deleted Users...">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                        <!-- Filter Buttons -->
+                        <div>
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-outline-primary filter-btn" data-role="">All</button>
+                                <button class="btn btn-outline-primary filter-btn" data-role="Employer">Employer</button>
+                                <button class="btn btn-outline-primary filter-btn" data-role="Professional">Professional</button>
+                                <button class="btn btn-outline-primary filter-btn" data-role="Moderator">Moderator</button>
+                                <button class="btn btn-outline-primary filter-btn" data-role="Admin">Admin</button>
+                                <button class="btn btn-outline-primary filter-btn" data-role="Student">Student (No Role)</button>
+                            </div>
+                        </div>
+
+                        <!-- Search Bar -->
+                        <div style="max-width: 300px;">
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" id="searchDeletedUsers" class="form-control" placeholder="Search Deleted Users...">
+                            </div>
+                        </div>
+                    </div>
                     <table id="deletedUsersTable" class="table table-striped">
                         <thead>
                             <tr>
@@ -871,6 +923,52 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 </script>
+<script>
+document.querySelectorAll('.filter-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        let selectedRole = this.getAttribute('data-role').toLowerCase();
+        let rows = document.querySelectorAll("#activeUsersTable tbody tr");
+
+        rows.forEach(row => {
+            let roleCell = row.cells[3]; // Role is in the 4th column
+            let role = roleCell.textContent.trim().toLowerCase();
+
+            if (selectedRole === "" || role === selectedRole || (selectedRole === "student" && role === "")) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+
+        // Remove active class from all buttons and add to the clicked one
+        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+    });
+});
+
+</script>
+
+<script>
+function confirmExport(event) {
+    event.preventDefault(); // Prevent immediate navigation
+
+    Swal.fire({
+        title: "Are you sure?",
+        text: "Do you really want to export users?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, Export!",
+        cancelButtonText: "Cancel"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = "../controllers/export_user.php"; // Redirect if confirmed
+        }
+    });
+}
+</script>
+
 
 </body>
 </html>

@@ -476,28 +476,5 @@ require '../auth/auth_check.php';
         }
     </script>
 
-<script>
-    const trendsCtx = document.getElementById('jobTrendsChart').getContext('2d');
-    const jobTrendsChart = new Chart(trendsCtx, {
-        type: 'line',
-        data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-            datasets: [{
-                label: 'Job Postings',
-                data: [12, 19, 15, 20, 18, 25],
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 2,
-                fill: false
-            }]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    });
-</script>
 </body>
 </html>
