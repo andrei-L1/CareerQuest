@@ -390,8 +390,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["edit_id"])) {
 }
 
 $sql = "SELECT 
-            (SELECT COUNT(*) FROM user WHERE status = 'active') + (SELECT COUNT(*) FROM student ) AS total_users,
-            (SELECT COUNT(*) FROM student) AS total_students,
+            (SELECT COUNT(*) FROM user ) + (SELECT COUNT(*) FROM student ) AS total_users,
+            (SELECT COUNT(*) FROM student WHERE status = 'active') AS total_students,
             (SELECT COUNT(*) FROM user WHERE role_id = 4 AND status = 'active') AS total_admins,
             (SELECT COUNT(*) FROM user WHERE role_id = 3 AND status = 'active') AS total_moderators,
             (SELECT COUNT(*) FROM user WHERE role_id = 2 AND status = 'active') AS total_professionals,
