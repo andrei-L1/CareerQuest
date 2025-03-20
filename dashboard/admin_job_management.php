@@ -2,7 +2,7 @@
 include "../includes/sidebar.php";
 require "../controllers/admin_dashboard.php";
 require "../controllers/admin_user_management.php";
-require "../controllers/admin_job_management.php";
+require "../controllers/admin_job_controller.php";
 require '../auth/auth_check.php'; 
 ?>
 
@@ -290,35 +290,6 @@ require '../auth/auth_check.php';
                 </button>
             </div>
         </div>
-        <!-- Filter Section -->
-<div class="row mb-4">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Filters</h5>
-                <div class="row g-3">
-                    <div class="col-md-3">
-                        <select class="form-select" id="filterStatus">
-                            <option value="">All Statuses</option>
-                            <option value="Active">Active</option>
-                            <option value="Pending">Pending</option>
-                            <option value="Deleted">Deleted</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <input type="text" class="form-control" id="filterCompany" placeholder="Filter by Company">
-                    </div>
-                    <div class="col-md-3">
-                        <input type="text" class="form-control" id="filterLocation" placeholder="Filter by Location">
-                    </div>
-                    <div class="col-md-3">
-                        <button class="btn btn-primary w-100" id="applyFilters">Apply Filters</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
 <!-- Search Bar -->
 <div class="row mb-4">
@@ -328,18 +299,6 @@ require '../auth/auth_check.php';
             <button class="btn btn-outline-secondary" type="button" id="searchButton">
                 <i class="fas fa-search"></i>
             </button>
-        </div>
-    </div>
-</div>
-
-<!-- Job Posting Trends -->
-<div class="row mb-4">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Job Posting Trends</h5>
-                <canvas id="jobTrendsChart"></canvas>
-            </div>
         </div>
     </div>
 </div>
