@@ -236,7 +236,7 @@ require "../auth/auth_check.php";
                         <ul class="list-group list-group-flush">
                             <?php if (!empty($recentActivities)): ?>
                                 <?php foreach ($recentActivities as $activity): ?>
-                                    <li class="list-group-item d-flex align-items-center p-2 mb-2 border rounded shadow-sm hover-shadow">
+                                    <li class="list-group-item d-flex align-items-center p-2 mb-2  shadow-sm hover-shadow">
                                         <?php 
                                             // Choose icon based on activity type
                                             $icon = '';
@@ -324,31 +324,43 @@ require "../auth/auth_check.php";
         // Chart.js - User Growth
         document.addEventListener("DOMContentLoaded", function() {
             const labels = <?php echo json_encode($labels); ?>;
-            const data = <?php echo json_encode($data); ?>;
+            const activeData = <?php echo json_encode($activeData); ?>;
+            const deletedData = <?php echo json_encode($deletedData); ?>;
 
             const ctx = document.getElementById('userGrowthChart').getContext('2d');
             const userGrowthChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
-                    datasets: [{
-                        label: 'Users',
-                        data: data,
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        fill: false,
-                        tension: 0.3
-                    }]
+                    datasets: [
+                        {
+                            label: 'Active Users & Students',
+                            data: activeData,
+                            borderColor: 'rgba(0, 123, 255, 1)', // Blue for active users
+                            fill: false,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Deleted Users & Students',
+                            data: deletedData,
+                            borderColor: 'rgba(255, 0, 0, 1)', // Red for deleted users
+                            fill: false,
+                            tension: 0.3
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
                     plugins: {
-                        legend: { position: 'top' },
+                        legend: { position: 'top' }
                     },
                     scales: {
                         y: { beginAtZero: true }
                     }
                 }
             });
+
+
 
             // Chart.js - Job Posting Trends
             const jobLabels = <?php echo json_encode($jobLabels); ?>;

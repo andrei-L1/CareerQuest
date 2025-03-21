@@ -13,25 +13,30 @@ $actor_id = $_SESSION['actor_id'];
 try {
     // Query to count new users per month
     $query = "SELECT 
-                DATE_FORMAT(created_at, '%b') AS month, 
-                COUNT(*) AS user_count 
-              FROM actor 
-              WHERE entity_type IN ('user', 'student')
-              AND deleted_at IS NULL
-              GROUP BY MONTH(created_at)
-              ORDER BY MONTH(created_at)";
+                DATE_FORMAT(created_at, '%d %b') AS day, 
+                SUM(CASE WHEN deleted_at IS NULL THEN 1 ELSE 0 END) AS active_users,
+                SUM(CASE WHEN deleted_at IS NOT NULL THEN 1 ELSE 0 END) AS deleted_users
+            FROM actor 
+            WHERE entity_type IN ('user', 'student')
+            AND created_at >= DATE_FORMAT(NOW(), '%Y-%m-01') -- Only get data for the current month
+            GROUP BY DAY(created_at)
+            ORDER BY DAY(created_at)";
 
-    $stmt = $conn->prepare($query);
-    $stmt->execute();
-    $growthData = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $stmt = $conn->prepare($query);
+            $stmt->execute();
+            $growthData = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Extract labels (months) and data (user count)
-    $labels = [];
-    $data = [];
-    foreach ($growthData as $row) {
-        $labels[] = $row['month'];
-        $data[] = (int) $row['user_count'];
-    }
+            // Extract labels and data
+            $labels = [];
+            $activeData = [];
+            $deletedData = [];
+
+            foreach ($growthData as $row) {
+            $labels[] = $row['day']; // Format: "01 Mar", "02 Mar", etc.
+            $activeData[] = (int) $row['active_users'];
+            $deletedData[] = (int) $row['deleted_users'];
+            }
+
 } catch (PDOException $e) {
     error_log("Database Error: " . $e->getMessage());
     $labels = [];
