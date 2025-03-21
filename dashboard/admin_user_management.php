@@ -179,65 +179,112 @@ require '../auth/auth_check.php';
             background-color: var(--secondary-color) !important;
         }
     </style>
-    <style>
-   
-        .stats-container {
-            width: 100%;
-            padding: 20px;
-        }
+ <style>
+    /* General Card Styling */
+    .stat-card {
+        padding: 20px;
+        text-align: center;
+        border-radius: 15px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
 
+    .stat-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    }
 
+    /* Icon Styling */
+    .stat-icon {
+        font-size: 40px;
+        margin-bottom: 15px;
+        transition: transform 0.3s ease, color 0.3s ease;
+    }
 
-                /* General Card Styling */
-        .stat-card {
-            padding: 10px;
-            text-align: center;
-            border-radius: 12px;
-            color: white;
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            cursor: pointer;
-        }
+    .stat-card:hover .stat-icon {
+        transform: scale(1.2) rotate(10deg);
+    }
 
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-        }
+    /* Title and Value */
+    .stat-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 5px;
+        transition: color 0.3s ease;
+    }
 
-        /* Icon Styling */
-        .stat-icon {
-            font-size: 40px;
-            margin-bottom: 10px;
-            transition: transform 0.3s ease;
-        }
+    .stat-value {
+        font-size: 24px;
+        font-weight: bold;
+        transition: color 0.3s ease;
+    }
 
-        .stat-card:hover .stat-icon {
-            transform: scale(1.1);
-        }
+    /* Particle Effects */
+    .particles {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.3), transparent);
+        opacity: 0;
+        transition: opacity 0.5s ease;
+        pointer-events: none;
+    }
 
-        /* Title and Value */
-        .stat-title {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
+    .stat-card:hover .particles {
+        opacity: 1;
+    }
 
-        .stat-value {
-            font-size: 22px;
-            font-weight: bold;
-        }
+    /* Gradient Backgrounds */
+    .blue {
+        background: linear-gradient(135deg, rgba(0, 123, 255, 0.9), rgba(0, 86, 179, 0.9));
+    }
 
-        /* Background Colors */
-        .blue { background: #007bff; }
-        .green { background: #28a745; }
-        .yellow { background: #ffc107; }
-        .red { background: #dc3545; }
-        .orange { background: #fd7e14; }
-        .purple { background: #6f42c1; }
+    .green {
+        background: linear-gradient(135deg, rgba(40, 167, 69, 0.9), rgba(33, 136, 56, 0.9));
+    }
 
-    </style>
+    .yellow {
+        background: linear-gradient(135deg, rgba(255, 193, 7, 0.9), rgba(204, 154, 6, 0.9));
+    }
+
+    .red {
+        background: linear-gradient(135deg, rgba(220, 53, 69, 0.9), rgba(183, 44, 57, 0.9));
+    }
+
+    .orange {
+        background: linear-gradient(135deg, rgba(253, 126, 20, 0.9), rgba(211, 105, 17, 0.9));
+    }
+
+    .purple {
+        background: linear-gradient(135deg, rgba(111, 66, 193, 0.9), rgba(92, 55, 160, 0.9));
+    }
+
+    /* Fade-In Animation */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-in .stat-card {
+        animation: fadeIn 0.5s ease forwards;
+        opacity: 0;
+    }
+
+    .fade-in .stat-card:nth-child(1) { animation-delay: 0.1s; }
+    .fade-in .stat-card:nth-child(2) { animation-delay: 0.2s; }
+    .fade-in .stat-card:nth-child(3) { animation-delay: 0.3s; }
+    .fade-in .stat-card:nth-child(4) { animation-delay: 0.4s; }
+    .fade-in .stat-card:nth-child(5) { animation-delay: 0.5s; }
+    .fade-in .stat-card:nth-child(6) { animation-delay: 0.6s; }
+</style>
 </head>
 <body class="fade-in">
     <!-- Sidebar -->
@@ -266,7 +313,7 @@ require '../auth/auth_check.php';
 
    <!-- Main Content -->
    <main class="main-content">
-        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom ">
             <h1 class="h2">User Management</h1>
             <div class="d-flex gap-2">
                 <!-- Add User Button -->
@@ -284,29 +331,28 @@ require '../auth/auth_check.php';
         </div>
 
         <div class="row mb-4 fade-in">
-            <div class="row g-3">
-                <?php 
-                    $stats = [
-                        ["Total Users", $totalUsers, "fas fa-users", "blue"],
-                        ["Students", $totalStudents, "fas fa-user-graduate", "green"],
-                        ["Moderators", $totalModerators, "fas fa-user-shield", "yellow"],
-                        ["Professionals", $totalProfessionals, "fas fa-briefcase", "red"],
-                        ["Employers", $totalEmployers, "fas fa-building", "orange"],
-                        ["Admins", $totalAdmins, "fas fa-user-cog", "purple"]
-                    ];
-                    
-                    foreach ($stats as $stat): 
-                ?>
-                <div class="col-lg-2 col-md-4 col-sm-6">
-                    <div class="stat-card <?php echo $stat[3]; ?>">
-                        <div class="stat-icon"><i class="<?php echo $stat[2]; ?>"></i></div>
-                        <div class="stat-title"><?php echo $stat[0]; ?></div>
-                        <div class="stat-value"><?php echo $stat[1]; ?></div>
-                    </div>
+            <?php 
+                $stats = [
+                    ["Total Users", $totalUsers, "fas fa-users", "blue"],
+                    ["Students", $totalStudents, "fas fa-user-graduate", "green"],
+                    ["Professionals", $totalProfessionals, "fas fa-briefcase", "red"],
+                    ["Employers", $totalEmployers, "fas fa-building", "orange"],
+                    ["Moderators", $totalModerators, "fas fa-user-shield", "yellow"],
+                    ["Admins", $totalAdmins, "fas fa-user-cog", "purple"]
+                ];
+                
+                foreach ($stats as $stat): 
+            ?>
+            <div class="col-lg-2 col-md-4 col-sm-6">
+                <div class="stat-card <?php echo $stat[3]; ?>">
+                    <div class="stat-icon"><i class="<?php echo $stat[2]; ?>"></i></div>
+                    <div class="stat-title"><?php echo $stat[0]; ?></div>
+                    <div class="stat-value"><?php echo $stat[1]; ?></div>
+                    <div class="particles"></div>
                 </div>
-                <?php endforeach; ?>
             </div>
-        </div>
+            <?php endforeach; ?>
+         </div>
 
 
 

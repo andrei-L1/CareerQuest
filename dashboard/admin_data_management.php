@@ -204,154 +204,131 @@ try {
         .swal2-cancel {
             background-color: var(--secondary-color) !important;
         }
+        
     </style>
-    <style>
-    :root {
-        --shadow-color: rgba(0, 0, 0, 0.2); /* Define shadow color */
-    }
-
-    .stats-container {
-        width: 100%;
-        padding: 20px;
-    }
-
-    /* Stat Card Styles */
+<style>
     .stat-card {
-        padding: 15px;
-        height: 180px; 
-        color: white;
-        text-align: left;
-        border: none;
-        border-radius: 10px;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        overflow: hidden;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 25px;
+        text-align: center;
+        transition: all 0.5s ease;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         position: relative;
+        overflow: hidden;
+        cursor: pointer;
     }
 
     .stat-card::before {
-        content: "";
+        content: '';
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-        z-index: 1;
-        pointer-events: none;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
+        clip-path: circle(10% at 90% 10%);
+        transition: all 0.5s ease;
+    }
+
+    .stat-card:hover::before {
+        clip-path: circle(100%);
     }
 
     .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px var(--shadow-color);
+        transform: translateY(-10px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
     }
 
-    .stat-icon {
-        font-size: 2rem;
-        margin-bottom: 15px;
-        display: inline-block;
+    .stat-icon i {
+        font-size: 2.5rem;
+        color: #fff;
+        transition: all 0.5s ease;
+        position: relative;
+        z-index: 2;
+    }
+
+    .stat-card:hover .stat-icon i {
+        transform: scale(1.2) translateY(-5px);
     }
 
     .stat-title {
-        font-size: 18px;
-        font-weight: bold;
-        margin-bottom: 10px;
+        font-size: 1.2rem;
+        color: #fff;
+        margin-top: 15px;
+        transition: all 0.5s ease;
+        position: relative;
+        z-index: 2;
+    }
+
+    .stat-card:hover .stat-title {
+        transform: translateY(-5px);
     }
 
     .stat-value {
-        font-size: 40px;
+        font-size: 2rem;
+        color: #fff;
         font-weight: bold;
         margin-top: 10px;
+        transition: all 0.5s ease;
+        position: relative;
+        z-index: 2;
     }
 
-    /* Color Schemes with Gradients */
-    .blue { background: linear-gradient(135deg, #007bff, #0056b3); }
-    .green { background: linear-gradient(135deg, #28a745, #1e7e34); }
-    .yellow { background: linear-gradient(135deg, #ffc107, #e0a800); color: black; }
-    .red { background: linear-gradient(135deg, #dc3545, #a71d2a); }
-    .purple { background: linear-gradient(135deg, #6f42c1, #4a2d8a); }
-    .orange { background: linear-gradient(135deg, #ff9800, #e68900); }
-
-    /* Job Card Styles */
-    .job-card {
-        margin-bottom: 20px;
-        border: 1px solid rgba(0, 0, 0, 0.125);
-        border-radius: 10px;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        background: white;
-    }
-
-    .job-card:hover {
+    .stat-card:hover .stat-value {
         transform: translateY(-5px);
-        box-shadow: 0 10px 20px var(--shadow-color);
     }
 
-    .job-card .card-body {
-        padding: 20px;
+    .particles {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.3), transparent);
+        opacity: 0;
+        transition: opacity 0.5s ease;
+        pointer-events: none;
     }
 
-    .job-card .card-title {
-        font-size: 1.25rem;
-        font-weight: bold;
-        margin-bottom: 10px;
-        color: #333;
+    .stat-card:hover .particles {
+        opacity: 1;
     }
 
-    .job-card .card-text {
-        font-size: 0.9rem;
-        color: #666;
-        line-height: 1.5;
+    .blue {
+        background: linear-gradient(135deg, rgba(106, 17, 203, 0.8), rgba(37, 117, 252, 0.8));
     }
 
-    .job-card .badge {
-        font-size: 0.9rem;
-        padding: 0.5em 0.75em;
-        background: #f8f9fa;
-        color: #333;
-        border: 1px solid #ddd;
-        border-radius: 5px;
+    .green {
+        background: linear-gradient(135deg, rgba(46, 204, 113, 0.8), rgba(26, 188, 156, 0.8));
     }
 
-    .job-card .actions {
-        margin-top: 15px;
-        display: flex;
-        gap: 10px;
+    .red {
+        background: linear-gradient(135deg, rgba(231, 76, 60, 0.8), rgba(192, 57, 43, 0.8));
     }
 
-    .job-card .actions .btn {
-        margin-right: 5px;
-        font-size: 0.9rem;
-        padding: 0.5em 1em;
-        border-radius: 5px;
-        transition: background 0.3s ease, transform 0.3s ease;
+    .purple {
+        background: linear-gradient(135deg, rgba(142, 68, 173, 0.8), rgba(155, 89, 182, 0.8));
     }
 
-    .job-card .actions .btn:hover {
-        transform: translateY(-2px);
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Responsive Design */
-    @media (max-width: 768px) {
-        .stat-card {
-            margin-bottom: 20px;
-        }
-
-        .stat-title {
-            font-size: 16px;
-        }
-
-        .stat-value {
-            font-size: 30px;
-        }
-
-        .job-card .card-title {
-            font-size: 1.1rem;
-        }
-
-        .job-card .card-text {
-            font-size: 0.85rem;
-        }
+    .fade-in .stat-card {
+        animation: fadeIn 0.5s ease forwards;
+        opacity: 0;
     }
-    </style>
+
+    .fade-in .stat-card:nth-child(1) { animation-delay: 0.1s; }
+    .fade-in .stat-card:nth-child(2) { animation-delay: 0.2s; }
+    .fade-in .stat-card:nth-child(3) { animation-delay: 0.3s; }
+    .fade-in .stat-card:nth-child(4) { animation-delay: 0.4s; }
+</style>
+
 
 </head>
 <body class="fade-in">
@@ -395,29 +372,26 @@ try {
 
 
         <div class="row mb-4 fade-in">
-            <div class="row g-3">
-                <?php 
-                    $stats = [
-                        ["Job Types", $totalJobTypes, "fas fa-briefcase", "blue"],
-                        ["Skills", $totalSkills, "fas fa-tools", "green"],
-                        ["Courses", $totalCourses, "fas fa-book", "red"],
-                        ["Roles", $totalRoles, "fas fa-user-tag", "purple"]
-                    ];
+            <?php 
+                $stats = [
+                    ["Job Types", $totalJobTypes, "fas fa-briefcase", "blue"],
+                    ["Skills", $totalSkills, "fas fa-tools", "green"],
+                    ["Courses", $totalCourses, "fas fa-book", "red"],
+                    ["Roles", $totalRoles, "fas fa-user-tag", "purple"]
+                ];
 
-                    foreach ($stats as $stat): 
-                ?>
-                <div class="col-lg-3 col-md-6 col-sm-6">
-                    <div class="stat-card <?php echo $stat[3]; ?>">
-                        <div class="stat-icon"><i class="<?php echo $stat[2]; ?>"></i></div>
-                        <div class="stat-title"><?php echo $stat[0]; ?></div>
-                        <div class="stat-value"><?php echo $stat[1]; ?></div>
-                    </div>
+                foreach ($stats as $index => $stat): 
+            ?>
+            <div class="col-lg-3 col-md-6 col-sm-6 mb-4">
+                <div class="stat-card <?php echo $stat[3]; ?>" data-index="<?php echo $index; ?>">
+                    <div class="stat-icon"><i class="<?php echo $stat[2]; ?>"></i></div>
+                    <div class="stat-title"><?php echo $stat[0]; ?></div>
+                    <div class="stat-value"><?php echo $stat[1]; ?></div>
+                    <div class="particles"></div>
                 </div>
-                <?php endforeach; ?>
             </div>
+            <?php endforeach; ?>
         </div>
-
-
         <!-- Navigation Tabs -->
         <ul class="nav nav-tabs" id="jobManagementTabs" role="tablist">
             <li class="nav-item">
@@ -436,7 +410,7 @@ try {
 
         <div class="tab-content" id="jobManagementTabsContent">
             <!-- Job Type Management -->
-            <div class="tab-pane fade show active p-4 bg-light rounded shadow" id="jobTypePanel" role="tabpanel">
+            <div class="tab-pane fade show active p-4 rounded shadow" id="jobTypePanel" role="tabpanel">
                 <h3 class="mb-3 text-primary"><i class="bi bi-briefcase"></i> Manage Job Types</h3>
 
                 <div class="d-flex justify-content-between mb-3">
@@ -469,7 +443,7 @@ try {
 
 
             <!-- Skill Management -->
-            <div class="tab-pane fade p-4 bg-light rounded shadow" id="skillPanel" role="tabpanel">
+            <div class="tab-pane fade p-4 rounded shadow" id="skillPanel" role="tabpanel">
                 <h3 class="mb-3 text-primary"><i class="bi bi-tools"></i> Manage Skills</h3>
 
                 <div class="d-flex justify-content-between mb-3">
@@ -501,7 +475,7 @@ try {
             </div>
 
             <!-- Course Management -->
-            <div class="tab-pane fade p-4 bg-light rounded shadow" id="coursePanel" role="tabpanel">
+            <div class="tab-pane fade p-4 rounded shadow" id="coursePanel" role="tabpanel">
                 <h3 class="mb-3 text-primary"><i class="bi bi-book"></i> Manage Courses</h3>
 
                 <div class="d-flex justify-content-between mb-3">
@@ -535,7 +509,7 @@ try {
 
 
             <!-- Role Management -->
-            <div class="tab-pane fade p-4 bg-light rounded shadow" id="rolePanel" role="tabpanel">
+            <div class="tab-pane fade p-4 rounded shadow" id="rolePanel" role="tabpanel">
                 <h3 class="mb-3 text-primary"><i class="bi bi-person-badge"></i> Manage Roles</h3>
                 
                 <div class="d-flex justify-content-between mb-3">
@@ -824,5 +798,17 @@ try {
         });
     }
     </script>
+    <script>
+    // Add cursor interaction
+    document.querySelectorAll('.stat-card').forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            card.style.setProperty('--x', `${x}px`);
+            card.style.setProperty('--y', `${y}px`);
+        });
+    });
+</script>
 </body>
 </html>
