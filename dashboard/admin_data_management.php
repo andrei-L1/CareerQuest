@@ -2,8 +2,38 @@
 include "../includes/sidebar.php";
 require "../controllers/admin_dashboard.php";
 require "../controllers/admin_user_management.php";
-require "../controllers/admin_job_controller.php";
 require '../auth/auth_check.php'; 
+try {
+    require '../config/dbcon.php';
+
+    // Prepare queries for better security (even though no input parameters are involved)
+    $queries = [
+        "job_type" => "SELECT COUNT(*) FROM job_type",
+        "skills" => "SELECT COUNT(*) FROM skill_masterlist WHERE deleted_at IS NULL",
+        "courses" => "SELECT COUNT(*) FROM course WHERE deleted_at IS NULL",
+        "roles" => "SELECT COUNT(*) FROM role WHERE deleted_at IS NULL"
+    ];
+
+    $stmt = [];
+    $counts = [];
+
+    foreach ($queries as $key => $sql) {
+        $stmt[$key] = $conn->prepare($sql);
+        $stmt[$key]->execute();
+        $counts[$key] = $stmt[$key]->fetchColumn();
+    }
+
+    // Assigning values
+    $totalJobTypes = $counts["job_type"];
+    $totalSkills = $counts["skills"];
+    $totalCourses = $counts["courses"];
+    $totalRoles = $counts["roles"];
+
+} catch (PDOException $e) {
+    error_log("Database error: " . $e->getMessage());
+    $totalJobTypes = $totalSkills = $totalCourses = $totalRoles = 0; // Default to zero on failure
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -176,84 +206,153 @@ require '../auth/auth_check.php';
         }
     </style>
     <style>
-        .stats-container {
-            width: 100%;
-            padding: 20px;
-        }
+    :root {
+        --shadow-color: rgba(0, 0, 0, 0.2); /* Define shadow color */
+    }
+
+    .stats-container {
+        width: 100%;
+        padding: 20px;
+    }
+
+    /* Stat Card Styles */
+    .stat-card {
+        padding: 15px;
+        height: 180px; 
+        color: white;
+        text-align: left;
+        border: none;
+        border-radius: 10px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .stat-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px var(--shadow-color);
+    }
+
+    .stat-icon {
+        font-size: 2rem;
+        margin-bottom: 15px;
+        display: inline-block;
+    }
+
+    .stat-title {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .stat-value {
+        font-size: 40px;
+        font-weight: bold;
+        margin-top: 10px;
+    }
+
+    /* Color Schemes with Gradients */
+    .blue { background: linear-gradient(135deg, #007bff, #0056b3); }
+    .green { background: linear-gradient(135deg, #28a745, #1e7e34); }
+    .yellow { background: linear-gradient(135deg, #ffc107, #e0a800); color: black; }
+    .red { background: linear-gradient(135deg, #dc3545, #a71d2a); }
+    .purple { background: linear-gradient(135deg, #6f42c1, #4a2d8a); }
+    .orange { background: linear-gradient(135deg, #ff9800, #e68900); }
+
+    /* Job Card Styles */
+    .job-card {
+        margin-bottom: 20px;
+        border: 1px solid rgba(0, 0, 0, 0.125);
+        border-radius: 10px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        background: white;
+    }
+
+    .job-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px var(--shadow-color);
+    }
+
+    .job-card .card-body {
+        padding: 20px;
+    }
+
+    .job-card .card-title {
+        font-size: 1.25rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #333;
+    }
+
+    .job-card .card-text {
+        font-size: 0.9rem;
+        color: #666;
+        line-height: 1.5;
+    }
+
+    .job-card .badge {
+        font-size: 0.9rem;
+        padding: 0.5em 0.75em;
+        background: #f8f9fa;
+        color: #333;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+
+    .job-card .actions {
+        margin-top: 15px;
+        display: flex;
+        gap: 10px;
+    }
+
+    .job-card .actions .btn {
+        margin-right: 5px;
+        font-size: 0.9rem;
+        padding: 0.5em 1em;
+        border-radius: 5px;
+        transition: background 0.3s ease, transform 0.3s ease;
+    }
+
+    .job-card .actions .btn:hover {
+        transform: translateY(-2px);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
         .stat-card {
-            padding: 20px;
-            color: white;
-            text-align: left;
-            border: none;
-            border-radius: 10px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            overflow: hidden;
-        }
-        .blue { background-color: #007bff; }
-        .green { background-color: #28a745; }
-        .yellow { background-color: #ffc107; color: black; }
-        .red { background-color: #dc3545; }
-        .purple { background-color: #6f42c1; }
-        .stat-card.orange {
-            background-color: #ff9800; 
-            color: white;
+            margin-bottom: 20px;
         }
 
         .stat-title {
-            font-size: 18px;
-            font-weight: bold;
+            font-size: 16px;
         }
+
         .stat-value {
-            font-size: 40px;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px var(--shadow-color);
-        }
-
-        /* Job Card Styles */
-        .job-card {
-            margin-bottom: 20px;
-            border: 1px solid rgba(0, 0, 0, 0.125);
-            border-radius: 10px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .job-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px var(--shadow-color);
-        }
-
-        .job-card .card-body {
-            padding: 20px;
+            font-size: 30px;
         }
 
         .job-card .card-title {
-            font-size: 1.25rem;
-            font-weight: bold;
-            margin-bottom: 10px;
+            font-size: 1.1rem;
         }
 
         .job-card .card-text {
-            font-size: 0.9rem;
-            color: #666;
+            font-size: 0.85rem;
         }
-
-        .job-card .badge {
-            font-size: 0.9rem;
-            padding: 0.5em 0.75em;
-        }
-
-        .job-card .actions {
-            margin-top: 15px;
-        }
-
-        .job-card .actions .btn {
-            margin-right: 5px;
-        }
+    }
     </style>
+
 </head>
 <body class="fade-in">
     <!-- Sidebar -->
@@ -284,7 +383,40 @@ require '../auth/auth_check.php';
     <main class="main-content">
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
             <h1 class="h2">Job Management Panel</h1>
+            <div class="d-flex gap-2">
+
+                <!-- Export Users Button -->
+                <a href="#" class="btn btn-outline-primary d-flex align-items-center" onclick="confirmExport(event)">
+                    <i class="fas fa-file-export me-2"></i> Export Data
+                </a>
+
+            </div>
         </div>
+
+
+        <div class="row mb-4 fade-in">
+            <div class="row g-3">
+                <?php 
+                    $stats = [
+                        ["Job Types", $totalJobTypes, "fas fa-briefcase", "blue"],
+                        ["Skills", $totalSkills, "fas fa-tools", "green"],
+                        ["Courses", $totalCourses, "fas fa-book", "red"],
+                        ["Roles", $totalRoles, "fas fa-user-tag", "purple"]
+                    ];
+
+                    foreach ($stats as $stat): 
+                ?>
+                <div class="col-lg-3 col-md-6 col-sm-6">
+                    <div class="stat-card <?php echo $stat[3]; ?>">
+                        <div class="stat-icon"><i class="<?php echo $stat[2]; ?>"></i></div>
+                        <div class="stat-title"><?php echo $stat[0]; ?></div>
+                        <div class="stat-value"><?php echo $stat[1]; ?></div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+
 
         <!-- Navigation Tabs -->
         <ul class="nav nav-tabs" id="jobManagementTabs" role="tablist">
@@ -295,10 +427,10 @@ require '../auth/auth_check.php';
                 <button class="nav-link" id="skillTab" data-bs-toggle="tab" data-bs-target="#skillPanel" type="button" role="tab">Skill Management</button>
             </li>
             <li class="nav-item">
-                <button class="nav-link" id="jobPostingTab" data-bs-toggle="tab" data-bs-target="#jobPostingPanel" type="button" role="tab">Job Posting Management</button>
+                <button class="nav-link" id="courseTab" data-bs-toggle="tab" data-bs-target="#coursePanel" type="button" role="tab">Course Management</button>
             </li>
             <li class="nav-item">
-                <button class="nav-link" id="jobSkillTab" data-bs-toggle="tab" data-bs-target="#jobSkillPanel" type="button" role="tab">Job Skill Mapping</button>
+                <button class="nav-link" id="roleTab" data-bs-toggle="tab" data-bs-target="#rolePanel" type="button" role="tab">Role Management</button>
             </li>
         </ul>
 
@@ -368,20 +500,72 @@ require '../auth/auth_check.php';
                 <div id="skillPaginationControls" class="mt-3 d-flex justify-content-center"></div>
             </div>
 
+            <!-- Course Management -->
+            <div class="tab-pane fade p-4 bg-light rounded shadow" id="coursePanel" role="tabpanel">
+                <h3 class="mb-3 text-primary"><i class="bi bi-book"></i> Manage Courses</h3>
 
+                <div class="d-flex justify-content-between mb-3">
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCourseModal">
+                        <i class="bi bi-plus-lg"></i> Add Course
+                    </button>
+                </div>
 
-            <!-- Job Posting Management -->
-            <div class="tab-pane fade" id="jobPostingPanel" role="tabpanel">
-                <h3 class="mt-3">Course Management</h3>
-                <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addJobModal">Add Job</button>
-                <div id="jobPostingList"></div>
+                <div class="card">
+                    <div class="card-body">
+                        <table class="table table-hover table-striped">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Course Title</th>
+                                    <th>Description</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="courseList">
+                                <!-- Courses will be loaded dynamically here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Pagination Controls -->
+                <div id="coursePaginationControls" class="mt-3 d-flex justify-content-center"></div>
             </div>
 
-            <!-- Job Skill Mapping -->
-            <div class="tab-pane fade" id="jobSkillPanel" role="tabpanel">
-                <h3 class="mt-3">Role Management</h3>
-                <div id="jobSkillMapping"></div>
+
+
+            <!-- Role Management -->
+            <div class="tab-pane fade p-4 bg-light rounded shadow" id="rolePanel" role="tabpanel">
+                <h3 class="mb-3 text-primary"><i class="bi bi-person-badge"></i> Manage Roles</h3>
+                
+                <div class="d-flex justify-content-between mb-3">
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addRoleModal">
+                        <i class="bi bi-plus-lg"></i> Add Role
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <table class="table table-hover table-striped">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Role Title</th>
+                                    <th>Description</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="roleList">
+                                <!-- Roles will be loaded dynamically here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Pagination Controls -->
+                <div id="rolePaginationControls" class="mt-3 d-flex justify-content-center"></div>
             </div>
+
         </div>
     </main>
 
@@ -495,6 +679,114 @@ require '../auth/auth_check.php';
 
 
 
+
+<!-- Add Course Modal -->
+<div class="modal fade" id="addCourseModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Course</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addCourseForm">
+                    <div class="mb-3">
+                        <label class="form-label">Course Title</label>
+                        <input type="text" class="form-control" id="courseTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" id="courseDescription" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success">Add Course</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Course Modal -->
+<div class="modal fade" id="editCourseModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Course</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editCourseForm">
+                    <input type="hidden" id="editCourseId">
+                    <div class="mb-3">
+                        <label class="form-label">Course Title</label>
+                        <input type="text" class="form-control" id="editCourseTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" id="editCourseDescription" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success">Update Course</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+<!-- Add Role Modal -->
+<div class="modal fade" id="addRoleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Role</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addRoleForm">
+                    <div class="mb-3">
+                        <label class="form-label">Role Title</label>
+                        <input type="text" class="form-control" id="roleTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" id="roleDescription" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success">Add Role</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Role Modal -->
+<div class="modal fade" id="editRoleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Role</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editRoleForm">
+                    <input type="hidden" id="editRoleId">
+                    <div class="mb-3">
+                        <label class="form-label">Role Title</label>
+                        <input type="text" class="form-control" id="editRoleTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" id="editRoleDescription" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success">Update Role</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
     <!-- Loading Spinner -->
     <div class="loading-spinner">
         <div class="spinner-border text-primary" role="status">
@@ -511,5 +803,26 @@ require '../auth/auth_check.php';
     <!-- Custom Scripts -->
     <script src="../assests/sidebar_toggle.js" defer></script>
     <script src="../assests/datamanagement.js"></script>
+
+    <script>
+    function confirmExport(event) {
+        event.preventDefault(); // Prevent immediate navigation
+
+        Swal.fire({
+            title: "Are you sure?",
+            text: "Do you really want to export all the Data?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, Export!",
+            cancelButtonText: "Cancel"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = "../controllers/export_data.php"; 
+            }
+        });
+    }
+    </script>
 </body>
 </html>

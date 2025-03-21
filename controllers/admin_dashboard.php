@@ -1,5 +1,6 @@
 <?php 
 require "../config/dbcon.php";
+require "../auth/auth_check.php"; 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -113,5 +114,6 @@ try {
 }
 
 $conn = null;
+
 
 ?>

@@ -1,5 +1,6 @@
 <?php 
 require "../config/dbcon.php";
+require "../auth/auth_check.php"; 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -71,4 +72,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'delete') {
     echo $stmt->execute() ? 'success' : 'error';
     exit;
 }
+
+
+
 ?>
