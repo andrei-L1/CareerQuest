@@ -337,22 +337,49 @@ require '../auth/auth_check.php';
 
 
             <!-- Skill Management -->
-            <div class="tab-pane fade" id="skillPanel" role="tabpanel">
-                <h3 class="mt-3">Manage Skills</h3>
-                <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addSkillModal">Add Skill</button>
-                <div id="skillList"></div>
+            <div class="tab-pane fade p-4 bg-light rounded shadow" id="skillPanel" role="tabpanel">
+                <h3 class="mb-3 text-primary"><i class="bi bi-tools"></i> Manage Skills</h3>
+
+                <div class="d-flex justify-content-between mb-3">
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSkillModal">
+                        <i class="bi bi-plus-lg"></i> Add Skill
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <table class="table table-hover table-striped">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Skill Name</th>
+                                    <th>Category</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="skillList">
+                                <!-- Skills will be loaded dynamically here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Pagination Controls -->
+                <div id="skillPaginationControls" class="mt-3 d-flex justify-content-center"></div>
             </div>
+
+
 
             <!-- Job Posting Management -->
             <div class="tab-pane fade" id="jobPostingPanel" role="tabpanel">
-                <h3 class="mt-3">Manage Job Postings</h3>
+                <h3 class="mt-3">Course Management</h3>
                 <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addJobModal">Add Job</button>
                 <div id="jobPostingList"></div>
             </div>
 
             <!-- Job Skill Mapping -->
             <div class="tab-pane fade" id="jobSkillPanel" role="tabpanel">
-                <h3 class="mt-3">Map Skills to Jobs</h3>
+                <h3 class="mt-3">Role Management</h3>
                 <div id="jobSkillMapping"></div>
             </div>
         </div>
@@ -410,6 +437,64 @@ require '../auth/auth_check.php';
 </div>
 
 
+
+
+
+<!-- Add Skill Modal -->
+<div class="modal fade" id="addSkillModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Skill</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addSkillForm">
+                    <div class="mb-3">
+                        <label class="form-label">Skill Name</label>
+                        <input type="text" class="form-control" id="skillName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <input type="text" class="form-control" id="skillCategory" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Skill</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Skill Modal -->
+<div class="modal fade" id="editSkillModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Skill</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+            <form id="editSkillForm">
+                <input type="hidden" id="editSkillId" name="id"> 
+                <div class="mb-3">
+                    <label class="form-label">Skill Name</label>
+                    <input type="text" class="form-control" id="editSkillName" name="skill_name" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Category</label>
+                    <input type="text" class="form-control" id="editSkillCategory" name="category" required> 
+                </div>
+                <button type="submit" class="btn btn-success">Update Skill</button>
+            </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
     <!-- Loading Spinner -->
     <div class="loading-spinner">
         <div class="spinner-border text-primary" role="status">
@@ -425,159 +510,6 @@ require '../auth/auth_check.php';
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Custom Scripts -->
     <script src="../assests/sidebar_toggle.js" defer></script>
-    <script>
-        function confirmDeleteJob(jobId) {
-            Swal.fire({
-                title: 'Are you sure?',
-                text: "You won't be able to revert this!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, delete it!'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Perform delete action here (e.g., AJAX call)
-                    Swal.fire(
-                        'Deleted!',
-                        'The job has been deleted.',
-                        'success'
-                    );
-                }
-            });
-        }
-    </script>
-
-
-<script>
-$(document).ready(function() {
-    let currentPage = 1;
-    let totalPages = 1;
-    const limit = 5; // Number of job types per page
-
-    loadJobTypes(currentPage);
-
-    // Load job types with pagination
-    function loadJobTypes(page) {
-        $.ajax({
-            url: '../controllers/admin_job_controller.php',
-            type: 'POST',
-            data: { action: 'fetch', page: page, limit: limit },
-            dataType: 'json',
-            success: function(response) {
-                let rows = ""; // Store generated table rows
-
-                response.jobTypes.forEach(function(jobType) {
-                    rows += `
-                        <tr>
-                            <td>${jobType.job_type_id}</td>
-                            <td>${jobType.job_type_title}</td>
-                            <td>${jobType.job_type_description || 'N/A'}</td>
-                            <td class="text-center">
-                                <button class="btn btn-warning btn-sm edit-job-type" data-id="${jobType.job_type_id}" data-title="${jobType.job_type_title}" data-description="${jobType.job_type_description}">
-                                    <i class="bi bi-pencil"></i> Edit
-                                </button>
-                                <button class="btn btn-danger btn-sm delete-job-type" data-id="${jobType.job_type_id}">
-                                    <i class="bi bi-trash"></i> Delete
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                });
-
-                $('#jobTypeList').html(rows); // Insert rows into tbody
-
-                // Update pagination
-                totalPages = response.totalPages;
-                updatePagination();
-            }
-        });
-    }
-
-    // Update pagination UI
-    function updatePagination() {
-        let paginationHtml = `<nav><ul class="pagination justify-content-center">`;
-
-        if (currentPage > 1) {
-            paginationHtml += `<li class="page-item"><a class="page-link" href="#" data-page="${currentPage - 1}">&laquo; Previous</a></li>`;
-        }
-
-        for (let i = 1; i <= totalPages; i++) {
-            paginationHtml += `<li class="page-item ${i === currentPage ? 'active' : ''}">
-                <a class="page-link" href="#" data-page="${i}">${i}</a>
-            </li>`;
-        }
-
-        if (currentPage < totalPages) {
-            paginationHtml += `<li class="page-item"><a class="page-link" href="#" data-page="${currentPage + 1}">Next &raquo;</a></li>`;
-        }
-
-        paginationHtml += `</ul></nav>`;
-
-        $('#paginationControls').html(paginationHtml);
-    }
-
-    // Handle pagination clicks
-    $(document).on('click', '.page-link', function(e) {
-        e.preventDefault();
-        let page = $(this).data('page');
-        if (page !== currentPage) {
-            currentPage = page;
-            loadJobTypes(currentPage);
-        }
-    });
-
-    // Add job type
-    $('#addJobTypeForm').submit(function(e) {
-        e.preventDefault();
-        $.ajax({
-            url: '../controllers/admin_job_controller.php',
-            type: 'POST',
-            data: $(this).serialize() + '&action=add',
-            success: function(response) {
-                $('#addJobTypeModal').modal('hide');
-                loadJobTypes(currentPage);
-                $('#addJobTypeForm')[0].reset();
-            }
-        });
-    });
-
-    // Show edit modal with data
-    $(document).on('click', '.edit-job-type', function() {
-        $('#editJobTypeId').val($(this).data('id'));
-        $('#editJobTypeTitle').val($(this).data('title'));
-        $('#editJobTypeDescription').val($(this).data('description'));
-        $('#editJobTypeModal').modal('show');
-    });
-
-    // Edit job type
-    $('#editJobTypeForm').submit(function(e) {
-        e.preventDefault();
-        $.ajax({
-            url: '../controllers/admin_job_controller.php',
-            type: 'POST',
-            data: $(this).serialize() + '&action=edit',
-            success: function(response) {
-                $('#editJobTypeModal').modal('hide');
-                loadJobTypes(currentPage);
-            }
-        });
-    });
-
-    // Delete job type
-    $(document).on('click', '.delete-job-type', function() {
-        if (!confirm("Are you sure you want to delete this job type?")) return;
-        $.ajax({
-            url: '../controllers/admin_job_controller.php',
-            type: 'POST',
-            data: { action: 'delete', id: $(this).data('id') },
-            success: function(response) {
-                loadJobTypes(currentPage);
-            }
-        });
-    });
-});
-</script>
-
+    <script src="../assests/datamanagement.js"></script>
 </body>
 </html>
