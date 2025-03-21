@@ -270,10 +270,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <input type="password" name="password" class="form-control" placeholder=" " required>
                 <label class="form-label">Password</label>
             </div>
+            <!--
             <div class="remember-me">
                 <input type="checkbox" id="remember" name="remember">
                 <label for="remember">Remember Me</label>
             </div>
+             -->
             <button type="submit" class="btn btn-primary">Login</button>
         </form>
         <div class="social-login">
