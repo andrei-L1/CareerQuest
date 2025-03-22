@@ -325,9 +325,7 @@ require '../auth/auth_check.php';
                 <a href="#" class="btn btn-outline-primary d-flex align-items-center" onclick="confirmExport(event)">
                     <i class="fas fa-file-export me-2"></i> Export Users
                 </a>
-
             </div>
-
         </div>
 
         <div class="row mb-4 fade-in">
