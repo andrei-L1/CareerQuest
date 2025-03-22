@@ -185,7 +185,7 @@ require "../auth/auth_check.php";
             <div class="col-md-3">
                 <div class="card bg-warning text-white">
                     <div class="card-body">
-                        <h5 class="card-title">Pending Applications</h5>
+                        <h5 class="card-title">Applications</h5>
                         <p class="card-text display-4"><?php echo number_format($total_application); ?></p>
                     </div>
                 </div>

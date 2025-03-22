@@ -33,7 +33,7 @@ loadJobTypes(currentPage);
 // Load job types with pagination
 function loadJobTypes(page) {
 $.ajax({
-    url: '../controllers/admin_job_controller.php',
+    url: '../controllers/admin_jobtype_controller.php',
     type: 'POST',
     data: { action: 'fetch', page: page, limit: limit },
     dataType: 'json',
@@ -104,7 +104,7 @@ if (page !== currentPage) {
 $('#addJobTypeForm').submit(function(e) {
 e.preventDefault();
 $.ajax({
-    url: '../controllers/admin_job_controller.php',
+    url: '../controllers/admin_jobtype_controller.php',
     type: 'POST',
     data: $(this).serialize() + '&action=add',
     success: function(response) {
@@ -127,7 +127,7 @@ $('#editJobTypeModal').modal('show');
 $('#editJobTypeForm').submit(function(e) {
 e.preventDefault();
 $.ajax({
-    url: '../controllers/admin_job_controller.php',
+    url: '../controllers/admin_jobtype_controller.php',
     type: 'POST',
     data: $(this).serialize() + '&action=edit',
     success: function(response) {
@@ -141,7 +141,7 @@ $.ajax({
 $(document).on('click', '.delete-job-type', function() {
 if (!confirm("Are you sure you want to delete this job type?")) return;
 $.ajax({
-    url: '../controllers/admin_job_controller.php',
+    url: '../controllers/admin_jobtype_controller.php',
     type: 'POST',
     data: { action: 'delete', id: $(this).data('id') },
     success: function(response) {

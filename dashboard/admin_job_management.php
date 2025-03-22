@@ -2,7 +2,6 @@
 include "../includes/sidebar.php";
 require "../controllers/chart_query.php";
 require "../controllers/admin_dashboard.php";
-require "../controllers/admin_user_management.php";
 require '../auth/auth_check.php'; 
 ?>
 
@@ -349,7 +348,9 @@ require '../auth/auth_check.php';
                 </div>
 
         </div>
-        <div class="container mt-4">
+
+        
+        <div >
             <ul class="nav nav-tabs" id="adminTabs" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="jobs-tab" data-bs-toggle="tab" data-bs-target="#jobs" type="button" role="tab">Job Listings</button>
@@ -500,21 +501,19 @@ require '../auth/auth_check.php';
                             <!-- Skill Selection Table -->
                             <div class="col-12">
                                 <label for="skills" class="form-label"><i class="fas fa-tools me-1"></i>Required Skills</label>
-                                <div id="skills-container">
-                                    <table class="table table-bordered">
-                                        <thead>
-                                            <tr>
-                                                <th>Skill</th>
-                                                <th>Importance</th>
-                                                <th>Group No</th>
-                                                <th>Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="skills-table-body">
-                                            <!-- Skills will be dynamically added here -->
-                                        </tbody>
-                                    </table>
-                                </div>
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Skill</th>
+                                            <th>Importance</th>
+                                            <th>Group No</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="skills-table-body">
+                                        <!-- Skill rows will be dynamically added here -->
+                                    </tbody>
+                                </table>
                                 <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="add-skill">
                                     <i class="fas fa-plus me-1"></i>Add Skill
                                 </button>
@@ -560,6 +559,10 @@ require '../auth/auth_check.php';
         <script src="../assests/sidebar_toggle.js" defer></script>
         <script src="../assests/jobskills.js" defer></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        
+        <script>
 
+
+        </script>
     </body>
 </html>
