@@ -1,0 +1,565 @@
+<?php
+include "../includes/sidebar.php";
+require "../controllers/chart_query.php";
+require "../controllers/admin_dashboard.php";
+require "../controllers/admin_user_management.php";
+require '../auth/auth_check.php'; 
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Management</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
+    <link rel="stylesheet" href="../assests/sidebar.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    
+    <!-- Custom Styles -->
+    <style>
+        :root {
+            --primary-color: #0A2647; /* Navy Blue */
+            --secondary-color: #2C7865; /* Teal */
+            --accent-color: #FFD700; /* Gold */
+            --background-light: #F5F5F5; /* Light Gray */
+            --text-dark: #333333; /* Dark Gray */
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--background-light);
+            color: var(--text-dark);
+            font-family: var(--font-family);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .main-content {
+            margin-left: 350px;
+            margin-right: 150px;
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+
+        .sidebar.collapsed + .main-content {
+            margin-left: 200px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 10px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+            background: linear-gradient(145deg, var(--background-light), #ffffff);
+            box-shadow: 0 4px 6px var(--shadow-color);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px var(--shadow-color);
+        }
+
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px;
+            border-bottom: none;
+        }
+
+        .card-title {
+            margin-bottom: 0;
+            font-size: 1.25rem;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .dark-mode {
+            background-color: #121212;
+            color: #ffffff;
+        }
+
+        .dark-mode .sidebar {
+            background-color: #1e1e1e;
+        }
+
+        .dark-mode .card {
+            background-color: #2d2d2d;
+            color: #ffffff;
+        }
+
+        .dark-mode .card-header {
+            background-color: #1e1e1e;
+        }
+        .dark-mode .card-body{
+            background-color: #1e1e1e;
+        }
+
+        .dark-mode td{
+            background-color:rgba(56, 56, 56, 0.91);
+            color: white;
+        }
+        .dark-mode th{
+            background-color:rgb(30, 30, 30);
+            color: white;
+        }
+
+        .dark-mode .list-group-item {
+            background-color: #2d2d2d;
+            color: #ffffff;
+        }
+
+        .dark-mode .alert-warning {
+            background-color: #332701;
+            color: #ffc107;
+        }
+
+        .dark-mode .alert-info {
+            background-color: #002b36;
+            color: #17a2b8;
+        }
+
+         /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--background-light);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 10px;
+        }
+
+        .dark-mode ::-webkit-scrollbar-track {
+            background: #2d2d2d;
+        }
+
+        .dark-mode ::-webkit-scrollbar-thumb {
+            background: var(--secondary-color);
+        }
+          /* Loading Spinner */
+          .loading-spinner {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+        }
+
+        .loading-spinner.active {
+            display: block;
+        }
+
+        /* SweetAlert2 Customization */
+        .swal2-popup {
+            font-family: var(--font-family);
+            border-radius: 10px;
+        }
+
+        .swal2-confirm {
+            background-color: var(--primary-color) !important;
+        }
+
+        .swal2-cancel {
+            background-color: var(--secondary-color) !important;
+        }
+
+        /* Enhanced Table Styling */
+        .table {
+            border-collapse: separate;
+            border-spacing: 0 10px;
+        }
+
+        .table thead th {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+        }
+
+        .table tbody tr {
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .table tbody tr:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .table tbody td {
+            vertical-align: middle;
+        }
+
+      
+
+
+
+        /* Enhanced Card Styling */
+        .stat-card {
+            padding: 20px;
+            text-align: center;
+            border-radius: 15px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+
+        .stat-card:hover .stat-icon {
+            transform: scale(1.2) rotate(10deg);
+        }
+
+        .stat-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            transition: color 0.3s ease;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.3), transparent);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+
+        .stat-card:hover .particles {
+            opacity: 1;
+        }
+
+        .blue {
+            background: linear-gradient(135deg, rgba(0, 123, 255, 0.9), rgba(0, 86, 179, 0.9));
+        }
+
+        .green {
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.9), rgba(33, 136, 56, 0.9));
+        }
+
+        .yellow {
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.9), rgba(204, 154, 6, 0.9));
+        }
+
+        .red {
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.9), rgba(183, 44, 57, 0.9));
+        }
+
+        .orange {
+            background: linear-gradient(135deg, rgba(253, 126, 20, 0.9), rgba(211, 105, 17, 0.9));
+        }
+
+        .purple {
+            background: linear-gradient(135deg, rgba(111, 66, 193, 0.9), rgba(92, 55, 160, 0.9));
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in .stat-card {
+            animation: fadeIn 0.5s ease forwards;
+            opacity: 0;
+        }
+
+        .fade-in .stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .fade-in .stat-card:nth-child(2) { animation-delay: 0.2s; }
+        .fade-in .stat-card:nth-child(3) { animation-delay: 0.3s; }
+        .fade-in .stat-card:nth-child(4) { animation-delay: 0.4s; }
+        .fade-in .stat-card:nth-child(5) { animation-delay: 0.5s; }
+        .fade-in .stat-card:nth-child(6) { animation-delay: 0.6s; }
+    </style>
+</head>
+<body class="fade-in">
+    <!-- Sidebar -->
+    <nav class="sidebar collapsed" id="sidebar">
+        <div class="sidebar-toggle" id="sidebarToggle">
+            <i class="fas fa-chevron-right"></i>
+        </div>
+        <div class="sidebar-sticky pt-3">
+            <ul class="nav flex-column">
+                <?php foreach ($sidebar_menu as $item): ?>
+                    <?php 
+                        // Check if the menu item matches the current page
+                        $is_active = ($current_page == basename($item[2])) ? 'active' : ''; 
+                    ?>
+                    <li class="nav-item">
+                        <a class="nav-link <?= $is_active ?>" href="<?= $item[2] ?>" <?= $item[0] === "Logout" ? 'onclick="confirmLogout(event)"' : '' ?>>
+                            <i class="<?= $item[1] ?> me-2"></i>
+                            <span><?= $item[0] ?></span> 
+                        </a>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+    </nav>
+    
+
+   <!-- Main Content -->
+   <main class="main-content">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom ">
+                <h1 class="h2">Job Management Panel</h1>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#addJobModal">
+                        <i class="fas fa-plus me-2"></i> Add Job
+                    </button> 
+                    <a href="#" class="btn btn-outline-primary d-flex align-items-center" onclick="confirmExport(event)">
+                        <i class="fas fa-file-export me-2"></i> Export Job 
+                    </a>
+                </div>
+
+        </div>
+        <div class="container mt-4">
+            <ul class="nav nav-tabs" id="adminTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="jobs-tab" data-bs-toggle="tab" data-bs-target="#jobs" type="button" role="tab">Job Listings</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="employers-tab" data-bs-toggle="tab" data-bs-target="#employers" type="button" role="tab">Employers</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="moderation-tab" data-bs-toggle="tab" data-bs-target="#moderation" type="button" role="tab">Moderation</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="matching-tab" data-bs-toggle="tab" data-bs-target="#matching" type="button" role="tab">Skill Matching</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="expiry-tab" data-bs-toggle="tab" data-bs-target="#expiry" type="button" role="tab">Job Expiry</button>
+                </li>
+            </ul>
+            
+            <div class="tab-content mt-3" id="adminTabsContent">
+                <!-- Job Listings Management -->
+                <div class="tab-pane fade show active" id="jobs" role="tabpanel">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="card animate__animated animate__fadeIn">
+                                <div class="card-body">
+                                    <h5 class="card-title">Software Engineer</h5>
+                                    <p class="card-text">Company: Tech Corp</p>
+                                    <p class="card-text">Location: Remote</p>
+                                    <button class="btn btn-sm btn-success">Approve</button>
+                                    <button class="btn btn-sm btn-warning">Flag</button>
+                                    <button class="btn btn-sm btn-danger">Reject</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Employer Management -->
+                <div class="tab-pane fade" id="employers" role="tabpanel">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Employer Name</th>
+                                <th>Jobs Posted</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Tech Corp</td>
+                                <td>5</td>
+                                <td>
+                                    <button class="btn btn-warning">Suspend</button>
+                                    <button class="btn btn-danger">Ban</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Moderation & Flagging -->
+                <div class="tab-pane fade" id="moderation" role="tabpanel">
+                    <ul class="list-group">
+                        <li class="list-group-item d-flex justify-content-between align-items-center animate__animated animate__fadeIn">
+                            Flagged Job: Data Analyst <span class="badge bg-danger">Flagged</span>
+                            <button class="btn btn-primary">Review</button>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Skill & Matching Analysis -->
+                <div class="tab-pane fade" id="matching" role="tabpanel">
+                    <div class="alert alert-info animate__animated animate__fadeIn">Skill match for 'Software Engineer': 85%</div>
+                </div>
+                
+                <!-- Job Expiry & Renewal -->
+                <div class="tab-pane fade" id="expiry" role="tabpanel">
+                    <ul class="list-group">
+                        <li class="list-group-item d-flex justify-content-between align-items-center animate__animated animate__fadeIn">
+                            Job: UX Designer - Expires soon
+                            <button class="btn btn-success">Extend</button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add Job Modal -->
+    <div class="modal fade" id="addJobModal" tabindex="-1" aria-labelledby="addJobModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="addJobModalLabel"><i class="fas fa-briefcase me-2"></i>Add New Job</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="addJobForm">
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <!-- Employer -->
+                            <div class="col-md-6">
+                                <label for="employer_id" class="form-label"><i class="fas fa-building me-1"></i>Employer</label>
+                                <select id="employer_id" class="form-select" required>
+                                    <option value="">Select Employer</option>
+                                    <!-- Dynamically populate with backend data -->
+                                </select>
+                            </div>
+
+                            <!-- Job Type -->
+                            <div class="col-md-6">
+                                <label for="job_type" class="form-label"><i class="fas fa-tasks me-1"></i>Job Type</label>
+                                <select id="job_type" class="form-select" required>
+                                    <option value="">Select Job Type</option>
+                                    <!-- Dynamically populate with backend data -->
+                                </select>
+                            </div>
+
+                            <!-- Location -->
+                            <div class="col-md-6">
+                                <label for="location" class="form-label"><i class="fas fa-map-marker-alt me-1"></i>Location</label>
+                                <input type="text" id="location" class="form-control" required>
+                            </div>
+
+                            <!-- Salary -->
+                            <div class="col-md-6">
+                                <label for="salary" class="form-label"><i class="fas fa-dollar-sign me-1"></i>Salary ($)</label>
+                                <input type="number" id="salary" class="form-control" step="0.01" required>
+                            </div>
+
+                            <!-- Job Description -->
+                            <div class="col-12">
+                                <label for="description" class="form-label"><i class="fas fa-align-left me-1"></i>Job Description</label>
+                                <textarea id="description" class="form-control" rows="4" required></textarea>
+                            </div>
+
+                            <!-- Job Image -->
+                            <div class="col-md-6">
+                                <label for="img_url" class="form-label"><i class="fas fa-image me-1"></i>Job Image</label>
+                                <input type="file" id="img_url" class="form-control">
+                            </div>
+
+                            <!-- Expiration Date -->
+                            <div class="col-md-6">
+                                <label for="expires_at" class="form-label"><i class="fas fa-calendar-alt me-1"></i>Expiration Date</label>
+                                <input type="date" id="expires_at" class="form-control">
+                            </div>
+
+                            <!-- Skill Selection Table -->
+                            <div class="col-12">
+                                <label for="skills" class="form-label"><i class="fas fa-tools me-1"></i>Required Skills</label>
+                                <div id="skills-container">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>Skill</th>
+                                                <th>Importance</th>
+                                                <th>Group No</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="skills-table-body">
+                                            <!-- Skills will be dynamically added here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="add-skill">
+                                    <i class="fas fa-plus me-1"></i>Add Skill
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Hidden Input -->
+                        <input type="hidden" id="moderation_status" value="Pending">
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i>Close</button>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-plus me-1"></i>Add Job</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Loading Spinner -->
+    <div class="loading-spinner">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>  
+            <!-- jQuery -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <!-- SweetAlert -->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- DataTables JS -->
+        <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+        <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+        <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+        <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+        <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+        <!-- Custom Scripts -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="../assests/logout.js"></script>
+        <script src="../assests/sidebar_toggle.js" defer></script>
+        <script src="../assests/jobskills.js" defer></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    </body>
+</html>

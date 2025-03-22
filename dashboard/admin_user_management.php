@@ -314,7 +314,7 @@ require '../auth/auth_check.php';
    <!-- Main Content -->
    <main class="main-content">
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom ">
-            <h1 class="h2">User Management</h1>
+            <h1 class="h2">User Management Panel</h1>
             <div class="d-flex gap-2">
                 <!-- Add User Button -->
                 <button class="btn btn-primary d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#addUserModal">

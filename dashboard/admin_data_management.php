@@ -41,7 +41,7 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Job Posting Management</title>
+    <title>Data Management</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
@@ -359,7 +359,7 @@ try {
     <!-- Job Management Panel -->
     <main class="main-content">
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-            <h1 class="h2">Job Management Panel</h1>
+            <h1 class="h2">Data Management Panel</h1>
             <div class="d-flex gap-2">
 
                 <!-- Export Users Button -->
