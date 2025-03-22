@@ -5,7 +5,8 @@ ini_set('session.cookie_httponly', 1);
 session_start();
 session_regenerate_id(true); // Prevent session fixation attacks
 
-require '../config/dbcon.php';
+require "../config/dbcon.php";
+require "../auth/auth_check.php"; 
 
 // Session Timeout (15 min)
 $session_timeout = 900; // 900 seconds = 15 minutes

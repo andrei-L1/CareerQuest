@@ -298,19 +298,19 @@ try {
     }
 
     .blue {
-        background: linear-gradient(135deg, rgba(106, 17, 203, 0.8), rgba(37, 117, 252, 0.8));
+        background: linear-gradient(135deg, rgba(25, 82, 145, 0.8), rgba(47, 108, 180, 0.8));
     }
 
     .green {
-        background: linear-gradient(135deg, rgba(46, 204, 113, 0.8), rgba(26, 188, 156, 0.8));
+        background: linear-gradient(135deg, rgba(34, 139, 34, 0.8), rgba(0, 100, 0, 0.8));
     }
 
     .red {
-        background: linear-gradient(135deg, rgba(231, 76, 60, 0.8), rgba(192, 57, 43, 0.8));
+        background: linear-gradient(135deg, rgba(165, 42, 42, 0.8), rgba(139, 0, 0, 0.8));
     }
 
     .purple {
-        background: linear-gradient(135deg, rgba(142, 68, 173, 0.8), rgba(155, 89, 182, 0.8));
+        background: linear-gradient(135deg, rgba(75, 0, 130, 0.8), rgba(106, 90, 205, 0.8));
     }
 
     @keyframes fadeIn {
