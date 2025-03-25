@@ -12,32 +12,52 @@ if (!isset($_SESSION['stud_id'])) {
 
 $stud_id = $_SESSION['stud_id'];
 
-// Check if the student is inactive or deleted
-$stmt = $conn->prepare("SELECT status FROM student WHERE stud_id = :stud_id LIMIT 1");
-$stmt->bindParam(':stud_id', $stud_id, PDO::PARAM_INT);
-$stmt->execute();
-$student = $stmt->fetch(PDO::FETCH_ASSOC);
+try {
+    // Fetch student details
+    $stmt = $conn->prepare("
+        SELECT stud_first_name, stud_last_name, institution, status
+        FROM student
+        WHERE stud_id = :stud_id
+    ");
+    $stmt->bindParam(':stud_id', $stud_id, PDO::PARAM_INT);
+    $stmt->execute();
+    
+    $student = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// Define inactive statuses
-$inactive_statuses = ['Deleted']; 
+    if (!$student) {
+        throw new Exception("Student not found.");
+    }
 
-if ($student && in_array($student['status'], $inactive_statuses)) {
-    session_unset();
-    session_destroy();
-    header("Location: ../auth/login.php?account_deleted=1");
+    // Define inactive statuses
+    $inactive_statuses = ['Deleted'];
+
+    if (in_array($student['status'], $inactive_statuses)) {
+        session_unset();
+        session_destroy();
+        header("Location: ../auth/login.php?account_deleted=1");
+        exit();
+    }
+
+    $full_name = htmlspecialchars($student['stud_first_name'] . " " . $student['stud_last_name']);
+    $institution = htmlspecialchars($student['institution']);
+
+} catch (Exception $e) {
+    error_log("Student Dashboard Error: " . $e->getMessage());
+    header("Location: ../auth/logout.php");
     exit();
 }
+
 ?>
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Student Dashboard</title>
 </head>
 <body>
-<a href="../auth/logout.php">Logout</a>
+    <h1>Welcome, <?php echo $full_name; ?>!</h1>
+    <p>Institution: <?php echo $institution; ?></p>
+    <a href="../auth/logout.php">Logout</a>
 </body>
 </html>

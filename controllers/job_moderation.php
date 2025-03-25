@@ -101,7 +101,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['job_title'])) {
 // 🟢 Fetch Employers
 if (isset($_GET['type']) && $_GET['type'] === 'employers') {
     $stmt = $conn->query("
-        SELECT e.employer_id, e.company_name, u.user_first_name, u.user_last_name
+        SELECT e.employer_id, 
+            COALESCE(e.company_name, CONCAT('Employer ', e.employer_id)) AS company_name, 
+            u.user_first_name, 
+            u.user_last_name
         FROM employer e
         JOIN user u ON e.user_id = u.user_id
     ");

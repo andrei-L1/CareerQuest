@@ -56,8 +56,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             SELECT student.*, actor.actor_id 
             FROM student 
             JOIN actor ON student.stud_id = actor.entity_id
-            WHERE student.stud_email = :email
-        ");        
+            WHERE student.stud_email = :email AND actor.entity_type = 'student'
+        ");
         $stmt->bindParam(':email', $email, PDO::PARAM_STR);
         $stmt->execute();
         $student = $stmt->fetch(PDO::FETCH_ASSOC);

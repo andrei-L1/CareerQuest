@@ -1,3 +1,5 @@
+auth redirect v1
+
 <?php
 // Secure session settings
 ini_set('session.use_only_cookies', 1);
@@ -5,8 +7,7 @@ ini_set('session.cookie_httponly', 1);
 session_start();
 session_regenerate_id(true); // Prevent session fixation attacks
 
-require "../config/dbcon.php";
-require "../auth/auth_check.php"; 
+require '../config/dbcon.php';
 
 // Session Timeout (15 min)
 $session_timeout = 900; // 900 seconds = 15 minutes
@@ -63,33 +64,40 @@ try {
     } elseif ($entity === 'user') {
         $user_id = $_SESSION['user_id'];
         $stmt = $conn->prepare("
-        SELECT u.role_id 
-        FROM user u
-        WHERE u.user_id = :user_id
-        LIMIT 1
-    ");
-    $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
-    $stmt->execute();
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-    
-    $role_id = (int) ($user['role_id'] ?? 0);
-    
-    $allowed_redirects = [
-        4 => '../dashboard/admin.php',        // Admin
-        1 => '../dashboard/employer.php',     // Employer
-        2 => '../dashboard/professional.php', // Professional
-        3 => '../dashboard/moderator.php',    // Moderator
-    ];
-    
-    if (isset($allowed_redirects[$role_id])) {
-        header("Location: " . $allowed_redirects[$role_id]);
+            SELECT r.role_title 
+            FROM user u
+            LEFT JOIN role r ON u.role_id = r.role_id
+            WHERE u.user_id = :user_id
+            LIMIT 1
+        ");
+        $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+        $stmt->execute();
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$user) {
+            header("Location: ../auth/login.php");
+            exit();
+        }
+
+        $role_name = htmlspecialchars($user['role_title'] ?? 'User', ENT_QUOTES, 'UTF-8');
+
+        // Allowed redirect pages
+        $allowed_redirects = [
+            'Admin' => '../dashboard/admin.php',
+            'Employer' => '../dashboard/employer.php',
+            'Professional' => '../dashboard/professional.php',
+            'Moderator' => '../dashboard/moderator.php',
+        ];
+
+        if (isset($allowed_redirects[$role_name])) {
+            header("Location: " . $allowed_redirects[$role_name]);
+        } else {
+            // ✅ Destroy previous session to prevent login conflicts
+            session_unset();
+            session_destroy();
+            header("Location: ../index.php"); // Default redirect
+        }
         exit();
-    } else {
-        session_unset();
-        session_destroy();
-        header("Location: ../index.php");
-        exit();
-    }
     }
 } catch (PDOException $e) {
     error_log("Database error: " . $e->getMessage());

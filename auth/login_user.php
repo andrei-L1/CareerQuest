@@ -58,8 +58,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             SELECT user.*, actor.actor_id 
             FROM user 
             JOIN actor ON user.user_id = actor.entity_id
-            WHERE user.user_email = :email
+            WHERE user.user_email = :email AND actor.entity_type = 'user'
         ");
+    
         
         $stmt->bindParam(':email', $email, PDO::PARAM_STR);
         $stmt->execute();
