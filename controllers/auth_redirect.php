@@ -1,5 +1,3 @@
-auth redirect v1
-
 <?php
 // Secure session settings
 ini_set('session.use_only_cookies', 1);
