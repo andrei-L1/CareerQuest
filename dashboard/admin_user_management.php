@@ -375,7 +375,7 @@ require '../auth/auth_check.php';
                         <!-- Filter Buttons -->
                         <div>
                             <div class="btn-group" role="group">
-                                <button class="btn btn-outline-primary filter-btn" data-role="">All</button>
+                                <button class="btn btn-outline-primary filter-btn active" data-role="">All</button>
                                 <button class="btn btn-outline-primary filter-btn" data-role="Employer">Employer</button>
                                 <button class="btn btn-outline-primary filter-btn" data-role="Professional">Professional</button>
                                 <button class="btn btn-outline-primary filter-btn" data-role="Moderator">Moderator</button>
