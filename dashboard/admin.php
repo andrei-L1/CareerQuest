@@ -341,7 +341,7 @@ require "../auth/auth_check.php";
                             tension: 0.3
                         },
                         {
-                            label: 'Deleted Users & Students',
+                            label: 'Archived Users & Students',
                             data: deletedData,
                             borderColor: 'rgba(255, 0, 0, 1)', // Red for deleted users
                             fill: false,
