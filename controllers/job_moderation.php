@@ -125,9 +125,9 @@ if (isset($_GET['type']) && $_GET['type'] === 'skills') {
 
 
 
-// ✅ Fetch a Single Job if job_id is Provided
+// ✅ Fetch a Single Job with Skills
 if (isset($_GET['job_id']) && is_numeric($_GET['job_id'])) {
-    $job_id = intval($_GET['job_id']); // Convert to integer for safety
+    $job_id = intval($_GET['job_id']); 
     error_log("Fetching job details for job_id: $job_id");
 
     try {
@@ -143,18 +143,29 @@ if (isset($_GET['job_id']) && is_numeric($_GET['job_id'])) {
 
         if (!$job) {
             echo json_encode(["error" => "Job not found"]);
-        } else {
-            // Rename field to match frontend expectations
-            $job['posted_date'] = $job['posted_at'];
-            unset($job['posted_at']);
-
-            echo json_encode($job);
+            exit();
         }
+
+        // ✅ Fetch job skills
+        $stmtSkills = $conn->prepare("
+            SELECT sm.skill_name, js.importance 
+            FROM job_skill js
+            JOIN skill_masterlist sm ON js.skill_id = sm.skill_id
+            WHERE js.job_id = :job_id
+        ");
+        $stmtSkills->execute([':job_id' => $job_id]);
+        $job['skills'] = $stmtSkills->fetchAll(PDO::FETCH_ASSOC);
+
+        // Rename field to match frontend expectations
+        $job['posted_date'] = $job['posted_at'];
+        unset($job['posted_at']);
+
+        echo json_encode($job);
     } catch (PDOException $e) {
         error_log("Database error: " . $e->getMessage());
         echo json_encode(["error" => "An unexpected error occurred."]);
     }
-    exit(); // ✅ Exit here to prevent fetching all jobs
+    exit(); 
 }
 
 

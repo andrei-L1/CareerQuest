@@ -621,18 +621,23 @@ $totalExpiringJobs = $stats['total_expiring_jobs'];
 
 
     <!-- Job Details Modal -->
-    <div class="modal fade" id="jobDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="jobDetailsModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 id="modalTitle" class="modal-title">Job Title</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title" id="modalTitle">Job Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p id="modalDescription">Description goes here...</p>
+                    <p><strong>Description:</strong> <span id="modalDescription"></span></p>
                     <p><strong>Location:</strong> <span id="modalLocation"></span></p>
                     <p><strong>Status:</strong> <span id="modalStatus"></span></p>
-                    <p><strong>Posted on:</strong> <span id="modalDate"></span></p>
+                    <p><strong>Posted Date:</strong> <span id="modalDate"></span></p>
+                    <p><strong>Required Skills:</strong></p>
+                    <ul id="modalSkills"></ul> <!-- ✅ This will now show job skills -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>

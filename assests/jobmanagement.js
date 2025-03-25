@@ -138,6 +138,7 @@ async function viewJobDetails(jobId) {
             location: document.getElementById("modalLocation"),
             status: document.getElementById("modalStatus"),
             date: document.getElementById("modalDate"),
+            skills: document.getElementById("modalSkills") // ✅ Add this
         };
 
         for (let key in modalElements) {
@@ -153,6 +154,15 @@ async function viewJobDetails(jobId) {
         modalElements.location.innerText = job.location || "Not provided";
         modalElements.status.innerText = job.moderation_status || "Pending";
         modalElements.date.innerText = job.posted_date || "Unknown";
+
+        // ✅ Display job skills
+        if (Array.isArray(job.skills) && job.skills.length > 0) {
+            modalElements.skills.innerHTML = job.skills.map(skill => `
+                <li>${skill.skill_name} - <strong>${skill.importance}</strong></li>
+            `).join("");
+        } else {
+            modalElements.skills.innerHTML = `<li class="text-muted">No skills listed.</li>`;
+        }
 
         console.log("Showing modal...");
         new bootstrap.Modal(document.getElementById("jobDetailsModal")).show();
