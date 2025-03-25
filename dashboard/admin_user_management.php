@@ -361,7 +361,7 @@ require '../auth/auth_check.php';
             <a class="nav-link active" id="active-tab" data-bs-toggle="tab" href="#activeUsers" role="tab">Active Users</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" id="deleted-tab" data-bs-toggle="tab" href="#deletedUsers" role="tab">Deleted Users</a>
+            <a class="nav-link" id="deleted-tab" data-bs-toggle="tab" href="#deletedUsers" role="tab">Archived Users</a>
         </li>
     </ul>
 
@@ -397,7 +397,7 @@ require '../auth/auth_check.php';
                     <table id="activeUsersTable" class="table table-striped">
                         <thead>
                             <tr>
-                                <th>ID</th>
+                                <th style="display: none;">ID</th>
                                 <th>Name</th>
                                 <th>Email</th>
                                 <th>Role</th>
@@ -409,7 +409,7 @@ require '../auth/auth_check.php';
                             <?php foreach ($users as $user): ?>
                                 <?php if ($user['status'] === 'active'): ?>
                                     <tr>
-                                        <td><?= htmlspecialchars($user['actor_id']) ?>
+                                        <td style="display: none;"><?= htmlspecialchars($user['actor_id']) ?>
                                             <?php if ($user['entity_type'] === 'user'): ?>
                                                 U-<?= htmlspecialchars($user['entity_id']) ?>
                                             <?php elseif ($user['entity_type'] === 'student'): ?>
@@ -465,7 +465,7 @@ require '../auth/auth_check.php';
                     <table id="deletedUsersTable" class="table table-striped">
                         <thead>
                             <tr>
-                                <th>ID</th>
+                                <th style="display: none;">ID</th>
                                 <th>Name</th>
                                 <th>Email</th>
                                 <th>Role</th>
@@ -478,7 +478,7 @@ require '../auth/auth_check.php';
                                 <?php if ($deletedusers['status'] === 'Deleted'): ?>
                                     <tr>
                                         <td style="display:none;"><?= htmlspecialchars($user['actor_id']) ?></td>
-                                        <td><?= htmlspecialchars($deletedusers['actor_id']) ?></td>
+                                        <td style="display: none;"><?= htmlspecialchars($deletedusers['actor_id']) ?></td>
                                         <td><?= htmlspecialchars($deletedusers['first_name'] . ' ' . $deletedusers['middle_name']. ' ' .  $deletedusers['last_name']) ?></td>
                                         <td><?= htmlspecialchars($deletedusers['email']) ?></td>
                                         <td><?= htmlspecialchars($deletedusers['role_name']) ?></td>
