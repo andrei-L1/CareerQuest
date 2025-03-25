@@ -39,7 +39,11 @@ $totalExpiringJobs = $stats['total_expiring_jobs'];
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
     <!-- Animate.css -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
-    
+    <!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Bootstrap JS (Bundle includes Popper.js) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <!-- Custom Styles -->
     <style>
         :root {
@@ -442,22 +446,22 @@ $totalExpiringJobs = $stats['total_expiring_jobs'];
             <div class="tab-content mt-3" id="adminTabsContent">
                 <!-- Job Listings Management -->
                 <div class="tab-pane fade show active" id="jobs" role="tabpanel">
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <div class="card animate__animated animate__fadeIn">
-                                <div class="card-body">
-                                    <h5 class="card-title">Software Engineer</h5>
-                                    <p class="card-text">Company: Tech Corp</p>
-                                    <p class="card-text">Location: Remote</p>
-                                    <button class="btn btn-sm btn-success">Approve</button>
-                                    <button class="btn btn-sm btn-warning">Flag</button>
-                                    <button class="btn btn-sm btn-danger">Reject</button>
-                                </div>
-                            </div>
+                    <!-- Moderation Status Filter -->
+                    <div>
+                        <div class="btn-group" role="group" style="margin-bottom:15px;">
+                            <button class="btn btn-md btn-outline-primary filter-btn active" onclick="filterJobs('all', this)">All</button>
+                            <button class="btn btn-md btn-outline-primary filter-btn" onclick="filterJobs('pending', this)">Pending</button>
+                            <button class="btn btn-md btn-outline-primary filter-btn" onclick="filterJobs('approved', this)">Approved</button>
+                            <button class="btn btn-md btn-outline-primary filter-btn" onclick="filterJobs('flagged', this)">Flagged</button>
+                            <button class="btn btn-md btn-outline-primary filter-btn" onclick="filterJobs('rejected', this)">Rejected</button>
                         </div>
                     </div>
+
+                    <!-- Job Listings -->
+                    <div class="row row-cols-1 row-cols-md-3 g-4" id="jobsContainer"></div>
                 </div>
-                
+
+
                 <!-- Employer Management -->
                 <div class="tab-pane fade" id="employers" role="tabpanel">
                     <table class="table table-striped">
@@ -520,6 +524,7 @@ $totalExpiringJobs = $stats['total_expiring_jobs'];
                 <form id="addJobForm">
                     <div class="modal-body">
                         <div class="row g-3">
+                            
                             <!-- Employer -->
                             <div class="col-md-6">
                                 <label for="employer_id" class="form-label"><i class="fas fa-building me-1"></i>Employer</label>
@@ -549,6 +554,13 @@ $totalExpiringJobs = $stats['total_expiring_jobs'];
                                 <label for="salary" class="form-label"><i class="fas fa-dollar-sign me-1"></i>Salary ($)</label>
                                 <input type="number" id="salary" class="form-control" step="0.01" required>
                             </div>
+
+                            <!-- Job Title -->
+                            <div class="col-md-6">
+                                <label for="job_title" class="form-label"><i class="fas fa-heading me-1"></i>Job Title</label>
+                                <input type="text" id="job_title" name="job_title" class="form-control" required>
+                            </div>
+
 
                             <!-- Job Description -->
                             <div class="col-12">
@@ -604,6 +616,29 @@ $totalExpiringJobs = $stats['total_expiring_jobs'];
     </div>
 
 
+
+
+
+
+    <!-- Job Details Modal -->
+    <div class="modal fade" id="jobDetailsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 id="modalTitle" class="modal-title">Job Title</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="modalDescription">Description goes here...</p>
+                    <p><strong>Location:</strong> <span id="modalLocation"></span></p>
+                    <p><strong>Status:</strong> <span id="modalStatus"></span></p>
+                    <p><strong>Posted on:</strong> <span id="modalDate"></span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <!-- Loading Spinner -->
     <div class="loading-spinner">
         <div class="spinner-border text-primary" role="status">
@@ -627,7 +662,8 @@ $totalExpiringJobs = $stats['total_expiring_jobs'];
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script src="../assests/logout.js"></script>
         <script src="../assests/sidebar_toggle.js" defer></script>
-        <script src="../assests/jobskills.js" defer></script>
+        <script src="../assests/addjob.js" defer></script>
+        <script src="../assests/jobmanagement.js" defer></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         
         <script>
