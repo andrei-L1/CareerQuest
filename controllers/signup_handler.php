@@ -55,19 +55,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($entity === 'user') {
                 $role_id = intval($_POST['role_id'] ?? 0);
                 $status = 'active';
-
+            
                 // Fetch role_title (user_type) from role table
                 $roleStmt = $conn->prepare("SELECT role_title FROM role WHERE role_id = :role_id");
                 $roleStmt->bindParam(':role_id', $role_id, PDO::PARAM_INT);
                 $roleStmt->execute();
                 $role = $roleStmt->fetch(PDO::FETCH_ASSOC);
-
+            
                 if (!$role) {
                     throw new Exception("Invalid role_id provided.");
                 }
-
+            
                 $user_type = $role['role_title']; 
-
+            
                 // Insert user into database
                 $stmt = $conn->prepare("INSERT INTO user (user_type, user_email, user_password, role_id, user_first_name, user_middle_name, user_last_name, `status`) 
                                         VALUES (:user_type, :email, :password, :role_id, :first_name,:middle_name,:last_name, :active)");
@@ -83,9 +83,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }                
                 $stmt->bindParam(':last_name', $last_name, PDO::PARAM_STR);
                 $stmt->bindParam(':active', $status, PDO::PARAM_STR);
-
+            
                 if (!$stmt->execute()) {
                     throw new Exception("Error inserting user.");
+                }
+            
+                $user_id = $conn->lastInsertId(); // ✅ Get last inserted user_id
+            
+                if (!$user_id) {
+                    throw new Exception("Failed to retrieve last inserted user ID.");
+                }
+            
+                // Insert into employer or professional based on role
+                if ($user_type === 'Employer') {
+                    $stmt = $conn->prepare("INSERT INTO employer (user_id) VALUES (:user_id)");
+                    $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+                    if (!$stmt->execute()) {
+                        throw new Exception("Error inserting employer.");
+                    }
+                } elseif ($user_type === 'Professional') {
+                    $stmt = $conn->prepare("INSERT INTO professional (user_id) VALUES (:user_id)");
+                    $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+                    if (!$stmt->execute()) {
+                        throw new Exception("Error inserting professional.");
+                    }
                 }
             } elseif ($entity === 'student') {
                 $institution = trim($_POST['institution'] ?? '');
