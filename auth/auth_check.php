@@ -2,15 +2,16 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-session_regenerate_id(true); // Prevent session fixation attacks
 
 require '../config/dbcon.php';
 
 // Redirect to login if not authenticated
 if (!isset($_SESSION['user_id'])) {
+    error_log("Session lost, redirecting to login.");
     header("Location: ../auth/login_user.php");
     exit();
 }
+
 
 // Fetch user role ID & status
 $user_id = $_SESSION['user_id'];
@@ -43,6 +44,7 @@ $page_permissions = [
     'admin.php' => [$roles['Admin'] ?? 0],  // Uses role ID from DB
     'admin_user_management.php' => [$roles['Admin'] ?? 0],
     'admin_data_management.php' => [$roles['Admin'] ?? 0],
+    'admin_job_management.php' => [$roles['Admin'] ?? 0],
     'employer.php' => [$roles['Employer'] ?? 0],
     'professional.php' => [$roles['Professional'] ?? 0],
     'moderator.php' => [$roles['Moderator'] ?? 0],
@@ -58,4 +60,14 @@ if (isset($page_permissions[$current_page]) && !in_array($role_id, $page_permiss
     header("Location: ../auth/login_user.php?unauthorized_access=1");
     exit();
 }
+
+if (isset($page_permissions[$current_page])) {
+    $allowed_roles = $page_permissions[$current_page] ?? [];
+    if (!in_array($role_id, $allowed_roles)) {
+        error_log("Unauthorized access attempt by user ID: $user_id on $current_page.");
+        header("Location: ../auth/login_user.php?unauthorized_access=1");
+        exit();
+    }
+}
+
 ?>
