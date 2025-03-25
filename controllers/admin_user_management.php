@@ -37,7 +37,6 @@ function fetchRoles() {
 
 function fetchUsers() {
     global $conn; 
-    
     $sql = "SELECT a.actor_id, a.entity_type, a.entity_id, 
         COALESCE(u.user_first_name, s.stud_first_name) AS first_name, 
         COALESCE(u.user_middle_name, s.stud_middle_name) AS middle_name, 
@@ -400,7 +399,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["edit_id"])) {
 }
 
 $sql = "SELECT 
-            (SELECT COUNT(*) FROM user ) + (SELECT COUNT(*) FROM student ) AS total_users,
+            (SELECT COUNT(*) FROM actor) AS total_users,
             (SELECT COUNT(*) FROM student WHERE status = 'active') AS total_students,
             (SELECT COUNT(*) FROM user WHERE role_id = 4 AND status = 'active') AS total_admins,
             (SELECT COUNT(*) FROM user WHERE role_id = 3 AND status = 'active') AS total_moderators,
