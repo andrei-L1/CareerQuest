@@ -1,5 +1,7 @@
 <?php 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 require "../config/dbcon.php"; 
 require "../auth/auth_check.php"; 

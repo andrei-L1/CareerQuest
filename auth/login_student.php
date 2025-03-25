@@ -9,7 +9,7 @@ session_regenerate_id(true);
 
 // Redirect if already logged in
 if (isset($_SESSION['user_id']) || isset($_SESSION['stud_id'])) {
-    header("Location: ../views/dashboard.php");
+    header("Location: ../views/student.php");
     exit();
 }
 

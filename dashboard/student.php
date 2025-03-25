@@ -24,7 +24,7 @@ $inactive_statuses = ['Deleted'];
 if ($student && in_array($student['status'], $inactive_statuses)) {
     session_unset();
     session_destroy();
-    header("Location: ../auth/login_user.php?account_deleted=1");
+    header("Location: ../auth/login.php?account_deleted=1");
     exit();
 }
 ?>
