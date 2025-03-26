@@ -24,34 +24,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['job_title'])) {
     try {
         $conn->beginTransaction();
 
-        // Sanitize & Fetch Input
-        $employer_id = $_POST['employer_id'] ?? null;
-        $job_type_id = $_POST['job_type_id'] ?? null;
-        $location = $_POST['location'] ?? null;
+        // Validate Input
+        $employer_id = intval($_POST['employer_id'] ?? 0);
+        $job_type_id = intval($_POST['job_type_id'] ?? 0);
+        $location = trim($_POST['location'] ?? '');
         $salary = isset($_POST['salary']) ? floatval($_POST['salary']) : null;
-        $description = $_POST['description'] ?? null;
+        $description = trim($_POST['description'] ?? '');
         $expires_at = $_POST['expires_at'] ?? null;
-        $moderation_status = "Pending"; // Default status
+        $job_title = trim($_POST['job_title'] ?? '');
+        $moderation_status = "Pending";
         $img_url = null;
-        $job_title = $_POST['job_title'] ?? null;
 
-        // Handle File Upload
+        // Validate required fields
+        if (!$employer_id || !$job_type_id || !$job_title || !$description || !$location) {
+            echo json_encode(["error" => "Missing required fields"]);
+            exit();
+        }
+
+        // 🟢 Handle File Upload Securely
         if (!empty($_FILES['img_url']['name'])) {
             $allowed_types = ['image/jpeg', 'image/png', 'image/gif'];
-            if (!in_array($_FILES['img_url']['type'], $allowed_types)) {
-                echo json_encode(["error" => "Invalid image format"]);
+            $file_type = $_FILES['img_url']['type'];
+            $file_size = $_FILES['img_url']['size'];
+            
+            if (!in_array($file_type, $allowed_types) || $file_size > 2 * 1024 * 1024) {
+                echo json_encode(["error" => "Invalid file type or size too large"]);
                 exit();
             }
-            if ($_FILES['img_url']['size'] > 2 * 1024 * 1024) { // 2MB limit
-                echo json_encode(["error" => "File size too large"]);
-                exit();
-            }
-            $target_dir = "uploads/";
-            $img_url = basename($_FILES["img_url"]["name"]);
+            
+            $target_dir = "../uploads/";
+            $img_url = time() . "_" . basename($_FILES["img_url"]["name"]);
             move_uploaded_file($_FILES["img_url"]["tmp_name"], $target_dir . $img_url);
         }
 
-        // Insert into job_posting table
+        // 🟢 Insert Job Posting
         $stmt = $conn->prepare("
             INSERT INTO job_posting (employer_id, title, job_type_id, description, location, salary, img_url, expires_at, moderation_status)
             VALUES (:employer_id, :title, :job_type_id, :description, :location, :salary, :img_url, :expires_at, :moderation_status)
@@ -69,8 +75,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['job_title'])) {
         ]);
         $job_id = $conn->lastInsertId();
 
-        // Insert into job_skill table
-        if (!empty($_POST['skills'])) {
+        // 🟢 Insert Job Skills
+        if (!empty($_POST['skills']) && is_array($_POST['skills'])) {
             $stmtSkill = $conn->prepare("
                 INSERT INTO job_skill (job_id, skill_id, importance, group_no) 
                 VALUES (:job_id, :skill_id, :importance, :group_no)
@@ -78,11 +84,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['job_title'])) {
 
             foreach ($_POST['skills'] as $index => $skill_id) {
                 $importance = $_POST['importance'][$index] ?? 'Medium';
-                $group_no = $_POST['group_no'][$index] ?? 1;
+                $group_no = intval($_POST['group_no'][$index] ?? 1);
 
                 $stmtSkill->execute([
                     ':job_id' => $job_id,
-                    ':skill_id' => $skill_id,
+                    ':skill_id' => intval($skill_id),
                     ':importance' => $importance,
                     ':group_no' => $group_no
                 ]);
@@ -105,7 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['job_title'])) {
 if (isset($_GET['type']) && $_GET['type'] === 'employers') {
     $stmt = $conn->query("
         SELECT e.employer_id, 
-            COALESCE(e.company_name, CONCAT('Employer ', e.employer_id)) AS company_name, 
+            COALESCE(e.company_name, CONCAT(u.user_first_name, ' ', u.user_last_name)) AS company_name, 
             u.user_first_name, 
             u.user_last_name
         FROM employer e

@@ -2,13 +2,12 @@ let cachedSkills = [];
 
 document.getElementById('add-skill').addEventListener('click', function () {
     const skillsContainer = document.getElementById('skills-table-body');
-
     const skillRow = document.createElement('tr');
 
     // Skill Dropdown
     const skillSelectTd = document.createElement('td');
     const skillSelect = document.createElement('select');
-    skillSelect.className = 'form-select';
+    skillSelect.className = 'form-select skill-select';
     skillSelect.name = 'skills[]';
     skillSelect.required = true;
 
@@ -16,9 +15,10 @@ document.getElementById('add-skill').addEventListener('click', function () {
         fetch("../controllers/job_moderation.php?type=skills")
             .then(response => response.json())
             .then(data => {
-                cachedSkills = data; // Cache skills
+                cachedSkills = data;
                 populateSkills(skillSelect, cachedSkills);
-            });
+            })
+            .catch(error => console.error("Error loading skills:", error));
     } else {
         populateSkills(skillSelect, cachedSkills);
     }
@@ -28,7 +28,7 @@ document.getElementById('add-skill').addEventListener('click', function () {
     // Importance Dropdown
     const importanceTd = document.createElement('td');
     const importanceSelect = document.createElement('select');
-    importanceSelect.className = 'form-select';
+    importanceSelect.className = 'form-select importance-select';
     importanceSelect.name = 'importance[]';
     ['Low', 'Medium', 'High'].forEach(level => {
         importanceSelect.innerHTML += `<option value="${level}">${level}</option>`;
@@ -39,7 +39,7 @@ document.getElementById('add-skill').addEventListener('click', function () {
     const groupNoTd = document.createElement('td');
     const groupNoInput = document.createElement('input');
     groupNoInput.type = 'number';
-    groupNoInput.className = 'form-control';
+    groupNoInput.className = 'form-control group-input';
     groupNoInput.name = 'group_no[]';
     groupNoInput.min = 1;
     groupNoInput.value = 1;
@@ -56,13 +56,10 @@ document.getElementById('add-skill').addEventListener('click', function () {
     });
     removeTd.appendChild(removeButton);
 
-    // Append columns to the row
     skillRow.appendChild(skillSelectTd);
     skillRow.appendChild(importanceTd);
     skillRow.appendChild(groupNoTd);
     skillRow.appendChild(removeTd);
-
-    // Append row to table
     skillsContainer.appendChild(skillRow);
 });
 
@@ -91,7 +88,7 @@ document.getElementById("addJobForm").addEventListener("submit", function (event
         }
     });
 
-    fetch("job_moderation.php", {
+    fetch("../controllers/job_moderation.php", {
         method: "POST",
         body: formData
     })

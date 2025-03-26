@@ -468,22 +468,21 @@ $totalExpiringJobs = $stats['total_expiring_jobs'];
                         <thead>
                             <tr>
                                 <th>Employer Name</th>
+                                <th>Company Name</th> <!-- Added this column -->
+                                <th>Job Title</th> <!-- Added this column -->
                                 <th>Jobs Posted</th>
+                                <th>Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td>Tech Corp</td>
-                                <td>5</td>
-                                <td>
-                                    <button class="btn btn-warning">Suspend</button>
-                                    <button class="btn btn-danger">Ban</button>
-                                </td>
+                        <tbody id="employerTableBody">
+                            <tr id="loadingRow">
+                                <td colspan="6" class="text-center">Loading employers...</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
+
                 
                 <!-- Moderation & Flagging -->
                 <div class="tab-pane fade" id="moderation" role="tabpanel">
@@ -513,7 +512,7 @@ $totalExpiringJobs = $stats['total_expiring_jobs'];
         </div>
     </main>
 
- <!-- Add Job Modal -->
+<!-- Add Job Modal -->
 <div class="modal fade" id="addJobModal" tabindex="-1" aria-labelledby="addJobModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -521,7 +520,7 @@ $totalExpiringJobs = $stats['total_expiring_jobs'];
                 <h5 class="modal-title" id="addJobModalLabel"><i class="fas fa-briefcase me-2"></i>Add New Job</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="addJobForm">
+            <form id="addJobForm" enctype="multipart/form-data">
                 <div class="modal-body">
                     <div class="row g-3">
                         
@@ -538,7 +537,6 @@ $totalExpiringJobs = $stats['total_expiring_jobs'];
                             <label for="job_type" class="form-label"><i class="fas fa-tasks me-1"></i>Job Type</label>
                             <select id="job_type" name="job_type_id" class="form-select" required>
                                 <option value="">Select Job Type</option>
-                                <!-- Dynamically populated -->
                             </select>
                         </div>
 
@@ -551,7 +549,7 @@ $totalExpiringJobs = $stats['total_expiring_jobs'];
                         <!-- Salary -->
                         <div class="col-md-6">
                             <label for="salary" class="form-label"><i class="fas fa-dollar-sign me-1"></i>Salary ($)</label>
-                            <input type="number" id="salary" name="salary" class="form-control" step="0.01" required>
+                            <input type="number" id="salary" name="salary" class="form-control" step="0.01" min="0" required>
                         </div>
 
                         <!-- Job Title -->
@@ -569,13 +567,13 @@ $totalExpiringJobs = $stats['total_expiring_jobs'];
                         <!-- Job Image -->
                         <div class="col-md-6">
                             <label for="img_url" class="form-label"><i class="fas fa-image me-1"></i>Job Image</label>
-                            <input type="file" id="img_url" name="img_url" class="form-control">
+                            <input type="file" id="img_url" name="img_url" class="form-control" accept="image/*">
                         </div>
 
                         <!-- Expiration Date -->
                         <div class="col-md-6">
                             <label for="expires_at" class="form-label"><i class="fas fa-calendar-alt me-1"></i>Expiration Date</label>
-                            <input type="date" id="expires_at" name="expires_at" class="form-control">
+                            <input type="date" id="expires_at" name="expires_at" class="form-control" min="<?= date('Y-m-d'); ?>">
                         </div>
 
                         <!-- Skill Selection Table -->
@@ -612,7 +610,6 @@ $totalExpiringJobs = $stats['total_expiring_jobs'];
         </div>
     </div>
 </div>
-
 
 
 
@@ -667,11 +664,12 @@ $totalExpiringJobs = $stats['total_expiring_jobs'];
         <script src="../assests/sidebar_toggle.js" defer></script>
         <script src="../assests/addjob.js" defer></script>
         <script src="../assests/jobmanagement.js" defer></script>
+        <script src="../assests/employermanagement.js" defer></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         
         <script>
 
-
+                    
         </script>
     </body>
 </html>
