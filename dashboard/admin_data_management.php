@@ -777,6 +777,7 @@ try {
     <!-- Custom Scripts -->
     <script src="../assests/sidebar_toggle.js" defer></script>
     <script src="../assests/datamanagement.js"></script>
+    <script src="../assests/logout.js"></script>
 
     <script>
     function confirmExport(event) {
