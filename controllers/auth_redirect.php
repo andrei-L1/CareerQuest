@@ -54,7 +54,7 @@ try {
         $student = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$student) {
-            header("Location: ../auth/login.php");
+            header("Location: ../auth/login_user.php");
             exit();
         }
         header("Location: ../dashboard/student.php");
@@ -73,7 +73,7 @@ try {
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$user) {
-            header("Location: ../auth/login.php");
+            header("Location: ../auth/login_student.php");
             exit();
         }
 

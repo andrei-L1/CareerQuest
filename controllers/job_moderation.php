@@ -18,23 +18,24 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
+
 // 🟢 Handle Job Posting (POST)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['job_title'])) {
     try {
         $conn->beginTransaction();
 
-        // Sanitize input
+        // Sanitize & Fetch Input
         $employer_id = $_POST['employer_id'] ?? null;
         $job_type_id = $_POST['job_type_id'] ?? null;
         $location = $_POST['location'] ?? null;
-        $salary = $_POST['salary'] ?? null;
+        $salary = isset($_POST['salary']) ? floatval($_POST['salary']) : null;
         $description = $_POST['description'] ?? null;
         $expires_at = $_POST['expires_at'] ?? null;
         $moderation_status = "Pending"; // Default status
         $img_url = null;
         $job_title = $_POST['job_title'] ?? null;
 
-        // Handle file upload (validate type and size)
+        // Handle File Upload
         if (!empty($_FILES['img_url']['name'])) {
             $allowed_types = ['image/jpeg', 'image/png', 'image/gif'];
             if (!in_array($_FILES['img_url']['type'], $allowed_types)) {
@@ -50,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['job_title'])) {
             move_uploaded_file($_FILES["img_url"]["tmp_name"], $target_dir . $img_url);
         }
 
-        // Insert job posting
+        // Insert into job_posting table
         $stmt = $conn->prepare("
             INSERT INTO job_posting (employer_id, title, job_type_id, description, location, salary, img_url, expires_at, moderation_status)
             VALUES (:employer_id, :title, :job_type_id, :description, :location, :salary, :img_url, :expires_at, :moderation_status)
@@ -68,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['job_title'])) {
         ]);
         $job_id = $conn->lastInsertId();
 
-        // Insert job skills
+        // Insert into job_skill table
         if (!empty($_POST['skills'])) {
             $stmtSkill = $conn->prepare("
                 INSERT INTO job_skill (job_id, skill_id, importance, group_no) 
@@ -97,6 +98,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['job_title'])) {
         exit();
     }
 }
+
+
 
 // 🟢 Fetch Employers
 if (isset($_GET['type']) && $_GET['type'] === 'employers') {

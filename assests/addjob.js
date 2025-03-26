@@ -72,26 +72,41 @@ function populateSkills(skillSelect, skills) {
         skillSelect.innerHTML += `<option value="${skill.skill_id}">${skill.skill_name}</option>`;
     });
 }
+
+
 document.getElementById("addJobForm").addEventListener("submit", function (event) {
     event.preventDefault();
-    
-    let formData = new FormData(this);
-    
-    formData.append("job_title", document.getElementById("job_title").value);
 
-    fetch("../controllers/job_moderation.php", {
+    let formData = new FormData(this); // Automatically picks up input fields with `name` attributes
+
+    // Collect skills dynamically
+    document.querySelectorAll("#skills-table-body tr").forEach((row, index) => {
+        let skill = row.querySelector(".skill-select").value;
+        let importance = row.querySelector(".importance-select").value;
+        let groupNo = row.querySelector(".group-input").value;
+        if (skill) {
+            formData.append(`skills[${index}][skill]`, skill);
+            formData.append(`skills[${index}][importance]`, importance);
+            formData.append(`skills[${index}][groupNo]`, groupNo);
+        }
+    });
+
+    fetch("job_moderation.php", {
         method: "POST",
         body: formData
     })
     .then(response => response.json())
     .then(data => {
-        alert(data.message);
         if (data.success) {
+            alert("Job added successfully!");
             location.reload();
+        } else {
+            alert("Error: " + data.error);
         }
     })
     .catch(error => console.error("Error:", error));
 });
+
 
 // Load Employers & Job Types Dynamically
 document.addEventListener("DOMContentLoaded", function () {

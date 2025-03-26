@@ -513,107 +513,105 @@ $totalExpiringJobs = $stats['total_expiring_jobs'];
         </div>
     </main>
 
-    <!-- Add Job Modal -->
-    <div class="modal fade" id="addJobModal" tabindex="-1" aria-labelledby="addJobModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="addJobModalLabel"><i class="fas fa-briefcase me-2"></i>Add New Job</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form id="addJobForm">
-                    <div class="modal-body">
-                        <div class="row g-3">
-                            
-                            <!-- Employer -->
-                            <div class="col-md-6">
-                                <label for="employer_id" class="form-label"><i class="fas fa-building me-1"></i>Employer</label>
-                                <select id="employer_id" class="form-select" required>
-                                    <option value="">Select Employer</option>
-                                    <!-- Dynamically populate with backend data -->
-                                </select>
-                            </div>
-
-                            <!-- Job Type -->
-                            <div class="col-md-6">
-                                <label for="job_type" class="form-label"><i class="fas fa-tasks me-1"></i>Job Type</label>
-                                <select id="job_type" class="form-select" required>
-                                    <option value="">Select Job Type</option>
-                                    <!-- Dynamically populate with backend data -->
-                                </select>
-                            </div>
-
-                            <!-- Location -->
-                            <div class="col-md-6">
-                                <label for="location" class="form-label"><i class="fas fa-map-marker-alt me-1"></i>Location</label>
-                                <input type="text" id="location" class="form-control" required>
-                            </div>
-
-                            <!-- Salary -->
-                            <div class="col-md-6">
-                                <label for="salary" class="form-label"><i class="fas fa-dollar-sign me-1"></i>Salary ($)</label>
-                                <input type="number" id="salary" class="form-control" step="0.01" required>
-                            </div>
-
-                            <!-- Job Title -->
-                            <div class="col-md-6">
-                                <label for="job_title" class="form-label"><i class="fas fa-heading me-1"></i>Job Title</label>
-                                <input type="text" id="job_title" name="job_title" class="form-control" required>
-                            </div>
-
-
-                            <!-- Job Description -->
-                            <div class="col-12">
-                                <label for="description" class="form-label"><i class="fas fa-align-left me-1"></i>Job Description</label>
-                                <textarea id="description" class="form-control" rows="4" required></textarea>
-                            </div>
-
-                            <!-- Job Image -->
-                            <div class="col-md-6">
-                                <label for="img_url" class="form-label"><i class="fas fa-image me-1"></i>Job Image</label>
-                                <input type="file" id="img_url" class="form-control">
-                            </div>
-
-                            <!-- Expiration Date -->
-                            <div class="col-md-6">
-                                <label for="expires_at" class="form-label"><i class="fas fa-calendar-alt me-1"></i>Expiration Date</label>
-                                <input type="date" id="expires_at" class="form-control">
-                            </div>
-
-                            <!-- Skill Selection Table -->
-                            <div class="col-12">
-                                <label for="skills" class="form-label"><i class="fas fa-tools me-1"></i>Required Skills</label>
-                                <table class="table table-bordered">
-                                    <thead>
-                                        <tr>
-                                            <th>Skill</th>
-                                            <th>Importance</th>
-                                            <th>Group No</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="skills-table-body">
-                                        <!-- Skill rows will be dynamically added here -->
-                                    </tbody>
-                                </table>
-                                <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="add-skill">
-                                    <i class="fas fa-plus me-1"></i>Add Skill
-                                </button>
-                            </div>
+ <!-- Add Job Modal -->
+<div class="modal fade" id="addJobModal" tabindex="-1" aria-labelledby="addJobModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="addJobModalLabel"><i class="fas fa-briefcase me-2"></i>Add New Job</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="addJobForm">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        
+                        <!-- Employer -->
+                        <div class="col-md-6">
+                            <label for="employer_id" class="form-label"><i class="fas fa-building me-1"></i>Employer</label>
+                            <select id="employer_id" name="employer_id" class="form-select" required>
+                                <option value="">Select Employer</option>
+                            </select>
                         </div>
 
-                        <!-- Hidden Input -->
-                        <input type="hidden" id="moderation_status" value="Pending">
+                        <!-- Job Type -->
+                        <div class="col-md-6">
+                            <label for="job_type" class="form-label"><i class="fas fa-tasks me-1"></i>Job Type</label>
+                            <select id="job_type" name="job_type_id" class="form-select" required>
+                                <option value="">Select Job Type</option>
+                                <!-- Dynamically populated -->
+                            </select>
+                        </div>
+
+                        <!-- Location -->
+                        <div class="col-md-6">
+                            <label for="location" class="form-label"><i class="fas fa-map-marker-alt me-1"></i>Location</label>
+                            <input type="text" id="location" name="location" class="form-control" required>
+                        </div>
+
+                        <!-- Salary -->
+                        <div class="col-md-6">
+                            <label for="salary" class="form-label"><i class="fas fa-dollar-sign me-1"></i>Salary ($)</label>
+                            <input type="number" id="salary" name="salary" class="form-control" step="0.01" required>
+                        </div>
+
+                        <!-- Job Title -->
+                        <div class="col-md-6">
+                            <label for="job_title" class="form-label"><i class="fas fa-heading me-1"></i>Job Title</label>
+                            <input type="text" id="job_title" name="job_title" class="form-control" required>
+                        </div>
+
+                        <!-- Job Description -->
+                        <div class="col-12">
+                            <label for="description" class="form-label"><i class="fas fa-align-left me-1"></i>Job Description</label>
+                            <textarea id="description" name="description" class="form-control" rows="4" required></textarea>
+                        </div>
+
+                        <!-- Job Image -->
+                        <div class="col-md-6">
+                            <label for="img_url" class="form-label"><i class="fas fa-image me-1"></i>Job Image</label>
+                            <input type="file" id="img_url" name="img_url" class="form-control">
+                        </div>
+
+                        <!-- Expiration Date -->
+                        <div class="col-md-6">
+                            <label for="expires_at" class="form-label"><i class="fas fa-calendar-alt me-1"></i>Expiration Date</label>
+                            <input type="date" id="expires_at" name="expires_at" class="form-control">
+                        </div>
+
+                        <!-- Skill Selection Table -->
+                        <div class="col-12">
+                            <label for="skills" class="form-label"><i class="fas fa-tools me-1"></i>Required Skills</label>
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Skill</th>
+                                        <th>Importance</th>
+                                        <th>Group No</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="skills-table-body">
+                                    <!-- Skill rows will be dynamically added here -->
+                                </tbody>
+                            </table>
+                            <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="add-skill">
+                                <i class="fas fa-plus me-1"></i>Add Skill
+                            </button>
+                        </div>
                     </div>
 
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i>Close</button>
-                        <button type="submit" class="btn btn-primary"><i class="fas fa-plus me-1"></i>Add Job</button>
-                    </div>
-                </form>
-            </div>
+                    <!-- Hidden Input -->
+                    <input type="hidden" name="moderation_status" value="Pending">
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i>Close</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-plus me-1"></i>Add Job</button>
+                </div>
+            </form>
         </div>
     </div>
+</div>
 
 
 
