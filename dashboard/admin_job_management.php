@@ -464,6 +464,14 @@ $totalExpiringJobs = $stats['total_expiring_jobs'];
 
                 <!-- Employer Management -->
                 <div class="tab-pane fade" id="employers" role="tabpanel">
+                <div>
+                    <div class="btn-group" role="group" style="margin-bottom:15px;">
+                        <button class="btn btn-md btn-outline-primary filter-btn active" onclick="filterEmployers('all', this)">All</button>
+                        <button class="btn btn-md btn-outline-primary filter-btn" onclick="filterEmployers('Active', this)">Active</button>
+                        <button class="btn btn-md btn-outline-primary filter-btn" onclick="filterEmployers('Suspended', this)">Suspended</button>
+                        <button class="btn btn-md btn-outline-primary filter-btn" onclick="filterEmployers('Banned', this)">Banned</button>
+                    </div>
+                </div>
                     <table class="table table-striped">
                         <thead>
                             <tr>
@@ -669,7 +677,6 @@ $totalExpiringJobs = $stats['total_expiring_jobs'];
         
         <script>
 
-                    
         </script>
     </body>
 </html>

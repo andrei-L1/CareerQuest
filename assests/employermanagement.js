@@ -19,6 +19,7 @@ $(document).ready(function () {
             data.forEach(emp => {
                 let suspendDisabled = emp.status === "Suspended" || emp.status === "Banned" ? "disabled" : "";
                 let banDisabled = emp.status === "Banned" ? "disabled" : "";
+                let reactivateDisabled = emp.status === "Active" ? "disabled" : "";
 
                 tbody.append(`
                     <tr>
@@ -26,10 +27,11 @@ $(document).ready(function () {
                         <td>${emp.company_name}</td>
                         <td>${emp.job_title}</td>
                         <td>${emp.jobs_posted}</td>
-                        <td>${emp.status}</td>
+                        <td class="status-cell">${emp.status}</td>
                         <td>
                             <button class="btn btn-warning suspend-btn" data-id="${emp.employer_id}" ${suspendDisabled}>Suspend</button>
                             <button class="btn btn-danger ban-btn" data-id="${emp.employer_id}" ${banDisabled}>Ban</button>
+                            <button class="btn btn-success reactivate-btn" data-id="${emp.employer_id}" ${reactivateDisabled}>Reactivate</button>
                         </td>
                     </tr>
                 `);
@@ -41,10 +43,10 @@ $(document).ready(function () {
         }
     });
 
-    // 🟢 Handle Suspend/Ban Actions
-    $(document).on("click", ".suspend-btn, .ban-btn", function () {
+    // 🟢 Handle Suspend/Ban/Reactivate Actions
+    $(document).on("click", ".suspend-btn, .ban-btn, .reactivate-btn", function () {
         let employer_id = $(this).data("id");
-        let action = $(this).hasClass("suspend-btn") ? "suspend" : "ban";
+        let action = $(this).hasClass("suspend-btn") ? "suspend" : $(this).hasClass("ban-btn") ? "ban" : "reactivate";
         let button = $(this);
 
         if (confirm(`Are you sure you want to ${action} this employer?`)) {
@@ -58,9 +60,14 @@ $(document).ready(function () {
                 success: function (response) {
                     if (response.success) {
                         alert(response.message);
-                        // ✅ Update status dynamically instead of reloading
-                        button.closest("tr").find("td:nth-child(5)").text(action === "suspend" ? "Suspended" : "Banned");
-                        button.prop("disabled", true);
+                        let newStatus = action === "suspend" ? "Suspended" : action === "ban" ? "Banned" : "Active";
+                        let row = button.closest("tr");
+                        row.find(".status-cell").text(newStatus);
+
+                        // ✅ Update buttons dynamically
+                        row.find(".suspend-btn").prop("disabled", newStatus !== "Active");
+                        row.find(".ban-btn").prop("disabled", newStatus === "Banned");
+                        row.find(".reactivate-btn").prop("disabled", newStatus === "Active");
                     } else {
                         alert("Error: " + response.error);
                         button.prop("disabled", false);
@@ -75,3 +82,47 @@ $(document).ready(function () {
         }
     });
 });
+
+
+function filterEmployers(status, button) {
+    // Remove active class from all buttons
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+    button.classList.add('active');
+
+    // Get all rows
+    let rows = document.querySelectorAll("#employerTableBody tr");
+
+    rows.forEach(row => {
+        let statusCell = row.querySelector("td:nth-child(5)"); // Adjust index if needed
+        if (!statusCell) return; // Skip if no status cell
+
+        let currentStatus = statusCell.textContent.trim();
+        
+        // Show or hide row based on status filter
+        row.style.display = (status === "all" || currentStatus === status) ? "" : "none";
+
+        // Hide buttons based on the current filter
+        let suspendBtn = row.querySelector(".suspend-btn");
+        let banBtn = row.querySelector(".ban-btn");
+        let reactivateBtn = row.querySelector(".reactivate-btn");
+
+        if (status === "Active") {
+            suspendBtn.style.display = "inline-block";
+            banBtn.style.display = "inline-block";
+            reactivateBtn.style.display = "none";
+        } else if (status === "Suspended") {
+            suspendBtn.style.display = "none";
+            banBtn.style.display = "inline-block";
+            reactivateBtn.style.display = "inline-block";
+        } else if (status === "Banned") {
+            suspendBtn.style.display = "none";
+            banBtn.style.display = "none";
+            reactivateBtn.style.display = "inline-block";
+        } else {
+            // Show all buttons when "All" filter is selected
+            suspendBtn.style.display = "inline-block";
+            banBtn.style.display = "inline-block";
+            reactivateBtn.style.display = "inline-block";
+        }
+    });
+}

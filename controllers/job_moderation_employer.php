@@ -36,7 +36,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 
-    $validActions = ['suspend' => 'Suspended', 'ban' => 'Banned'];
+    $validActions = [
+        'suspend' => 'Suspended',
+        'ban' => 'Banned',
+        'reactivate' => 'Active'
+    ];
 
     if (!array_key_exists($action, $validActions)) {
         echo json_encode(["error" => "Invalid action"]);
@@ -50,10 +54,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':employer_id' => $employer_id
         ]);
 
-        echo json_encode(["success" => true, "message" => "Employer has been {$action}ed successfully"]);
+        echo json_encode(["success" => true, "message" => "Employer has been {$action}d successfully"]);
     } catch (PDOException $e) {
         echo json_encode(["error" => "Database error: " . $e->getMessage()]);
     }
     exit();
 }
+
 ?>
