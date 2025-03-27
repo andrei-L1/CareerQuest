@@ -55,9 +55,10 @@ if ($studentData) {
 
 // Profile picture handling
 $profilePicture = $studentData['profile_picture'] ?? '';
-if (!empty($profilePicture) && file_exists('../uploads/profile_pictures/' . $profilePicture)) {
-    $profile_pic = '../uploads/profile_pictures/' . $profilePicture;
-} else {
+if (!empty($profilePicture) && file_exists('../uploads/' . $profilePicture)) {
+    $profile_pic = '../uploads/' . $profilePicture;
+}
+ else {
     $name = trim(($studentData['stud_first_name'] ?? '') . ' ' . ($studentData['stud_last_name'] ?? ''));
     $profile_pic = 'https://ui-avatars.com/api/?name=' . urlencode($name ?: 'Student') . '&background=457B9D&color=fff&rounded=true&size=128';
 }
