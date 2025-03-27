@@ -74,7 +74,6 @@ $nav_links = [
     "Dashboard" => "../dashboard/student.php",
     "Jobs" => "../dashboard/student_job.php",
     "Applications" => "applications.php",
-    "Skills" => "skills.php",
     "Forum" => "forum.php",
     "Messages" => "messages.php",
     "Notifications" => "notifications.php"
