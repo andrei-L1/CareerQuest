@@ -1,5 +1,5 @@
 <?php
-require '../controllers/student_profile.php';
+require '../controllers/student_profile_controller.php';
 include '../includes/stud_navbar.php';
 ?>
 
