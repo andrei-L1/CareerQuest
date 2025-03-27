@@ -23,12 +23,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception("Invalid input data.");
         }
 
-        // ✅ **Step 1: Check if Email Exists**
-        $checkEmailStmt = $conn->prepare("
-            SELECT user_email FROM user WHERE user_email = :email 
-            UNION 
-            SELECT stud_email FROM student WHERE stud_email = :email
-        ");
+        // ✅ **Step 1: Check if Email Exists Separately for User and Student**
+        if ($entity === "student") {
+            $checkEmailStmt = $conn->prepare("SELECT stud_email FROM student WHERE stud_email = :email");
+        } else {
+            $checkEmailStmt = $conn->prepare("SELECT user_email FROM user WHERE user_email = :email");
+        }
+
         $checkEmailStmt->bindParam(':email', $email, PDO::PARAM_STR);
         $checkEmailStmt->execute();
 
