@@ -7,14 +7,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
 
+        // Debugging step to check POST data
+        // var_dump($_POST); // Uncomment this line for debugging if needed
+
         // Validate and sanitize input
         $entity = $_POST['entity'] ?? null;
         $studno = $_POST['student_id'] ?? null;
         $email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
         if (!$email || !strpos($_POST['email'], '.')) {
             throw new Exception("Invalid email format. Please include a valid domain (e.g., user@example.com).");
-        }        
+        }
+
+        // Check password and confirm password match
         $password = $_POST['password'] ?? null;
+        $confirm_password = $_POST['confirm_password'] ?? null;
+        if ($password !== $confirm_password) {
+            throw new Exception("Passwords do not match. Please re-enter your password.");
+        }
+
         $first_name = trim($_POST['first_name'] ?? '');
         $middle_name = !empty(trim($_POST['middle_name'] ?? '')) ? trim($_POST['middle_name']) : null;
         $last_name = trim($_POST['last_name'] ?? '');
@@ -26,15 +36,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // ✅ **Step 1: Check if Email Exists Separately for User and Student**
         if ($entity === "student") {
             $checkEmailStmt = $conn->prepare("SELECT stud_email FROM student WHERE stud_email = :email");
-        } else {
+        } elseif ($entity === "professional") {
             $checkEmailStmt = $conn->prepare("SELECT user_email FROM user WHERE user_email = :email");
+        } elseif ($entity === "employer") {
+            $checkEmailStmt = $conn->prepare("SELECT user_email FROM user WHERE user_email = :email");
+        } else {
+            header("Location: ../index.php?error=" . urlencode("Invalid entity type."));
+            exit();
         }
-
+        
         $checkEmailStmt->bindParam(':email', $email, PDO::PARAM_STR);
         $checkEmailStmt->execute();
-
+        
         if ($checkEmailStmt->rowCount() > 0) {
-            $redirect_page = ($entity === "student") ? "../views/register_student.php" : "../views/register_user.php";
+            switch ($entity) {
+                case 'student':
+                    $redirect_page = "../views/register_student.php";
+                    break;
+                case 'professional':
+                    $redirect_page = "../views/register_professional.php";
+                    break;
+                case 'employer':
+                    $redirect_page = "../views/register_employer.php";
+                    break;
+                default:
+                    $redirect_page = "../index.php"; // Fallback case
+            }
+        
             header("Location: $redirect_page?message=" . urlencode("Email already exists. Please use a different email.") . "&email=" . urlencode($email));
             exit();
         }
@@ -43,7 +71,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $hashed_password = password_hash($password, PASSWORD_ARGON2ID);
         $conn->beginTransaction();  
 
-        if ($entity === 'user') {
+        $e_entity = ($entity === 'employer' || $entity === 'professional') ? 'user' : $entity;
+
+        if ($e_entity === 'user') {
             $role_id = intval($_POST['role_id'] ?? 0);
             $status = 'active';
 
@@ -142,17 +172,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Insert into actor table
-        $stmt = $conn->prepare("INSERT INTO actor (entity_type, entity_id) VALUES (:entity, :entity_id)");
-        $stmt->bindParam(':entity', $entity, PDO::PARAM_STR);
-        $stmt->bindParam(':entity_id', $entity_id, PDO::PARAM_INT);
+        // Convert 'employer' and 'professional' to 'user' before inserting
+        $actor_entity = ($entity === 'employer' || $entity === 'professional') ? 'user' : $entity;
 
-        if (!$stmt->execute()) {
-            throw new Exception("Error inserting into actor table.");
-        }
+        $stmt = $conn->prepare("INSERT INTO actor (entity_type, entity_id) VALUES (:entity, :entity_id)");
+        $stmt->bindParam(':entity', $actor_entity, PDO::PARAM_STR);
+        $stmt->bindParam(':entity_id', $entity_id, PDO::PARAM_INT);
+        $stmt->execute();
 
         $conn->commit(); 
 
-        $redirect_page = ($entity === 'student') ? "../views/register_student.php" : "../views/register_user.php";
+        switch ($entity) {
+            case 'student':
+                $redirect_page = "../views/register_student.php";
+                break;
+            case 'professional':
+                $redirect_page = "../views/register_professional.php";
+                break;
+            case 'employer': 
+                $redirect_page = "../views/register_employer.php";
+                break;
+            default:
+                $redirect_page = "../index.php"; // Fallback case
+        }
+        
         header("Location: $redirect_page?success=" . urlencode("Registration successful! You can now log in."));
         exit();
         
@@ -160,10 +203,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($conn->inTransaction()) {
             $conn->rollBack();
         }
-
+        
         error_log("Registration Error: " . $e->getMessage());
-        $redirect_page = ($entity === 'student') ? '../views/register_student.php' : '../views/register_user.php';
-        header("Location: " . $redirect_page . "?message=" . urlencode($e->getMessage()));
+        
+        switch ($entity) {
+            case 'student':
+                $redirect_page = '../views/register_student.php';
+                break;
+            case 'professional':
+                $redirect_page = '../views/register_professional.php';
+                break;
+            case 'employer':
+                $redirect_page = '../views/register_employer.php';
+                break;
+            default:
+                $redirect_page = '../index.php'; 
+        }
+        
+        header("Location: " . $redirect_page . "?message=" . urlencode("Registration failed: " . $e->getMessage()));
         exit();
     }
 }

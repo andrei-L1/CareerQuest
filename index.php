@@ -195,7 +195,13 @@ if (isset($_SESSION['user_id'])) {
         .role-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }  
+
+        .role-card.active {
+            outline: 5px solid #4682b4; /* Blue border for the active card */
+            box-shadow: 0 0 10px rgba(0, 123, 255, 0.5); /* Soft glow effect */
         }
+
 
         .role-card:hover::before {
             opacity: 1;
@@ -527,7 +533,7 @@ if (isset($_SESSION['user_id'])) {
                     <div class="modal-header border-0 pb-0">
                         <div class="w-100 text-center">
                             <h3 class="modal-title fw-bold display-6" id="roleSelectionModalLabel">Get Started</h3>
-                            <p class="text-muted">Pick Your Role to Get Started</p>
+                            <p class="text-muted">Create an Account to Get Started</p>
                         </div>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
@@ -550,7 +556,7 @@ if (isset($_SESSION['user_id'])) {
 
                             <!-- Employer Role -->
                             <div class="col-12">
-                                <a href="views/register_user.php" class="card role-card h-100 text-decoration-none bg-gradient-success-hover">
+                                <a href="views/register_employer.php" class="card role-card h-100 text-decoration-none bg-gradient-success-hover">
                                     <div class="card-body d-flex align-items-center gap-4 py-4">
                                         <div class="icon-container bg-white bg-opacity-25 p-3 rounded-circle">
                                             <i class="fas fa-briefcase fa-2x text-white"></i>
@@ -565,7 +571,7 @@ if (isset($_SESSION['user_id'])) {
 
                             <!-- Professional Role -->
                             <div class="col-12">
-                                <a href="views/register_user.php" class="card role-card h-100 text-decoration-none bg-gradient-info-hover">
+                                <a href="views/register_professional.php" class="card role-card h-100 text-decoration-none bg-gradient-info-hover">
                                     <div class="card-body d-flex align-items-center gap-4 py-4">
                                         <div class="icon-container bg-white bg-opacity-25 p-3 rounded-circle">
                                             <i class="fas fa-user-tie fa-2x text-white"></i>
@@ -597,7 +603,7 @@ if (isset($_SESSION['user_id'])) {
                     <div class="modal-header border-0 pb-0">
                         <div class="w-100 text-center">
                             <h3 class="modal-title fw-bold display-6" id="loginModalLabel">Welcome Aboard</h3>
-                            <p class="text-muted">Pick Your Role to Get Started</p>
+                            <p class="text-muted">Log in to Your Account</p>
                         </div>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
@@ -669,5 +675,70 @@ if (isset($_SESSION['user_id'])) {
     <script>
         AOS.init();
     </script>
+
+
+    <script>
+        // Function to get URL parameters
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        // Check if "openSignupModal" is set in the URL
+        if (getQueryParam("openloginModal") === "true") {
+            document.addEventListener("DOMContentLoaded", function () {
+                var signupModal = new bootstrap.Modal(document.getElementById("loginModal"));
+                signupModal.show();
+
+                // Remove the query parameter after opening the modal
+                history.replaceState(null, "", window.location.pathname);
+            });
+        }
+    </script>
+
+    <script>
+        // Function to get URL parameters
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        // Check if "openSignupModal" is set in the URL
+        if (getQueryParam("opensignupModal") === "true") {
+            document.addEventListener("DOMContentLoaded", function () {
+                var signupModal = new bootstrap.Modal(document.getElementById("signupModal"));
+                signupModal.show();
+
+                // Remove the query parameter after opening the modal
+                history.replaceState(null, "", window.location.pathname);
+            });
+        }
+    </script>
+
+    <script>
+        // Store selected role in localStorage when a card is clicked
+        document.querySelectorAll('.role-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const role = this.querySelector('h4').textContent.toLowerCase();
+                localStorage.setItem('chosenRole', role);
+            });
+        });
+
+        // Highlight the previously selected role when the modal opens
+        document.addEventListener('DOMContentLoaded', function () {
+            const chosenRole = localStorage.getItem('chosenRole');
+            if (chosenRole) {
+                // Highlight the corresponding role card
+                document.querySelectorAll('.role-card').forEach(card => {
+                    if (card.querySelector('h4').textContent.toLowerCase() === chosenRole) {
+                        card.classList.add('active');
+                    } else {
+                        card.classList.remove('active');
+                    }
+                });
+            }
+        });
+    </script>
+
 </body>
 </html>

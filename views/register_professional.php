@@ -323,6 +323,13 @@
                 font-size: 0.875rem;
             }
         }
+        .is-invalid {
+            border-color: var(--error-color) !important;
+        }
+
+        .is-invalid + .form-label {
+            color: var(--error-color) !important;
+        }
     </style>
 </head>
 <body>
@@ -338,18 +345,33 @@
         
         <form method="POST" action="../controllers/signup_handler.php" id="signupForm">
             <?php if (isset($_GET['message'])): ?>
-                <div class="alert-message alert-danger">
+                <div class="alert-message alert-danger" id="message">
                     <i class="fas fa-exclamation-circle"></i>
                     <span><?= htmlspecialchars($_GET['message'], ENT_QUOTES, 'UTF-8') ?></span>
                 </div>
+                <script>
+                    setTimeout(function() {
+                        document.getElementById('message').style.display = 'none';
+                        // Clear the message from the URL
+                        history.replaceState(null, null, location.pathname);
+                    }, 5000); // 5000 milliseconds = 5 seconds
+                </script>
             <?php endif; ?>
-            
+
             <?php if (isset($_GET['success'])): ?>
-                <div class="alert-message alert-success">
+                <div class="alert-message alert-success" id="success">
                     <i class="fas fa-check-circle"></i>
                     <span><?= htmlspecialchars($_GET['success'], ENT_QUOTES, 'UTF-8') ?></span>
                 </div>
+                <script>
+                    setTimeout(function() {
+                        document.getElementById('success').style.display = 'none';
+                        // Clear the success from the URL
+                        history.replaceState(null, null, location.pathname);
+                    }, 5000); // 5000 milliseconds = 5 seconds
+                </script>
             <?php endif; ?>
+
             
             <!-- Step 1: Personal Information -->
             <div id="step-1">
@@ -375,7 +397,7 @@
                 
                 <input type="hidden" id="entity" name="entity" value="professional">
                 
-                <button type="button" class="btn btn-primary w-100 mt-2" onclick="nextStep(2)">
+                <button type="button" class="btn btn-primary w-100 mt-2" onclick="nextStep(2, 1)">
                     <span>Continue</span>
                     <i class="fas fa-arrow-right"></i>
                 </button>
@@ -424,7 +446,7 @@
                     <button type="button" class="btn btn-outline-secondary flex-grow-1" onclick="prevStep(1)">
                         <i class="fas fa-arrow-left"></i> Back
                     </button>
-                    <button type="button" id="nextStep3" class="btn btn-primary flex-grow-1" onclick="nextStep(3)" disabled>
+                    <button type="button" id="nextStep3" class="btn btn-primary flex-grow-1" onclick="nextStep(3, 2)" disabled>
                         <span>Continue</span>
                         <i class="fas fa-arrow-right"></i>
                     </button>
@@ -467,7 +489,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script src="../assests/createaccount.js"></script>
     <script>
         AOS.init();
         
@@ -506,6 +527,7 @@
             }
 
             nextButton.disabled = !isValid;
+            return isValid;
         }
 
         function updateChecklist(element, isValid) {
@@ -554,13 +576,23 @@
             });
         });
 
-        function nextStep(step) {
+        function nextStep(nextStepNumber, currentStepNumber) {
+            if (!validateStep(currentStepNumber)) {
+                return; // Don't proceed if validation fails
+            }
+            
             document.querySelectorAll('[id^="step-"]').forEach(el => {
                 el.classList.add('d-none');
             });
-            document.getElementById(`step-${step}`).classList.remove('d-none');
-            document.getElementById('progressBar').style.width = `${step * 33}%`;
-            document.getElementById('progressBar').setAttribute('aria-valuenow', step * 33);
+            document.getElementById(`step-${nextStepNumber}`).classList.remove('d-none');
+            
+            // Update progress bar (since you have 3 steps, each step is 33%)
+            const progressPercentage = nextStepNumber * 33.33;
+            document.getElementById('progressBar').style.width = `${progressPercentage}%`;
+            document.getElementById('progressBar').setAttribute('aria-valuenow', progressPercentage);
+            
+            // Focus on first input in the new step
+            document.querySelector(`#step-${nextStepNumber} input`)?.focus();
         }
 
         function prevStep(step) {
@@ -568,8 +600,60 @@
                 el.classList.add('d-none');
             });
             document.getElementById(`step-${step}`).classList.remove('d-none');
-            document.getElementById('progressBar').style.width = `${step * 33}%`;
-            document.getElementById('progressBar').setAttribute('aria-valuenow', step * 33);
+            
+            // Update progress bar
+            const progressPercentage = step * 33.33;
+            document.getElementById('progressBar').style.width = `${progressPercentage}%`;
+            document.getElementById('progressBar').setAttribute('aria-valuenow', progressPercentage);
+        }
+
+        function validateStep(currentStep) {
+            let isValid = true;
+            
+            if (currentStep == 1) {
+                const required = ['first_name', 'last_name'];
+                
+                required.forEach(field => {
+                    const input = document.querySelector(`[name="${field}"]`);
+                    if (!input.value.trim()) {
+                        input.classList.add('is-invalid');
+                        isValid = false;
+                    } else {
+                        input.classList.remove('is-invalid');
+                    }
+                });
+            }
+            else if (currentStep == 2) {
+                // Validate email
+                const emailInput = document.querySelector('[name="email"]');
+                if (!emailInput.value.trim()) {
+                    emailInput.classList.add('is-invalid');
+                    isValid = false;
+                } else if (!/^\S+@\S+\.\S+$/.test(emailInput.value.trim())) {
+                    emailInput.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    emailInput.classList.remove('is-invalid');
+                }
+                
+                // Validate password
+                if (!validatePassword()) {
+                    isValid = false;
+                }
+                
+                // Validate password confirmation
+                const confirmPassword = document.getElementById("confirm_password");
+                if (confirmPassword.value.trim() !== document.getElementById("password").value.trim()) {
+                    confirmPassword.classList.add('is-invalid');
+                    document.getElementById("confirmPasswordHelp").classList.remove('d-none');
+                    isValid = false;
+                } else {
+                    confirmPassword.classList.remove('is-invalid');
+                    document.getElementById("confirmPasswordHelp").classList.add('d-none');
+                }
+            }
+            
+            return isValid;
         }
     </script>
 </body>
