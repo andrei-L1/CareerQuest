@@ -5,7 +5,7 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
     <div class="container">
         <!-- Brand Logo -->
-        <a class="navbar-brand fw-bold" href="index.php" style="color: var(--primary-color);">Career Platform</a>
+        <a class="navbar-brand fw-bold" href="index.php" style="color: var(--primary-color);">Career Quest</a>
 
         <!-- Toggle Button for Mobile -->
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
