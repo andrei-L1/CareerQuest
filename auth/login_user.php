@@ -422,6 +422,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 width: 100%;
             }
         }
+        .text-success {
+            color: var(--success-color) !important;
+        }
+        .alert-success {
+            background-color: #f0fdf4;
+            color: var(--success-color);
+            border: 1px solid #dcfce7;
+        }
     </style>
 </head>
 <body>
@@ -444,6 +452,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <span><?= $error ?></span>
             </div>
         <?php endif; ?>
+        <?php if (isset($_GET['success'])): ?>
+                <div class="alert-message alert-success" id="success">
+                    <i class="fas fa-check-circle"></i>
+                    <span><?= htmlspecialchars($_GET['success'], ENT_QUOTES, 'UTF-8') ?></span>
+                </div>
+                <script>
+                    setTimeout(function() {
+                        document.getElementById('success').style.display = 'none';
+                        // Remove the success from the URL
+                        history.replaceState(null, null, location.pathname);
+                    }, 5000); // 5000 milliseconds = 5 seconds
+                </script>
+            <?php endif; ?>
         
         <form method="POST" action="login_user.php">
             <div class="form-group">

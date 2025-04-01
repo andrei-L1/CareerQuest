@@ -1,3 +1,8 @@
+<?php 
+session_start();
+$_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -401,6 +406,7 @@
                 </div>
                 
                 <input type="hidden" id="entity" name="entity" value="student">
+                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
                 
                 <button type="button" class="btn btn-primary w-100 mt-2" onclick="nextStep(2)">
                     <span>Continue</span>

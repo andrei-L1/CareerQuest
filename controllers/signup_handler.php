@@ -25,6 +25,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $entity = $_POST['entity'] ?? null;
         $studno = $_POST['student_id'] ?? null;
 
+        // Validate entity type
+        if (!in_array($entity, ['student', 'professional', 'employer'])) {
+            throw new Exception("Invalid entity type.");
+        }
+
         // Email (case-insensitive)
         $email = strtolower(filter_var($_POST['email'], FILTER_VALIDATE_EMAIL));
         if (!$email || !strpos($_POST['email'], '.')) {
@@ -55,6 +60,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (!$email || empty($password) || empty($first_name) || empty($last_name)) {
             throw new Exception("All required fields must be filled.");
+        }
+        
+        // Entity-specific validations
+        if ($entity === 'student') {
+            if (empty($studno)) {
+                throw new Exception("Student ID is required.");
+            }
+            if (!preg_match('/^[a-zA-Z0-9]+$/', $studno)) {
+                throw new Exception("Student ID can only contain letters and numbers.");
+            }
         }
 
         // === Check for Existing Email ===
