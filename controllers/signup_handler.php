@@ -1,83 +1,88 @@
 <?php
 require '../config/dbcon.php';
 
+// Start session for CSRF and rate-limiting
+session_start();
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
-        // Enable error reporting
+        // Enable error reporting (disable in production)
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
 
-        // Debugging step to check POST data
-        // var_dump($_POST); // Uncomment this line for debugging if needed
-
-        // Validate and sanitize input
-        $entity = $_POST['entity'] ?? null;
-        $studno = $_POST['student_id'] ?? null;
-        $email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
-        if (!$email || !strpos($_POST['email'], '.')) {
-            throw new Exception("Invalid email format. Please include a valid domain (e.g., user@example.com).");
+        // === CSRF Protection ===
+        if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+            throw new Exception("Invalid CSRF token.");
         }
 
-        // Check password and confirm password match
+        // === Rate Limiting (10 seconds between registrations) ===
+        if (isset($_SESSION['last_registration_time']) && (time() - $_SESSION['last_registration_time'] < 10)) {
+            throw new Exception("Please wait 10 seconds before trying again.");
+        }
+        $_SESSION['last_registration_time'] = time();
+
+        // === Input Validation ===
+        $entity = $_POST['entity'] ?? null;
+        $studno = $_POST['student_id'] ?? null;
+
+        // Email (case-insensitive)
+        $email = strtolower(filter_var($_POST['email'], FILTER_VALIDATE_EMAIL));
+        if (!$email || !strpos($_POST['email'], '.')) {
+            throw new Exception("Invalid email format. Use a valid email (e.g., user@example.com).");
+        }
+
+        // Password validation
         $password = $_POST['password'] ?? null;
         $confirm_password = $_POST['confirm_password'] ?? null;
         if ($password !== $confirm_password) {
-            throw new Exception("Passwords do not match. Please re-enter your password.");
+            throw new Exception("Passwords do not match.");
+        }
+        if (strlen($password) < 8) {
+            throw new Exception("Password must be at least 8 characters.");
+        }
+        if (!preg_match('/[A-Z]/', $password) || !preg_match('/[0-9]/', $password)) {
+            throw new Exception("Password must contain at least one uppercase letter and one number.");
         }
 
+        // Name validation (letters and spaces only)
         $first_name = trim($_POST['first_name'] ?? '');
         $middle_name = !empty(trim($_POST['middle_name'] ?? '')) ? trim($_POST['middle_name']) : null;
         $last_name = trim($_POST['last_name'] ?? '');
 
-        if (!$email || empty($password) || empty($first_name) || empty($last_name)) {
-            throw new Exception("Invalid input data.");
+        if (!preg_match('/^[a-zA-Z\s]+$/', $first_name) || !preg_match('/^[a-zA-Z\s]*$/', $middle_name) || !preg_match('/^[a-zA-Z\s]+$/', $last_name)) {
+            throw new Exception("Names can only contain letters and spaces.");
         }
 
-        // ✅ **Step 1: Check if Email Exists Separately for User and Student**
+        if (!$email || empty($password) || empty($first_name) || empty($last_name)) {
+            throw new Exception("All required fields must be filled.");
+        }
+
+        // === Check for Existing Email ===
         if ($entity === "student") {
             $checkEmailStmt = $conn->prepare("SELECT stud_email FROM student WHERE stud_email = :email");
-        } elseif ($entity === "professional") {
-            $checkEmailStmt = $conn->prepare("SELECT user_email FROM user WHERE user_email = :email");
-        } elseif ($entity === "employer") {
+        } elseif ($entity === "professional" || $entity === "employer") {
             $checkEmailStmt = $conn->prepare("SELECT user_email FROM user WHERE user_email = :email");
         } else {
-            header("Location: ../index.php?error=" . urlencode("Invalid entity type."));
-            exit();
+            throw new Exception("Invalid entity type.");
         }
         
         $checkEmailStmt->bindParam(':email', $email, PDO::PARAM_STR);
         $checkEmailStmt->execute();
         
         if ($checkEmailStmt->rowCount() > 0) {
-            switch ($entity) {
-                case 'student':
-                    $redirect_page = "../views/register_student.php";
-                    break;
-                case 'professional':
-                    $redirect_page = "../views/register_professional.php";
-                    break;
-                case 'employer':
-                    $redirect_page = "../views/register_employer.php";
-                    break;
-                default:
-                    $redirect_page = "../index.php"; // Fallback case
-            }
-        
-            header("Location: $redirect_page?message=" . urlencode("Email already exists. Please use a different email.") . "&email=" . urlencode($email));
-            exit();
+            throw new Exception("Email already exists. Use a different email.");
         }
 
-        // Hash the password using Argon2id
+        // === Hash Password ===
         $hashed_password = password_hash($password, PASSWORD_ARGON2ID);
         $conn->beginTransaction();  
 
-        $e_entity = ($entity === 'employer' || $entity === 'professional') ? 'user' : $entity;
-
-        if ($e_entity === 'user') {
+        // === Insert Data Based on Entity ===
+        if ($entity === 'employer' || $entity === 'professional') {
             $role_id = intval($_POST['role_id'] ?? 0);
             $status = 'active';
 
-            // Fetch role_title (user_type) from role table
+            // Fetch role_title (user_type)
             $roleStmt = $conn->prepare("SELECT role_title FROM role WHERE role_id = :role_id");
             $roleStmt->bindParam(':role_id', $role_id, PDO::PARAM_INT);
             $roleStmt->execute();
@@ -89,48 +94,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $user_type = $role['role_title']; 
 
-            // Insert user into database
+            // Insert into `user` table
             $stmt = $conn->prepare("
                 INSERT INTO user (user_type, user_email, user_password, role_id, user_first_name, user_middle_name, user_last_name, `status`) 
                 VALUES (:user_type, :email, :password, :role_id, :first_name, :middle_name, :last_name, :active)
             ");
-            $stmt->bindParam(':user_type', $user_type, PDO::PARAM_STR);
-            $stmt->bindParam(':email', $email, PDO::PARAM_STR);
-            $stmt->bindParam(':password', $hashed_password, PDO::PARAM_STR);
-            $stmt->bindParam(':role_id', $role_id, PDO::PARAM_INT);
-            $stmt->bindParam(':first_name', $first_name, PDO::PARAM_STR);
-            $stmt->bindValue(':middle_name', $middle_name, $middle_name ? PDO::PARAM_STR : PDO::PARAM_NULL);
-            $stmt->bindParam(':last_name', $last_name, PDO::PARAM_STR);
-            $stmt->bindParam(':active', $status, PDO::PARAM_STR);
+            $stmt->execute([
+                ':user_type' => $user_type,
+                ':email' => $email,
+                ':password' => $hashed_password,
+                ':role_id' => $role_id,
+                ':first_name' => $first_name,
+                ':middle_name' => $middle_name,
+                ':last_name' => $last_name,
+                ':active' => $status
+            ]);
 
-            if (!$stmt->execute()) {
-                throw new Exception("Error inserting user.");
-            }
-
-            // ✅ Fetch user_id instead of lastInsertId()
+            // Fetch user_id
             $stmt = $conn->prepare("SELECT user_id FROM user WHERE user_email = :email");
             $stmt->bindParam(':email', $email, PDO::PARAM_STR);
             $stmt->execute();
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
             if (!$user) {
-                throw new Exception("Failed to retrieve newly inserted user ID.");
+                throw new Exception("Failed to retrieve user ID.");
             }
             $user_id = $user['user_id'];
 
-            // Insert into employer or professional based on role
-            if ($user_type === 'Employer') {
-                $stmt = $conn->prepare("INSERT INTO employer (user_id) VALUES (:user_id)");
-                $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
-                if (!$stmt->execute()) {
-                    throw new Exception("Error inserting employer.");
-                }
-            } elseif ($user_type === 'Professional') {
-                $stmt = $conn->prepare("INSERT INTO professional (user_id) VALUES (:user_id)");
-                $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
-                if (!$stmt->execute()) {
-                    throw new Exception("Error inserting professional.");
-                }
-            }
+            // Insert into specialized table (employer/professional)
+            $table = ($user_type === 'Employer') ? 'employer' : 'professional';
+            $stmt = $conn->prepare("INSERT INTO $table (user_id) VALUES (:user_id)");
+            $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+            $stmt->execute();
 
             $entity_id = $user_id;
         } elseif ($entity === 'student') {
@@ -140,63 +134,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception("Institution field is required.");
             }
 
-            // Insert student into database
+            // Insert into `student` table
             $stmt = $conn->prepare("
                 INSERT INTO student (stud_no, stud_email, stud_password, stud_first_name, stud_middle_name, stud_last_name, institution, `status`) 
                 VALUES (:studno, :email, :password, :first_name, :middle_name, :last_name, :institution, :active)
             ");
-            $stmt->bindParam(':studno', $studno, PDO::PARAM_STR);
-            $stmt->bindParam(':email', $email, PDO::PARAM_STR);
-            $stmt->bindParam(':password', $hashed_password, PDO::PARAM_STR);
-            $stmt->bindParam(':first_name', $first_name, PDO::PARAM_STR);
-            $stmt->bindValue(':middle_name', $middle_name, $middle_name ? PDO::PARAM_STR : PDO::PARAM_NULL);
-            $stmt->bindParam(':last_name', $last_name, PDO::PARAM_STR);
-            $stmt->bindParam(':institution', $institution, PDO::PARAM_STR);
-            $stmt->bindParam(':active', $status, PDO::PARAM_STR);
+            $stmt->execute([
+                ':studno' => $studno,
+                ':email' => $email,
+                ':password' => $hashed_password,
+                ':first_name' => $first_name,
+                ':middle_name' => $middle_name,
+                ':last_name' => $last_name,
+                ':institution' => $institution,
+                ':active' => $status
+            ]);
 
-            if (!$stmt->execute()) {
-                throw new Exception("Error inserting student.");
-            }
-
-            // ✅ Fetch student_id instead of lastInsertId()
+            // Fetch stud_id
             $stmt = $conn->prepare("SELECT stud_id FROM student WHERE stud_email = :email");
             $stmt->bindParam(':email', $email, PDO::PARAM_STR);
             $stmt->execute();
             $student = $stmt->fetch(PDO::FETCH_ASSOC);
             if (!$student) {
-                throw new Exception("Failed to retrieve newly inserted student ID.");
+                throw new Exception("Failed to retrieve student ID.");
             }
             $entity_id = $student['stud_id'];
         } else {
             throw new Exception("Invalid entity type.");
         }
 
-        // Insert into actor table
-        // Convert 'employer' and 'professional' to 'user' before inserting
+        // === Insert into Actor Table ===
         $actor_entity = ($entity === 'employer' || $entity === 'professional') ? 'user' : $entity;
-
         $stmt = $conn->prepare("INSERT INTO actor (entity_type, entity_id) VALUES (:entity, :entity_id)");
-        $stmt->bindParam(':entity', $actor_entity, PDO::PARAM_STR);
-        $stmt->bindParam(':entity_id', $entity_id, PDO::PARAM_INT);
-        $stmt->execute();
+        $stmt->execute([
+            ':entity' => $actor_entity,
+            ':entity_id' => $entity_id
+        ]);
 
         $conn->commit(); 
 
+        // Log successful registration
+        error_log("New registration: $email ($entity)");
+        
         switch ($entity) {
             case 'student':
-                $redirect_page = "../views/register_student.php";
+                $redirect_page = "../auth/login_student.php";
                 break;
             case 'professional':
-                $redirect_page = "../views/register_professional.php";
+                $redirect_page = "../auth/login_user.php";
                 break;
             case 'employer': 
-                $redirect_page = "../views/register_employer.php";
+                $redirect_page = "../auth/login_user.php";
                 break;
             default:
                 $redirect_page = "../index.php"; // Fallback case
         }
         
         header("Location: $redirect_page?success=" . urlencode("Registration successful! You can now log in."));
+
         exit();
         
     } catch (Exception $e) {
@@ -206,22 +201,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         error_log("Registration Error: " . $e->getMessage());
         
-        switch ($entity) {
-            case 'student':
-                $redirect_page = '../views/register_student.php';
-                break;
-            case 'professional':
-                $redirect_page = '../views/register_professional.php';
-                break;
-            case 'employer':
-                $redirect_page = '../views/register_employer.php';
-                break;
-            default:
-                $redirect_page = '../index.php'; 
-        }
+        // Determine redirect page dynamically
+        $redirect_page = match($entity) {
+            'student' => '../views/register_student.php',
+            'professional' => '../views/register_professional.php',
+            'employer' => '../views/register_employer.php',
+            default => '../index.php'
+        };
         
-        header("Location: " . $redirect_page . "?message=" . urlencode("Registration failed: " . $e->getMessage()));
+        header("Location: $redirect_page?message=" . urlencode("Error: " . $e->getMessage()));
         exit();
     }
 }
-?>
