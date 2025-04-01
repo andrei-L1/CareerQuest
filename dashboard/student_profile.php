@@ -374,9 +374,10 @@ include '../includes/stud_navbar.php';
                 <div class="card card-profile mb-4">
                     <div class="card-body-profile">
                         <div class="d-flex justify-content-between">
-                            <a href="edit_profile.php" class="btn btn-outline-primary">
+                            <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editProfileModal">
                                 <i class="fas fa-edit me-1"></i> Edit Profile
-                            </a>
+                            </button>
+
                             <a href="job_search.php" class="btn btn-primary-profile">
                                 <i class="fas fa-search me-1"></i> Find Jobs
                             </a>
@@ -435,7 +436,90 @@ include '../includes/stud_navbar.php';
         </div>
     </div>
 
+    <!-- EDIT PROFILE -->
+    <div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editProfileModalLabel">Edit Profile</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="updateProfileForm" enctype="multipart/form-data">
+                        <!-- Bio -->
+                        <div class="mb-3">
+                            <label for="bio" class="form-label">Bio</label>
+                            <textarea class="form-control" id="bio" name="bio" rows="3"><?php echo htmlspecialchars($student['bio'] ?? ''); ?></textarea>
+                        </div>
+
+                        <!-- Profile Picture -->
+                        <div class="mb-3">
+                            <label for="profile_picture" class="form-label">Profile Picture</label>
+                            <input type="file" class="form-control" id="profile_picture" name="profile_picture">
+                        </div>
+
+                        <!-- Resume -->
+                        <div class="mb-3">
+                            <label for="resume" class="form-label">Upload Resume</label>
+                            <input type="file" class="form-control" id="resume" name="resume">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+$(document).ready(function () {
+    $("#updateProfileForm").submit(function (e) {
+        e.preventDefault();
+        let formData = new FormData(this);
+
+        $.ajax({
+            type: "POST",
+            url: "../controllers/student_update_profile.php",
+            data: formData,
+            contentType: false,
+            processData: false,
+            dataType: "json",
+            beforeSend: function () {
+                $(".btn-primary").prop("disabled", true);
+            },
+            success: function (response) {
+                console.log(response); // Debugging
+
+                if (response.status === "success") {
+                    $("#bioText").text($("#bio").val());
+
+                    if (response.profile_picture) {
+                        $("#profilePicture").attr("src", "../uploads/" + response.profile_picture);
+                    }
+                    if (response.resume_file) {
+                        $("#resumeDownload").attr("href", "../uploads/" + response.resume_file);
+                    }
+
+                    alert(response.message);
+                    $("#editProfileModal").modal("hide");
+                } else {
+                    alert(response.message);
+                }
+            },
+            complete: function () {
+                $(".btn-primary").prop("disabled", false);
+            },
+            error: function () {
+                alert("An error occurred while updating the profile.");
+            }
+        });
+    });
+});
+</script>
 </body>
 </html>
