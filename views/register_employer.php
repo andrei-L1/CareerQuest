@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up | Professional Portal</title>
+    <title>Employer Sign Up | Employer Portal</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
@@ -329,7 +329,7 @@
     <div class="signup-container" data-aos="fade-up" data-aos-duration="1000">
         <div class="signup-header">
             <h3>Create an Account</h3>
-            <p>Register as an Employer/Professional</p>
+            <p>Register as an Employer</p>
         </div>
         
         <div class="progress">
