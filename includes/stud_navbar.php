@@ -486,7 +486,7 @@ $lastName = htmlspecialchars($studentData['stud_last_name'] ?? '');
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="../dashboard/student_profile.php">My Profile</a></li>
                         <li><a class="dropdown-item" href="resume.php">My Resume</a></li>
-                        <li><a class="dropdown-item" href="settings.php">Account Settings</a></li>
+                        <li><a class="dropdown-item" href="../dashboard/student_account_settings.php">Account Settings</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item text-danger" href="../auth/logout.php">Logout</a></li>
                     </ul>
