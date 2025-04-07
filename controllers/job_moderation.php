@@ -7,10 +7,8 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Prevent any unwanted output
 ob_clean();
 
-// Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
     echo json_encode(["error" => "Unauthorized access"]);
     exit();
@@ -18,13 +16,10 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-
-// 🟢 Handle Job Posting (POST)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['job_title'])) {
     try {
         $conn->beginTransaction();
 
-        // Validate Input
         $employer_id = intval($_POST['employer_id'] ?? 0);
         $job_type_id = intval($_POST['job_type_id'] ?? 0);
         $location = trim($_POST['location'] ?? '');
@@ -35,13 +30,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['job_title'])) {
         $moderation_status = "Pending";
         $img_url = null;
 
-        // Validate required fields
         if (!$employer_id || !$job_type_id || !$job_title || !$description || !$location) {
             echo json_encode(["error" => "Missing required fields"]);
             exit();
         }
 
-        // 🟢 Handle File Upload Securely
         if (!empty($_FILES['img_url']['name'])) {
             $allowed_types = ['image/jpeg', 'image/png', 'image/gif'];
             $file_type = $_FILES['img_url']['type'];
@@ -57,7 +50,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['job_title'])) {
             move_uploaded_file($_FILES["img_url"]["tmp_name"], $target_dir . $img_url);
         }
 
-        // 🟢 Insert Job Posting
         $stmt = $conn->prepare("
             INSERT INTO job_posting (employer_id, title, job_type_id, description, location, salary, img_url, expires_at, moderation_status)
             VALUES (:employer_id, :title, :job_type_id, :description, :location, :salary, :img_url, :expires_at, :moderation_status)
@@ -75,22 +67,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['job_title'])) {
         ]);
         $job_id = $conn->lastInsertId();
 
-        // 🟢 Insert Job Skills
         if (!empty($_POST['skills']) && is_array($_POST['skills'])) {
             $stmtSkill = $conn->prepare("
                 INSERT INTO job_skill (job_id, skill_id, importance, group_no) 
                 VALUES (:job_id, :skill_id, :importance, :group_no)
             ");
 
-            foreach ($_POST['skills'] as $index => $skill_id) {
-                $importance = $_POST['importance'][$index] ?? 'Medium';
-                $group_no = intval($_POST['group_no'][$index] ?? 1);
+            foreach ($_POST['skills'] as $index => $skillData) {
+                $skill_id = intval($skillData['skill']);
+                $importance = $skillData['importance'] ?? 'Medium';
+                
+                $checkSkill = $conn->prepare("SELECT skill_id FROM skill_masterlist WHERE skill_id = ?");
+                $checkSkill->execute([$skill_id]);
+                
+                if (!$checkSkill->fetch()) {
+                    $conn->rollBack();
+                    echo json_encode(['error' => "Invalid skill ID: $skill_id"]);
+                    exit();
+                }
 
                 $stmtSkill->execute([
                     ':job_id' => $job_id,
-                    ':skill_id' => intval($skill_id),
+                    ':skill_id' => $skill_id,
                     ':importance' => $importance,
-                    ':group_no' => $group_no
+                    ':group_no' => $job_id 
                 ]);
             }
         }
@@ -105,9 +105,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['job_title'])) {
     }
 }
 
-
-
-// 🟢 Fetch Employers
 if (isset($_GET['type']) && $_GET['type'] === 'employers') {
     $stmt = $conn->query("
         SELECT e.employer_id, 
@@ -121,26 +118,20 @@ if (isset($_GET['type']) && $_GET['type'] === 'employers') {
     exit();
 }
 
-// 🟢 Fetch Job Types
 if (isset($_GET['type']) && $_GET['type'] === 'job_types') {
     $stmt = $conn->query("SELECT job_type_id, job_type_title FROM job_type");
     echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC) ?: ["error" => "No job types found"]);
     exit();
 }
 
-// 🟢 Fetch Skills
 if (isset($_GET['type']) && $_GET['type'] === 'skills') {
     $stmt = $conn->query("SELECT skill_id, skill_name FROM skill_masterlist");
     echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
     exit();
 }
 
-
-
-// ✅ Fetch a Single Job with Skills
 if (isset($_GET['job_id']) && is_numeric($_GET['job_id'])) {
     $job_id = intval($_GET['job_id']); 
-    error_log("Fetching job details for job_id: $job_id");
 
     try {
         $stmt = $conn->prepare("
@@ -158,7 +149,6 @@ if (isset($_GET['job_id']) && is_numeric($_GET['job_id'])) {
             exit();
         }
 
-        // ✅ Fetch job skills
         $stmtSkills = $conn->prepare("
             SELECT sm.skill_name, js.importance 
             FROM job_skill js
@@ -168,7 +158,6 @@ if (isset($_GET['job_id']) && is_numeric($_GET['job_id'])) {
         $stmtSkills->execute([':job_id' => $job_id]);
         $job['skills'] = $stmtSkills->fetchAll(PDO::FETCH_ASSOC);
 
-        // Rename field to match frontend expectations
         $job['posted_date'] = $job['posted_at'];
         unset($job['posted_at']);
 
@@ -180,8 +169,6 @@ if (isset($_GET['job_id']) && is_numeric($_GET['job_id'])) {
     exit(); 
 }
 
-
-// 🟢 Fetch Jobs for Moderation
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $stmt = $conn->prepare("
         SELECT job_id, title, description, location, moderation_status
@@ -193,7 +180,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     exit();
 }
 
-// 🟢 Handle Job Moderation (Approve, Reject, Flag)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['job_id'], $_POST['action'])) {
     $job_id = $_POST['job_id'];
     $action = $_POST['action'];
@@ -233,8 +219,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['job_id'], $_POST['act
     }
 }
 
-
 echo json_encode(["error" => "Invalid request"]);
 exit();
-
 ?>

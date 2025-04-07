@@ -592,7 +592,6 @@ $totalExpiringJobs = $stats['total_expiring_jobs'];
                                     <tr>
                                         <th>Skill</th>
                                         <th>Importance</th>
-                                        <th>Group No</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>

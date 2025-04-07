@@ -15,6 +15,7 @@ document.getElementById('add-skill').addEventListener('click', function () {
         fetch("../controllers/job_moderation.php?type=skills")
             .then(response => response.json())
             .then(data => {
+                console.log(data);
                 cachedSkills = data;
                 populateSkills(skillSelect, cachedSkills);
             })
@@ -35,16 +36,6 @@ document.getElementById('add-skill').addEventListener('click', function () {
     });
     importanceTd.appendChild(importanceSelect);
 
-    // Group No Input
-    const groupNoTd = document.createElement('td');
-    const groupNoInput = document.createElement('input');
-    groupNoInput.type = 'number';
-    groupNoInput.className = 'form-control group-input';
-    groupNoInput.name = 'group_no[]';
-    groupNoInput.min = 1;
-    groupNoInput.value = 1;
-    groupNoTd.appendChild(groupNoInput);
-
     // Remove Button
     const removeTd = document.createElement('td');
     const removeButton = document.createElement('button');
@@ -58,7 +49,6 @@ document.getElementById('add-skill').addEventListener('click', function () {
 
     skillRow.appendChild(skillSelectTd);
     skillRow.appendChild(importanceTd);
-    skillRow.appendChild(groupNoTd);
     skillRow.appendChild(removeTd);
     skillsContainer.appendChild(skillRow);
 });
@@ -70,21 +60,18 @@ function populateSkills(skillSelect, skills) {
     });
 }
 
-
 document.getElementById("addJobForm").addEventListener("submit", function (event) {
     event.preventDefault();
 
-    let formData = new FormData(this); // Automatically picks up input fields with `name` attributes
+    let formData = new FormData(this);
 
     // Collect skills dynamically
     document.querySelectorAll("#skills-table-body tr").forEach((row, index) => {
         let skill = row.querySelector(".skill-select").value;
         let importance = row.querySelector(".importance-select").value;
-        let groupNo = row.querySelector(".group-input").value;
         if (skill) {
             formData.append(`skills[${index}][skill]`, skill);
             formData.append(`skills[${index}][importance]`, importance);
-            formData.append(`skills[${index}][groupNo]`, groupNo);
         }
     });
 
@@ -103,7 +90,6 @@ document.getElementById("addJobForm").addEventListener("submit", function (event
     })
     .catch(error => console.error("Error:", error));
 });
-
 
 // Load Employers & Job Types Dynamically
 document.addEventListener("DOMContentLoaded", function () {
