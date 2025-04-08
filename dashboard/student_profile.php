@@ -13,42 +13,64 @@ include '../includes/stud_navbar.php';
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Animate.css for animations -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <!-- Custom CSS -->
     <style>
         :root {
-            --primary-color: #3498db;
+            --primary-color: #4361ee;
+            --primary-light: #e0e7ff;
             --secondary-color: #f8f9fa;
-
-            --dark-color: #2c3e50;
-            --text-color: #333;
-            --light-text: #7f8c8d;
+            --dark-color: #1e293b;
+            --text-color: #334155;
+            --light-text: #64748b;
+            --accent-color: #3a0ca3;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --border-radius: 12px;
+            --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         body {
             background-color: var(--secondary-color);
             color: var(--text-color);
-            font-family: 'Segoe UI', 'Roboto', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
         }
         
         .profile-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--dark-color));
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
             color: white;
-            border-radius: 8px;
-            padding: 30px;
-            margin-bottom: 30px;
+            border-radius: var(--border-radius);
+            padding: 2.5rem;
+            margin-bottom: 2rem;
             position: relative;
             overflow: hidden;
+            box-shadow: var(--box-shadow);
         }
         
         .profile-header::before {
             content: '';
             position: absolute;
-            top: 0;
-            right: 0;
+            top: -50px;
+            right: -50px;
             width: 200px;
             height: 200px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 50%;
-            transform: translate(50px, -50px);
+        }
+        
+        .profile-header::after {
+            content: '';
+            position: absolute;
+            bottom: -80px;
+            left: -80px;
+            width: 250px;
+            height: 250px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
         }
         
         .profile-picture {
@@ -56,120 +78,155 @@ include '../includes/stud_navbar.php';
             height: 150px;
             object-fit: cover;
             border-radius: 50%;
-            border: 5px solid white;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
             z-index: 1;
             position: relative;
+            transition: var(--transition);
+        }
+        
+        .profile-picture:hover {
+            transform: scale(1.05);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
         }
         
         .profile-name {
-            font-size: 28px;
+            font-size: 2rem;
             font-weight: 700;
-            margin-bottom: 5px;
+            margin-bottom: 0.5rem;
+            line-height: 1.2;
         }
         
         .profile-title {
-            font-size: 18px;
-            margin-bottom: 15px;
+            font-size: 1.1rem;
+            margin-bottom: 1.25rem;
             opacity: 0.9;
+            font-weight: 500;
         }
         
         .profile-meta {
             display: flex;
-            gap: 20px;
-            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
         }
         
         .profile-meta-item {
             display: flex;
             align-items: center;
-            gap: 5px;
-            font-size: 14px;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .profile-meta-item i {
+            font-size: 1rem;
+            opacity: 0.8;
         }
         
         .card-profile {
             border: none;
-            border-radius: 10px;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
-            margin-bottom: 25px;
-            transition: transform 0.3s ease;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 1.5rem;
+            transition: var(--transition);
+            background-color: white;
+            overflow: hidden;
         }
         
         .card-profile:hover {
             transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
         
         .card-header-profile {
             background-color: white;
             border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            font-size: 18px;
+            font-size: 1.1rem;
             font-weight: 600;
-            padding: 15px 20px;
-            border-radius: 10px 10px 0 0 !important;
+            padding: 1rem 1.5rem;
+            color: var(--dark-color);
         }
         
         .card-body-profile {
-            padding: 20px;
+            padding: 1.5rem;
         }
         
         .info-item {
-            margin-bottom: 15px;
+            margin-bottom: 1.25rem;
         }
         
         .info-label {
             color: var(--light-text);
-            font-size: 14px;
-            margin-bottom: 5px;
+            font-size: 0.85rem;
+            margin-bottom: 0.25rem;
             font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .info-value {
-            font-size: 16px;
+            font-size: 1rem;
+            color: var(--text-color);
         }
         
         .btn-primary-profile {
             background-color: var(--primary-color);
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             font-weight: 600;
-            padding: 8px 20px;
-            transition: all 0.3s ease;
+            padding: 0.75rem 1.5rem;
+            transition: var(--transition);
+            box-shadow: 0 4px 6px -1px rgba(67, 97, 238, 0.3);
         }
         
         .btn-primary-profile:hover {
-            background-color: #2980b9;
+            background-color: var(--accent-color);
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 15px -3px rgba(67, 97, 238, 0.3);
+        }
+        
+        .btn-outline-primary {
+            border-radius: 8px;
+            font-weight: 500;
+            padding: 0.75rem 1.5rem;
         }
         
         .skill-badge {
             display: inline-block;
-            padding: 6px 12px;
-            margin: 5px;
+            padding: 0.5rem 1rem;
+            margin: 0.25rem;
             border-radius: 20px;
-            background-color: #e8f4fc;
+            background-color: var(--primary-light);
             color: var(--primary-color);
-            font-size: 14px;
+            font-size: 0.85rem;
             font-weight: 500;
+            transition: var(--transition);
+        }
+        
+        .skill-badge:hover {
+            background-color: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
         }
         
         .progress {
             height: 8px;
             border-radius: 4px;
-            background-color: #ecf0f1;
+            background-color: #e2e8f0;
         }
         
         .progress-bar {
-            background-color: var(--accent-color);
+            background-color: var(--primary-color);
+            border-radius: 4px;
         }
         
         .section-title {
-            font-size: 20px;
+            font-size: 1.25rem;
             font-weight: 600;
-            margin-bottom: 20px;
+            margin-bottom: 1.25rem;
             color: var(--dark-color);
             position: relative;
-            padding-bottom: 10px;
+            padding-bottom: 0.75rem;
         }
         
         .section-title::after {
@@ -185,51 +242,255 @@ include '../includes/stud_navbar.php';
         
         .application-card {
             border-left: 4px solid var(--primary-color);
-            transition: all 0.3s ease;
+            transition: var(--transition);
+            margin-bottom: 1rem;
+            border-radius: 4px;
+            background-color: white;
+            padding: 1rem;
         }
         
         .application-card:hover {
             transform: translateX(5px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
         
         .status-badge {
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 12px;
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
             font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .status-pending {
-            background-color: #f39c12;
+            background-color: var(--warning-color);
             color: white;
         }
         
         .status-accepted {
-            background-color: var(--accent-color);
+            background-color: var(--success-color);
             color: white;
         }
         
         .status-rejected {
-            background-color: #e74c3c;
+            background-color: var(--danger-color);
             color: white;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+        
+        .floating-alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            border-left: 4px solid;
+            animation: slideInRight 0.3s forwards, fadeOut 0.5s 4.5s forwards;
+        }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+        
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        
+        .modal-content {
+            border-radius: var(--border-radius);
+            border: none;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .modal-header {
+            border-bottom: none;
+            padding: 1.5rem;
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
+        .modal-footer {
+            border-top: none;
+            padding: 1rem 1.5rem;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            border: 1px solid #e2e8f0;
+            transition: var(--transition);
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+        
+        .file-upload {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        
+        .file-upload-label {
+            display: block;
+            padding: 1.5rem;
+            border: 2px dashed #e2e8f0;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            background-color: #f8fafc;
+        }
+        
+        .file-upload-label:hover {
+            border-color: var(--primary-color);
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+        
+        .file-upload-label i {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .file-upload-input {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        
+        .avatar-edit {
+            position: absolute;
+            right: 10px;
+            bottom: 10px;
+            z-index: 2;
+        }
+        
+        .avatar-edit input {
+            display: none;
+        }
+        
+        .avatar-edit label {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            margin-bottom: 0;
+            border-radius: 50%;
+            background: white;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            text-align: center;
+            line-height: 40px;
+            color: var(--primary-color);
+            transition: var(--transition);
+        }
+        
+        .avatar-edit label:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+        
+        .social-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: #f1f5f9;
+            color: var(--light-text);
+            transition: var(--transition);
+        }
+        
+        .social-link:hover {
+            background-color: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        @media (max-width: 768px) {
+            .profile-header {
+                padding: 1.5rem;
+            }
+            
+            .profile-name {
+                font-size: 1.5rem;
+            }
+            
+            .profile-title {
+                font-size: 1rem;
+            }
+            
+            .profile-meta {
+                gap: 1rem;
+                flex-direction: column;
+            }
+            
+            .profile-picture {
+                width: 120px;
+                height: 120px;
+                margin-bottom: 1rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .btn-primary-profile, .btn-outline-primary {
+                width: 100%;
+                text-align: center;
+            }
         }
     </style>
 </head>
 <body>
     <!-- Success Message -->
     <?php if (isset($_GET['success'])): ?>
-        <div class="alert alert-success alert-dismissible fade show" role="alert" style="position: fixed; top: 80px; right: 20px; z-index: 1000;">
-            Profile updated successfully!
+        <div class="floating-alert alert alert-success alert-dismissible fade show" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-check-circle me-2"></i>
+                <div>Profile updated successfully!</div>
+            </div>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     <?php endif; ?>
 
-    <div class="container py-4">
+    <div class="container py-4 animate__animated animate__fadeIn">
         <!-- Profile Header -->
         <div class="profile-header">
             <div class="row align-items-center">
-                <div class="col-md-auto text-center text-md-start">
+                <div class="col-md-auto text-center text-md-start position-relative">
                     <img src="<?php echo $profile_pic; ?>" class="profile-picture mb-3 mb-md-0" alt="Profile Picture">
+                    <div class="avatar-edit">
+                        <input type="file" id="profilePictureInput" name="profile_picture" accept="image/*">
+                        <label for="profilePictureInput" title="Change photo">
+                            <i class="fas fa-camera"></i>
+                        </label>
+                    </div>
                 </div>
                 <div class="col-md">
                     <h1 class="profile-name">
@@ -267,13 +528,42 @@ include '../includes/stud_navbar.php';
                         </div>
                         <?php endif; ?>
                     </div>
-                    <?php if (!empty($student['resume_file'])): ?>
-                    <a href="../assests/uploads/<?php echo htmlspecialchars($student['resume_file']); ?>" 
-                       class="btn btn-light btn-sm mt-2" 
-                       download>
-                        <i class="fas fa-download me-1"></i> Download Resume
-                    </a>
-                    <?php endif; ?>
+                    
+                    <div class="action-buttons">
+                        <?php if (!empty($student['resume_file'])): ?>
+                        <a href="../assets/uploads/<?php echo htmlspecialchars($student['resume_file']); ?>" 
+                           class="btn btn-light btn-sm" 
+                           download>
+                            <i class="fas fa-download me-1"></i> Download Resume
+                        </a>
+                        <?php endif; ?>
+                        
+                        <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                            <i class="fas fa-edit me-1"></i> Edit Profile
+                        </button>
+                        
+                        <a href="job_search.php" class="btn btn-light btn-sm">
+                            <i class="fas fa-search me-1"></i> Find Jobs
+                        </a>
+                    </div>
+                    
+                    <div class="social-links">
+                        <?php if (!empty($student['linkedin'])): ?>
+                        <a href="<?php echo htmlspecialchars($student['linkedin']); ?>" class="social-link" target="_blank">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                        <?php endif; ?>
+                        <?php if (!empty($student['github'])): ?>
+                        <a href="<?php echo htmlspecialchars($student['github']); ?>" class="social-link" target="_blank">
+                            <i class="fab fa-github"></i>
+                        </a>
+                        <?php endif; ?>
+                        <?php if (!empty($student['portfolio'])): ?>
+                        <a href="<?php echo htmlspecialchars($student['portfolio']); ?>" class="social-link" target="_blank">
+                            <i class="fas fa-globe"></i>
+                        </a>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
         </div>
@@ -295,6 +585,15 @@ include '../includes/stud_navbar.php';
                                 <?php if (!empty($student['stud_gender'])): ?>
                                     <span class="text-muted ms-2">(<?php echo htmlspecialchars($student['stud_gender']); ?>)</span>
                                 <?php endif; ?>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+                        
+                        <?php if (!empty($student['phone'])): ?>
+                        <div class="info-item">
+                            <div class="info-label">Phone</div>
+                            <div class="info-value">
+                                <?php echo htmlspecialchars($student['phone']); ?>
                             </div>
                         </div>
                         <?php endif; ?>
@@ -336,100 +635,126 @@ include '../includes/stud_navbar.php';
                     </div>
                 </div>
                 
-                <!-- Skills Section (Placeholder) -->
+                <!-- Skills Section -->
                 <div class="card card-profile">
                     <div class="card-header-profile">
                         <i class="fas fa-code me-2"></i> Skills
                     </div>
                     <div class="card-body-profile">
-                        <div class="alert alert-info">
-                            Skills functionality will be implemented in a future update.
-                        </div>
-                        <!-- Placeholder skills - to be replaced with database integration -->
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between">
-                                <span>Web Development</span>
-                                <span class="text-muted">Intermediate</span>
+                        <?php if (!empty($student['skills'])): ?>
+                            <?php 
+                            $skills = explode(',', $student['skills']);
+                            foreach($skills as $skill): 
+                                if(trim($skill)): ?>
+                                    <span class="skill-badge"><?php echo htmlspecialchars(trim($skill)); ?></span>
+                                <?php endif; 
+                            endforeach; ?>
+                        <?php else: ?>
+                            <div class="alert alert-info mb-0">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Add your skills to make your profile more attractive to employers.
                             </div>
-                            <div class="progress mt-2">
-                                <div class="progress-bar" style="width: 66%"></div>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between">
-                                <span>Database Management</span>
-                                <span class="text-muted">Beginner</span>
-                            </div>
-                            <div class="progress mt-2">
-                                <div class="progress-bar" style="width: 33%"></div>
-                            </div>
-                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
             
             <!-- Right Column - Professional Content -->
             <div class="col-lg-7">
-                <!-- Quick Actions -->
-                <div class="card card-profile mb-4">
-                    <div class="card-body-profile">
-                        <div class="d-flex justify-content-between">
-                            <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editProfileModal">
-                                <i class="fas fa-edit me-1"></i> Edit Profile
-                            </button>
-
-                            <a href="job_search.php" class="btn btn-primary-profile">
-                                <i class="fas fa-search me-1"></i> Find Jobs
-                            </a>
-                            <a href="resume_builder.php" class="btn btn-outline-secondary">
-                                <i class="fas fa-file-alt me-1"></i> Build Resume
-                            </a>
+                <!-- Quick Stats -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="card card-profile h-100">
+                            <div class="card-body-profile text-center">
+                                <div class="info-value fw-bold text-primary">12</div>
+                                <div class="info-label">Jobs Applied</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card card-profile h-100">
+                            <div class="card-body-profile text-center">
+                                <div class="info-value fw-bold text-success">3</div>
+                                <div class="info-label">Interviews</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card card-profile h-100">
+                            <div class="card-body-profile text-center">
+                                <div class="info-value fw-bold text-warning">85%</div>
+                                <div class="info-label">Profile Strength</div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Recent Applications (Placeholder) -->
+                <!-- Recent Applications -->
                 <div class="card card-profile">
-                    <div class="card-header-profile">
-                        <i class="fas fa-briefcase me-2"></i> Recent Applications
+                    <div class="card-header-profile d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-briefcase me-2"></i> Recent Applications
+                        </div>
+                        <a href="applications.php" class="btn btn-sm btn-outline-primary">View All</a>
                     </div>
                     <div class="card-body-profile">
-                        <div class="alert alert-info mb-4">
-                            Application tracking will be implemented in a future update.
-                        </div>
-                        
-                        <!-- Placeholder applications - to be replaced with database integration -->
-                        <div class="application-card p-3 mb-3 bg-white rounded">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h6 class="mb-0">Web Developer Intern</h6>
-                                <span class="status-badge status-pending">Pending</span>
+                        <?php if (!empty($applications)): ?>
+                            <?php foreach($applications as $app): ?>
+                            <div class="application-card">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="mb-0"><?php echo htmlspecialchars($app['job_title']); ?></h6>
+                                    <span class="status-badge status-<?php echo htmlspecialchars(strtolower($app['status'])); ?>">
+                                        <?php echo htmlspecialchars($app['status']); ?>
+                                    </span>
+                                </div>
+                                <div class="text-muted small mb-2"><?php echo htmlspecialchars($app['company_name']); ?></div>
+                                <div class="text-muted small">Applied on <?php echo date('M j, Y', strtotime($app['applied_date'])); ?></div>
                             </div>
-                            <div class="text-muted small mb-2">Tech Solutions Inc.</div>
-                            <div class="text-muted small">Applied on May 15, 2023</div>
-                        </div>
-                        
-                        <div class="application-card p-3 mb-3 bg-white rounded">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h6 class="mb-0">Data Analyst</h6>
-                                <span class="status-badge status-accepted">Accepted</span>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="text-center py-4">
+                                <i class="fas fa-briefcase fa-3x text-muted mb-3"></i>
+                                <h5>No Applications Yet</h5>
+                                <p class="text-muted">Start applying to jobs to track your progress here</p>
+                                <a href="job_search.php" class="btn btn-primary-profile btn-sm">
+                                    <i class="fas fa-search me-1"></i> Browse Jobs
+                                </a>
                             </div>
-                            <div class="text-muted small mb-2">Analytics Corp</div>
-                            <div class="text-muted small">Applied on April 28, 2023</div>
-                        </div>
-                        
-                        <a href="#" class="btn btn-outline-primary btn-sm">View All Applications</a>
+                        <?php endif; ?>
                     </div>
                 </div>
                 
-                <!-- Recommended Jobs (Placeholder) -->
+                <!-- Recommended Jobs -->
                 <div class="card card-profile mt-4">
-                    <div class="card-header-profile">
-                        <i class="fas fa-lightbulb me-2"></i> Recommended For You
+                    <div class="card-header-profile d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-lightbulb me-2"></i> Recommended For You
+                        </div>
+                        <a href="job_search.php" class="btn btn-sm btn-outline-primary">See More</a>
                     </div>
                     <div class="card-body-profile">
-                        <div class="alert alert-info">
-                            Job recommendations will be implemented in a future update.
-                        </div>
+                        <?php if (!empty($recommended_jobs)): ?>
+                            <?php foreach($recommended_jobs as $job): ?>
+                            <div class="application-card">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="mb-0"><?php echo htmlspecialchars($job['title']); ?></h6>
+                                    <span class="badge bg-primary">Match: <?php echo htmlspecialchars($job['match_score']); ?>%</span>
+                                </div>
+                                <div class="text-muted small mb-2"><?php echo htmlspecialchars($job['company']); ?> · <?php echo htmlspecialchars($job['location']); ?></div>
+                                <div class="text-muted small mb-2"><?php echo htmlspecialchars($job['type']); ?> · $<?php echo htmlspecialchars($job['salary']); ?>/yr</div>
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <small class="text-muted">Posted <?php echo htmlspecialchars($job['posted_date']); ?></small>
+                                    <a href="job_details.php?id=<?php echo htmlspecialchars($job['id']); ?>" class="btn btn-sm btn-outline-primary">View</a>
+                                </div>
+                            </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="text-center py-4">
+                                <i class="fas fa-lightbulb fa-3x text-muted mb-3"></i>
+                                <h5>No Recommendations Yet</h5>
+                                <p class="text-muted">Complete your profile to get personalized job recommendations</p>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -445,7 +770,7 @@ include '../includes/stud_navbar.php';
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="updateProfileForm" enctype="multipart/form-data">
+                    <form id="updateProfileForm" method="post" enctype="multipart/form-data">
                         <!-- Bio -->
                         <div class="mb-3">
                             <label for="bio" class="form-label">Bio</label>
@@ -477,49 +802,85 @@ include '../includes/stud_navbar.php';
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script>
-$(document).ready(function () {
-    $("#updateProfileForm").submit(function (e) {
-        e.preventDefault();
-        let formData = new FormData(this);
+        $(document).ready(function() {
+            setTimeout(function() {
+            $('.alert-success').alert('close');
 
-        $.ajax({
-            type: "POST",
-            url: "../controllers/student_update_profile.php",
-            data: formData,
-            contentType: false,
-            processData: false,
-            dataType: "json",
-            beforeSend: function () {
-                $(".btn-primary").prop("disabled", true);
-            },
-            success: function (response) {
-                console.log(response); // Debugging
-
-                if (response.status === "success") {
-                    $("#bioText").text($("#bio").val());
-
-                    if (response.profile_picture) {
-                        $("#profilePicture").attr("src", "../uploads/" + response.profile_picture);
-                    }
-                    if (response.resume_file) {
-                        $("#resumeDownload").attr("href", "../uploads/" + response.resume_file);
-                    }
-
-                    alert(response.message);
-                    $("#editProfileModal").modal("hide");
-                } else {
-                    alert(response.message);
-                }
-            },
-            complete: function () {
-                $(".btn-primary").prop("disabled", false);
-            },
-            error: function () {
-                alert("An error occurred while updating the profile.");
+            if (window.history.replaceState) {
+                const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
             }
+        }, 5000);
+
+
+            $("#updateProfileForm").submit(function(e) {
+                e.preventDefault();
+                let formData = new FormData(this);
+
+                // Validate files before submission
+                const profilePic = $('#profile_picture')[0].files[0];
+                if (profilePic && profilePic.size > 5000000) { // 2MB
+                    alert('Profile picture must be less than 2MB');
+                    return;
+                }
+                
+                const resume = $('#resume')[0].files[0];
+                if (resume && resume.size > 5000000) { // 5MB
+                    alert('Resume must be less than 5MB');
+                    return;
+                }
+
+                $.ajax({
+                    type: "POST",
+                    url: "../controllers/student_update_profile.php",
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    dataType: "json",
+                    beforeSend: function() {
+                        // Show loading state
+                        $('.btn-primary').prop('disabled', true)
+                            .html('<span class="spinner-border spinner-border-sm" role="status"></span> Saving...');
+                    },
+                    success: function(response) {
+                        console.log('Server Response:', response); // For debugging
+                        
+                        if (response.status === "success") {
+                            // Option 1: Reload the page with success message
+                            window.location.href = window.location.pathname + '?success=1';
+                            
+                            // Option 2: Update DOM without reload 
+                            /*
+                            if (response.bio) {
+                                $('.info-value').filter(function() {
+                                    return $(this).prev('.info-label').text() === 'Professional Summary';
+                                }).text(response.bio);
+                            }
+                            if (response.profile_picture) {
+                                $('.profile-picture').attr('src', '../assets/uploads/' + response.profile_picture + '?t=' + new Date().getTime());
+                            }
+                            if (response.resume_file) {
+                                $('a[download]').attr('href', '../assets/uploads/' + response.resume_file);
+                            }
+                            */
+                            
+                            $("#editProfileModal").modal("hide");
+                        } else {
+                            alert('Error: ' + (response.message || 'Update failed'));
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('AJAX Error:', status, error);
+                        console.error('Server Response:', xhr.responseText);
+                        alert('An error occurred. Please check console for details.');
+                    },
+                    complete: function() {
+                        // Reset button state
+                        $('.btn-primary').prop('disabled', false).html('Save Changes');
+                    }
+                });
+            });
         });
-    });
-});
-</script>
+    </script>
 </body>
 </html>

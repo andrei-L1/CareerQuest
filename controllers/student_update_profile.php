@@ -1,114 +1,174 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
+session_start();
 require '../config/dbcon.php';
 
+header('Content-Type: application/json');
+
+// Check authentication
 if (!isset($_SESSION['stud_id'])) {
-    echo json_encode(["status" => "error", "message" => "User not logged in."]);
+    echo json_encode(["status" => "error", "message" => "Authentication required"]);
     exit();
 }
 
 $stud_id = $_SESSION['stud_id'];
 $targetDir = "../uploads/";
 
-// Ensure upload directory exists
+// Create upload directory if it doesn't exist
 if (!is_dir($targetDir)) {
-    mkdir($targetDir, 0777, true);
+    if (!mkdir($targetDir, 0755, true)) {
+        echo json_encode(["status" => "error", "message" => "Failed to create upload directory"]);
+        exit();
+    }
 }
 
-// Allowed file types
+// File type whitelists
 $allowedImageTypes = ['jpg', 'jpeg', 'png', 'gif'];
 $allowedResumeTypes = ['pdf', 'doc', 'docx'];
 
-// Max file sizes (in bytes)
-$maxImageSize = 10 * 1024 * 1024; // 2MB
-$maxResumeSize = 5 * 1024 * 1024; // 5MB
+// File size limits (in bytes)
+$maxImageSize = 5 * 1024 * 1024;    // 5MB
+$maxResumeSize = 5 * 1024 * 1024;   // 5MB
+
+// Initialize response
+$response = ["status" => "success", "message" => "Profile updated successfully"];
 
 try {
-    $response = ["status" => "success", "message" => "Profile updated!"];
+    // Begin transaction for atomic updates
+    $conn->beginTransaction();
 
-    // ✅ Update Bio
-    if (isset($_POST['bio'])) {
-        $bio = filter_var($_POST['bio'], FILTER_SANITIZE_STRING);
-        $updateStmt = $conn->prepare("UPDATE student SET bio = :bio WHERE stud_id = :stud_id");
-        $updateStmt->bindParam(':bio', $bio);
-        $updateStmt->bindParam(':stud_id', $stud_id);
-        $updateStmt->execute();
-    }
+    // 1. Update basic information
+    $updateStmt = $conn->prepare("UPDATE student SET 
+        stud_first_name = :first_name,
+        stud_middle_name = :middle_name,
+        stud_last_name = :last_name,
+        stud_gender = :gender,
+        stud_date_of_birth = :date_of_birth,
+        stud_email = :email,
+        institution = :institution,
+        graduation_yr = :graduation_yr,
+        bio = :bio
+        WHERE stud_id = :stud_id");
 
-    // ✅ Handle Profile Picture Upload
+    $updateStmt->execute([
+        ':first_name' => $_POST['first_name'],
+        ':middle_name' => $_POST['middle_name'] ?? null,
+        ':last_name' => $_POST['last_name'],
+        ':gender' => $_POST['gender'] ?? null,
+        ':date_of_birth' => !empty($_POST['date_of_birth']) ? $_POST['date_of_birth'] : null,
+        ':email' => $_POST['email'],
+        ':institution' => $_POST['institution'] ?? null,
+        ':graduation_yr' => !empty($_POST['graduation_yr']) ? $_POST['graduation_yr'] : null,
+        ':bio' => $_POST['bio'] ?? null,
+        ':stud_id' => $stud_id
+    ]);
+
+    // 2. Handle Profile Picture Upload
     if (!empty($_FILES["profile_picture"]["name"])) {
-        $fileName = $_FILES["profile_picture"]["name"];
-        $fileTmp = $_FILES["profile_picture"]["tmp_name"];
-        $fileSize = $_FILES["profile_picture"]["size"];
+        $fileInfo = $_FILES["profile_picture"];
+        $fileName = basename($fileInfo["name"]);
         $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+        $fileSize = $fileInfo["size"];
 
+        // Validate file
         if (!in_array($fileExtension, $allowedImageTypes)) {
-            echo json_encode(["status" => "error", "message" => "Invalid image format."]);
-            exit();
+            throw new Exception("Only JPG, JPEG, PNG & GIF files are allowed for profile pictures");
         }
+
         if ($fileSize > $maxImageSize) {
-            echo json_encode(["status" => "error", "message" => "Image is too large. Max size: 2MB."]);
-            exit();
+            throw new Exception("Profile picture must be less than 2MB");
         }
 
-        $profilePicture = "profile_" . $stud_id . "_" . time() . "." . $fileExtension;
-        $targetFilePath = $targetDir . $profilePicture;
+        // Get old filename for cleanup
+        $getOldFile = $conn->prepare("SELECT profile_picture FROM student WHERE stud_id = :stud_id");
+        $getOldFile->execute([':stud_id' => $stud_id]);
+        $oldFile = $getOldFile->fetchColumn();
 
-        if (move_uploaded_file($fileTmp, $targetFilePath)) {
-            chmod($targetFilePath, 0644);
-            $updateStmt = $conn->prepare("UPDATE student SET profile_picture = :profile_picture WHERE stud_id = :stud_id");
-            $updateStmt->bindParam(':profile_picture', $profilePicture);
-            $updateStmt->bindParam(':stud_id', $stud_id);
-            $updateStmt->execute();
+        // Generate unique filename
+        $newFilename = "profile_" . $stud_id . "_" . time() . "." . $fileExtension;
+        $targetPath = $targetDir . $newFilename;
 
-            $response["profile_picture"] = $profilePicture;
-        } else {
-            $response["status"] = "error";
-            $response["message"] = "Failed to upload profile picture.";
+        // Move uploaded file
+        if (!move_uploaded_file($fileInfo["tmp_name"], $targetPath)) {
+            throw new Exception("Failed to upload profile picture");
+        }
+        chmod($targetPath, 0644);
+
+        // Update database
+        $updatePic = $conn->prepare("UPDATE student SET profile_picture = :picture WHERE stud_id = :stud_id");
+        $updatePic->execute([':picture' => $newFilename, ':stud_id' => $stud_id]);
+
+        // Delete old file if it exists and belongs to user
+        if ($oldFile && file_exists($targetDir . $oldFile)) {
+            if (strpos($oldFile, "profile_" . $stud_id . "_") === 0) {
+                @unlink($targetDir . $oldFile);
+            }
         }
     }
 
-    // ✅ Handle Resume Upload
+    // 3. Handle Resume Upload
     if (!empty($_FILES["resume"]["name"])) {
-        $fileName = $_FILES["resume"]["name"];
-        $fileTmp = $_FILES["resume"]["tmp_name"];
-        $fileSize = $_FILES["resume"]["size"];
+        $fileInfo = $_FILES["resume"];
+        $fileName = basename($fileInfo["name"]);
         $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+        $fileSize = $fileInfo["size"];
 
+        // Validate file
         if (!in_array($fileExtension, $allowedResumeTypes)) {
-            echo json_encode(["status" => "error", "message" => "Invalid resume format."]);
-            exit();
+            throw new Exception("Only PDF, DOC and DOCX files are allowed for resumes");
         }
+
         if ($fileSize > $maxResumeSize) {
-            echo json_encode(["status" => "error", "message" => "Resume file is too large. Max size: 5MB."]);
-            exit();
+            throw new Exception("Resume must be less than 5MB");
         }
 
-        $resumeFile = "resume_" . $stud_id . "_" . time() . "." . $fileExtension;
-        $targetFilePath = $targetDir . $resumeFile;
+        // Get old filename for cleanup
+        $getOldFile = $conn->prepare("SELECT resume_file FROM student WHERE stud_id = :stud_id");
+        $getOldFile->execute([':stud_id' => $stud_id]);
+        $oldFile = $getOldFile->fetchColumn();
 
-        if (move_uploaded_file($fileTmp, $targetFilePath)) {
-            chmod($targetFilePath, 0644);
-            $updateStmt = $conn->prepare("UPDATE student SET resume_file = :resume_file WHERE stud_id = :stud_id");
-            $updateStmt->bindParam(':resume_file', $resumeFile);
-            $updateStmt->bindParam(':stud_id', $stud_id);
-            $updateStmt->execute();
+        // Generate unique filename
+        $newFilename = "resume_" . $stud_id . "_" . time() . "." . $fileExtension;
+        $targetPath = $targetDir . $newFilename;
 
-            $response["resume_file"] = $resumeFile;
-        } else {
-            $response["status"] = "error";
-            $response["message"] = "Failed to upload resume.";
+        // Move uploaded file
+        if (!move_uploaded_file($fileInfo["tmp_name"], $targetPath)) {
+            throw new Exception("Failed to upload resume");
+        }
+        chmod($targetPath, 0644);
+
+        // Update database
+        $updateResume = $conn->prepare("UPDATE student SET resume_file = :resume WHERE stud_id = :stud_id");
+        $updateResume->execute([':resume' => $newFilename, ':stud_id' => $stud_id]);
+
+        // Delete old file if it exists and belongs to user
+        if ($oldFile && file_exists($targetDir . $oldFile)) {
+            if (strpos($oldFile, "resume_" . $stud_id . "_") === 0) {
+                @unlink($targetDir . $oldFile);
+            }
         }
     }
 
+    // Commit all changes if everything succeeded
+    $conn->commit();
+
+    // Return success response
     echo json_encode($response);
-    exit();
+
 } catch (Exception $e) {
-    error_log("Profile Update Error: " . $e->getMessage());
-    echo json_encode(["status" => "error", "message" => "Update failed."]);
+    // Roll back any database changes if error occurs
+    if ($conn->inTransaction()) {
+        $conn->rollBack();
+    }
+
+    // Clean up any partially uploaded files
+    if (isset($targetPath) && file_exists($targetPath)) {
+        @unlink($targetPath);
+    }
+
+    // Return error message
+    echo json_encode([
+        "status" => "error",
+        "message" => $e->getMessage()
+    ]);
     exit();
 }
-?>
