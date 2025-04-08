@@ -8,6 +8,12 @@ if (!isset($_SESSION['stud_id'])) {
     exit();
 }
 
+$stud_id = $_SESSION['stud_id'];
+
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 require '../config/dbcon.php';
 require '../controllers/student_profile_controller.php';
 include '../includes/stud_navbar.php';
@@ -276,6 +282,7 @@ include '../includes/stud_navbar.php';
                         
                         <form id="accountSettingsForm" enctype="multipart/form-data" action="../controllers/student_update_profile.php" method="POST">
                             <!-- Personal Information Section -->
+                            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
                             <div class="form-section animate__animated animate__fadeIn">
                                 <h5><i class="fas fa-user me-2"></i> Personal Information</h5>
                                 <div class="row g-3 mt-3">
@@ -313,7 +320,20 @@ include '../includes/stud_navbar.php';
                             </div>
                             
                             <div class="section-divider"></div>
-                            
+                            <div class="form-section animate__animated animate__fadeIn">
+                                <h5><i class="fas fa-tools me-2"></i> Skills</h5>
+                                <div class="row g-3 mt-3">
+                                    <div class="col-12">
+                                        <div id="skillsContainer">
+                                            <!-- Skills will be added here dynamically -->
+                                        </div>
+                                        <button type="button" class="btn btn-outline-primary mt-2" id="addSkillBtn">
+                                            <i class="fas fa-plus me-1"></i> Add Skill
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                                                                                    
                             <!-- Contact Information Section -->
                             <div class="form-section animate__animated animate__fadeIn">
                                 <h5><i class="fas fa-envelope me-2"></i> Contact Information</h5>
@@ -661,6 +681,125 @@ include '../includes/stud_navbar.php';
             }
         });
     });
+
+
+
+
+    
+
+// Skills Management
+$(document).ready(function() {
+    // Fetch available skills from the database
+    function fetchAvailableSkills() {
+        return $.ajax({
+            url: '../controllers/fetch_skills.php',
+            method: 'GET',
+            dataType: 'json'
+        });
+    }
+
+    // Track existing skills for deletion
+    const existingSkills = new Set();
+
+    // Add skill row
+    async function addSkillRow(skill = null) {
+        const skills = await fetchAvailableSkills();
+        const skillId = skill ? skill.skill_id : '';
+        const proficiency = skill ? skill.proficiency : 'Beginner';
+        
+        if (skillId) {
+            existingSkills.add(skillId);
+        }
+        
+        const rowId = 'skill_' + (skill ? skill.skill_id : Date.now());
+        const skillOptions = skills.map(s => 
+            `<option value="${s.skill_id}" ${skillId == s.skill_id ? 'selected' : ''}>${s.skill_name}</option>`
+        ).join('');
+        
+        const row = `
+            <div class="skill-row mb-3 p-3 border rounded" id="${rowId}" data-skill-id="${skillId || ''}">
+                <div class="row g-2">
+                    <div class="col-md-6">
+                        <select class="form-select skill-select" name="skills[${rowId}][skill_id]" required
+                            ${skillId ? 'disabled' : ''}>
+                            <option value="">Select a skill</option>
+                            ${skillOptions}
+                        </select>
+                    </div>
+                    <div class="col-md-5">
+                        <select class="form-select" name="skills[${rowId}][proficiency]" required>
+                            <option value="Beginner" ${proficiency == 'Beginner' ? 'selected' : ''}>Beginner</option>
+                            <option value="Intermediate" ${proficiency == 'Intermediate' ? 'selected' : ''}>Intermediate</option>
+                            <option value="Advanced" ${proficiency == 'Advanced' ? 'selected' : ''}>Advanced</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="button" class="btn btn-outline-danger w-100 remove-skill">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <input type="hidden" name="skills[${rowId}][group_no]" value="<?= $stud_id ?>">
+                    ${skillId ? `<input type="hidden" name="skills[${rowId}][skill_id]" value="${skillId}">` : ''}
+                </div>
+            </div>
+        `;
+        
+        $('#skillsContainer').append(row);
+    }
+
+    // Add skill button click handler
+    $('#addSkillBtn').click(function() {
+        addSkillRow();
+    });
+
+    // Remove skill button click handler
+    $(document).on('click', '.remove-skill', function() {
+        const row = $(this).closest('.skill-row');
+        const skillId = row.data('skill-id');
+        
+        if (skillId) {
+            Swal.fire({
+                title: 'Remove Skill?',
+                text: "This will permanently remove this skill from your profile.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, remove it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    existingSkills.delete(skillId);
+                    row.remove();
+                }
+            });
+        } else {
+            row.remove();
+        }
+    });
+
+    // Load existing skills when page loads
+    function loadExistingSkills() {
+        $.ajax({
+            url: '../controllers/fetch_student_skills.php?stud_id=<?= $stud_id ?>',
+            method: 'GET',
+            dataType: 'json',
+            success: function(skills) {
+                if (skills.length > 0) {
+                    skills.forEach(skill => {
+                        addSkillRow(skill);
+                    });
+                }
+            },
+            error: function() {
+                // No empty row is added if there's an error
+            }
+        });
+    }
+
+
+    // Initialize skills on page load
+    loadExistingSkills();
+});
     </script>
 </body>
 </html>

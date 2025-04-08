@@ -1,6 +1,38 @@
 <?php
 require '../controllers/student_dashboard.php';
 include '../includes/stud_navbar.php';
+// Only show once per session if not 100% complete and not already shown
+if ($completion_percentage < 100 && !isset($_SESSION['profile_modal_shown'])) {
+    $_SESSION['show_profile_modal'] = true;
+    $_SESSION['profile_modal_shown'] = true; // Set a flag that it's been shown
+} else {
+    $_SESSION['show_profile_modal'] = false;
+}
+
+// Function to calculate time ago
+function timeAgo($timestamp) {
+    $time = strtotime($timestamp);
+    $time_difference = time() - $time;
+
+    if ($time_difference < 1) { return 'less than 1 second ago'; }
+    $condition = [
+        12 * 30 * 24 * 60 * 60 => 'year',
+        30 * 24 * 60 * 60 => 'month',
+        24 * 60 * 60 => 'day',
+        60 * 60 => 'hour',
+        60 => 'minute',
+        1 => 'second'
+    ];
+
+    foreach ($condition as $secs => $str) {
+        $d = $time_difference / $secs;
+        if ($d >= 1) {
+            $t = round($d);
+            return $t . ' ' . $str . ($t > 1 ? 's' : '') . ' ago';
+        }
+    }
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -283,13 +315,18 @@ include '../includes/stud_navbar.php';
                 <div class="progress-container mt-3">
                     <div class="progress-label">
                         <span>Profile Completion</span>
-                        <span>75%</span>
+                        <span><?php echo $completion_percentage; ?>%</span>
                     </div>
                     
                     <div class="progress">
-                        <div class="progress-bar" style="width: 75%"></div>
+                        <div class="progress-bar <?php echo $progress_class; ?>" 
+                            style="width: <?php echo $completion_percentage; ?>%"
+                            role="progressbar" 
+                            aria-valuenow="<?php echo $completion_percentage; ?>" 
+                            aria-valuemin="0" 
+                            aria-valuemax="100">
+                        </div>
                     </div>
-                    
                 </div>
                 
                 <a href="student_account_settings.php" class="btn btn-outline-primary w-100 mt-3">
@@ -298,51 +335,7 @@ include '../includes/stud_navbar.php';
 
             </div>
         </div>
-        <!-- Job Recommendations -->
-        <div class="col-lg-8">
-            <div class="dashboard-card fade-in">
-                <div class="card-header">
-                    <i class="bi bi-stars"></i> Recommended Jobs
-                </div>
-                <div class="card-body p-0">
-                    <div class="list-group list-group-flush">
-                        <a href="#" class="list-group-item list-item">
-                            <div class="list-item-icon bg-primary bg-opacity-10 text-primary">
-                                <i class="bi bi-code-slash"></i>
-                            </div>
-                            <div class="flex-grow-1">
-                                <div class="list-item-primary">Software Developer at XYZ Corp</div>
-                                <div class="list-item-secondary">Matches 85% of your skills • $65,000/yr • San Francisco, CA</div>
-                            </div>
-                            <i class="bi bi-chevron-right text-muted"></i>
-                        </a>
-                        <a href="#" class="list-group-item list-item">
-                            <div class="list-item-icon bg-success bg-opacity-10 text-success">
-                                <i class="bi bi-megaphone"></i>
-                            </div>
-                            <div class="flex-grow-1">
-                                <div class="list-item-primary">Marketing Intern at ABC Ltd</div>
-                                <div class="list-item-secondary">Matches 72% of your skills • $20/hr • Remote</div>
-                            </div>
-                            <i class="bi bi-chevron-right text-muted"></i>
-                        </a>
-                        <a href="#" class="list-group-item list-item">
-                            <div class="list-item-icon bg-info bg-opacity-10 text-info">
-                                <i class="bi bi-bar-chart"></i>
-                            </div>
-                            <div class="flex-grow-1">
-                                <div class="list-item-primary">Data Analyst at Tech Solutions</div>
-                                <div class="list-item-secondary">Matches 91% of your skills • $58,000/yr • New York, NY</div>
-                            </div>
-                            <i class="bi bi-chevron-right text-muted"></i>
-                        </a>
-                    </div>
-                    <a href="job_listings.php" class="btn btn-link w-100 text-center py-2">
-                        View all recommendations <i class="bi bi-arrow-right"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
+
 
         <!-- Application Status -->
         <div class="col-md-6">
@@ -352,33 +345,17 @@ include '../includes/stud_navbar.php';
                 </div>
                 <div class="card-body">
                     <div class="list-group list-group-flush">
-                        <div class="list-group-item list-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <div class="list-item-primary">Web Developer at ABC Ltd</div>
-                                    <div class="list-item-secondary">Applied 3 days ago</div>
+                        <?php foreach ($application_data as $application): ?>
+                            <div class="list-group-item list-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="list-item-primary"><?php echo $application['job_title']; ?></div>
+                                        <div class="list-item-secondary">Applied <?php echo timeAgo($application['applied_at']); ?></div>
+                                    </div>
+                                    <span class="status-badge <?php echo $application['status_class']; ?>"><?php echo $application['application_status']; ?></span>
                                 </div>
-                                <span class="status-badge status-pending">Pending Review</span>
                             </div>
-                        </div>
-                        <div class="list-group-item list-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <div class="list-item-primary">Data Analyst at Tech Solutions</div>
-                                    <div class="list-item-secondary">Applied 1 week ago</div>
-                                </div>
-                                <span class="status-badge status-accepted">Interview Scheduled</span>
-                            </div>
-                        </div>
-                        <div class="list-group-item list-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <div class="list-item-primary">UX Designer at XYZ Corp</div>
-                                    <div class="list-item-secondary">Applied 2 weeks ago</div>
-                                </div>
-                                <span class="status-badge status-rejected">Not Selected</span>
-                            </div>
-                        </div>
+                        <?php endforeach; ?>
                     </div>
                     <a href="applications.php" class="btn btn-link w-100 text-center mt-2">
                         View all applications <i class="bi bi-arrow-right"></i>
@@ -386,6 +363,7 @@ include '../includes/stud_navbar.php';
                 </div>
             </div>
         </div>
+
 
         <!-- Skills & Courses -->
         <div class="col-md-6">
@@ -396,34 +374,21 @@ include '../includes/stud_navbar.php';
                 <div class="card-body">
                     <h6 class="mb-3">Your Skills</h6>
                     <div class="mb-4">
-                        <span class="skill-tag">Python</span>
-                        <span class="skill-tag">JavaScript</span>
-                        <span class="skill-tag">SQL</span>
-                        <span class="skill-tag">Data Analysis</span>
-                        <span class="skill-tag">UI/UX Design</span>
-                        <span class="skill-tag">Project Management</span>
+                        <?php foreach ($skills_list as $skill): ?>
+                            <span class="skill-tag"><?php echo $skill; ?></span>
+                        <?php endforeach; ?>
                     </div>
                     
                     <h6 class="mb-3">Current Courses</h6>
                     <div class="list-group list-group-flush">
-                        <div class="list-group-item list-item">
-                            <div class="list-item-icon bg-warning bg-opacity-10 text-warning">
-                                <i class="bi bi-laptop"></i>
+                        <?php foreach ($courses_list as $course): ?>
+                            <div class="list-group-item list-item">
+                                <div>
+                                    <div class="list-item-primary"><?php echo $course; ?></div>
+                                    <div class="list-item-secondary">Details to be added dynamically</div>
+                                </div>
                             </div>
-                            <div>
-                                <div class="list-item-primary">Web Development Bootcamp</div>
-                                <div class="list-item-secondary">65% completed • Ends in 3 weeks</div>
-                            </div>
-                        </div>
-                        <div class="list-group-item list-item">
-                            <div class="list-item-icon bg-danger bg-opacity-10 text-danger">
-                                <i class="bi bi-robot"></i>
-                            </div>
-                            <div>
-                                <div class="list-item-primary">AI Fundamentals</div>
-                                <div class="list-item-secondary">Enrolled • Starts next week</div>
-                            </div>
-                        </div>
+                        <?php endforeach; ?>
                     </div>
                     <a href="skills.php" class="btn btn-link w-100 text-center mt-2">
                         Manage skills <i class="bi bi-arrow-right"></i>
@@ -431,6 +396,7 @@ include '../includes/stud_navbar.php';
                 </div>
             </div>
         </div>
+
 
         <!-- Recent Forum Posts -->
         <div class="col-md-6">
@@ -440,24 +406,28 @@ include '../includes/stud_navbar.php';
                 </div>
                 <div class="card-body">
                     <div class="list-group list-group-flush">
-                        <a href="#" class="list-group-item list-item">
-                            <div class="list-item-icon bg-secondary bg-opacity-10 text-secondary">
-                                <i class="bi bi-question-circle"></i>
+                        <?php foreach ($recent_forum_activity as $post): ?>
+                            <a href="#" class="list-group-item list-item">
+                                <div class="list-item-icon bg-secondary bg-opacity-10 text-secondary">
+                                    <i class="bi bi-<?php 
+                                        echo $post['type'] === 'question' ? 'question-circle' : 
+                                            ($post['type'] === 'idea' ? 'lightbulb' : 'chat-square-text'); 
+                                    ?>"></i>
+                                </div>
+                                <div>
+                                    <div class="list-item-primary"><?php echo htmlspecialchars($post['title']); ?></div>
+                                    <div class="list-item-secondary">
+                                        Posted <?php echo $post['time_ago']; ?> • 
+                                        <?php echo $post['comment_count']; ?> comment<?php echo $post['comment_count'] != 1 ? 's' : ''; ?>
+                                    </div>
+                                </div>
+                            </a>
+                        <?php endforeach; ?>
+                        <?php if (empty($recent_forum_activity)): ?>
+                            <div class="list-group-item">
+                                <div class="text-muted">No recent forum activity</div>
                             </div>
-                            <div>
-                                <div class="list-item-primary">How to prepare for tech interviews?</div>
-                                <div class="list-item-secondary">Posted 2 days ago • 15 comments</div>
-                            </div>
-                        </a>
-                        <a href="#" class="list-group-item list-item">
-                            <div class="list-item-icon bg-info bg-opacity-10 text-info">
-                                <i class="bi bi-lightbulb"></i>
-                            </div>
-                            <div>
-                                <div class="list-item-primary">Best courses for AI development?</div>
-                                <div class="list-item-secondary">Posted 1 week ago • 8 comments</div>
-                            </div>
-                        </a>
+                        <?php endif; ?>
                     </div>
                     <a href="forum.php" class="btn btn-link w-100 text-center mt-2">
                         Visit forum <i class="bi bi-arrow-right"></i>
@@ -466,62 +436,76 @@ include '../includes/stud_navbar.php';
             </div>
         </div>
 
-        <!-- Notifications -->
-        <div class="col-md-6">
-            <div class="dashboard-card fade-in">
-                <div class="card-header">
-                    <i class="bi bi-bell"></i> Notifications
-                </div>
-                <div class="card-body">
-                    <div class="list-group list-group-flush">
-                        <a href="#" class="list-group-item list-item">
-                            <div class="list-item-icon bg-success bg-opacity-10 text-success">
-                                <i class="bi bi-eye"></i>
-                            </div>
-                            <div>
-                                <div class="list-item-primary">Your application for XYZ Corp has been viewed</div>
-                                <div class="list-item-secondary">Today at 10:42 AM</div>
-                            </div>
-                        </a>
-                        <a href="#" class="list-group-item list-item">
-                            <div class="list-item-icon bg-primary bg-opacity-10 text-primary">
-                                <i class="bi bi-chat-left"></i>
-                            </div>
-                            <div>
-                                <div class="list-item-primary">New comment on your forum post</div>
-                                <div class="list-item-secondary">Yesterday at 3:15 PM</div>
-                            </div>
-                        </a>
-                        <a href="#" class="list-group-item list-item">
-                            <div class="list-item-icon bg-warning bg-opacity-10 text-warning">
-                                <i class="bi bi-calendar-event"></i>
-                            </div>
-                            <div>
-                                <div class="list-item-primary">Upcoming interview reminder</div>
-                                <div class="list-item-secondary">Tomorrow at 2:00 PM</div>
-                            </div>
-                        </a>
-                    </div>
-                    <a href="notifications.php" class="btn btn-link w-100 text-center mt-2">
-                        View all notifications <i class="bi bi-arrow-right"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
+
 
     </div>
 </div>
+<!-- Profile Completion Modal -->
+<div class="modal fade" id="profileCompletionModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 rounded-4 p-4 shadow-lg bg-light">
+      
+      <!-- Header -->
+      <div class="modal-header border-0 pb-0">
+        <div class="d-flex align-items-center w-100">
+          <div class="me-3">
+            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+              <i class="bi bi-person-fill-check fs-4"></i>
+            </div>
+          </div>
+          <div>
+            <h5 class="modal-title fw-bold text-dark" id="profileModalLabel">Almost There!</h5>
+            <p class="mb-0 text-muted small">Let’s complete your profile for a better experience.</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      
+      <!-- Body -->
+      <div class="modal-body text-center pt-0">
+        <p class="mt-3 mb-4 fs-6">
+          You're <strong class="text-warning"><?php echo $completion_percentage; ?>%</strong> done. Unlock full benefits by completing your profile.
+        </p>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    // Simple animation trigger
-    document.addEventListener('DOMContentLoaded', function() {
-        const cards = document.querySelectorAll('.fade-in');
-        cards.forEach((card, index) => {
-            card.style.animationDelay = `${index * 0.1}s`;
+        <!-- Progress -->
+        <div class="progress rounded-pill mb-4" style="height: 16px;">
+          <div class="progress-bar bg-primary fw-semibold" 
+               role="progressbar" 
+               style="width: <?php echo $completion_percentage; ?>%;" 
+               aria-valuenow="<?php echo $completion_percentage; ?>" aria-valuemin="0" aria-valuemax="100">
+          </div>
+        </div>
+
+        <!-- CTA -->
+        <a href="student_account_settings.php" class="btn btn-outline-primary rounded-pill px-4 py-2">
+          Complete Profile
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Simple animation trigger
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.fade-in');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+            });
         });
+        
+    </script>
+
+    <?php if (!empty($_SESSION['show_profile_modal']) && $_SESSION['show_profile_modal']): ?>
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var profileModal = new bootstrap.Modal(document.getElementById('profileCompletionModal'));
+        profileModal.show();
     });
-</script>
+    </script>
+    <?php endif; ?>
 
 </body>
 </html>

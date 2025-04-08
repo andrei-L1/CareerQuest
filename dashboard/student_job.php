@@ -33,6 +33,7 @@ include '../includes/stud_navbar.php';
             padding: 20px;
             max-width: 1400px;
             margin: 0 auto;
+        
         }
         
         /* Header Styles */
@@ -773,42 +774,59 @@ function isElementInViewport(el) {
 function renderJobDetails(job, jobDetails) {
     const container = document.getElementById("jobDetails");
     
-    // Basic job info
+    // Basic job info with improved layout
     let html = `
         <div class="detail-header">
-            <h2 class="detail-title">${sanitize(job.title)}</h2>
-            <h4 class="detail-company">${sanitize(job.company_name || job.company)}</h4>
-            
-            <div class="detail-meta">
-                <span class="detail-meta-item"><i class="bi bi-geo-alt"></i> ${sanitize(job.location)}</span>
-                <span class="detail-meta-item"><i class="bi bi-briefcase"></i> ${sanitize(job.job_type_title || job.job_type)}</span>
-                ${job.salary ? `<span class="detail-meta-item"><i class="bi bi-cash"></i> $${sanitize(job.salary.toLocaleString())}/year</span>` : ''}
-            </div>
-            
-            <div class="d-flex flex-wrap gap-3">
-                <span class="detail-meta-item"><i class="bi bi-calendar"></i> Posted: ${formatDate(job.posted_at)}</span>
-                ${isJobExpiringSoon(job.expires_at) ? 
-                  `<span class="detail-meta-item expires-soon"><i class="bi bi-clock"></i> Expires soon: ${formatDate(job.expires_at)}</span>` : 
-                  `<span class="detail-meta-item"><i class="bi bi-clock"></i> Expires: ${formatDate(job.expires_at)}</span>`}
-            </div>
-        </div>
-        
-        <div class="detail-section">
-            <h5 class="section-title"><i class="bi bi-file-text"></i> Job Description</h5>
-            <div class="job-description">
-                ${sanitize(job.description || 'No description provided').replace(/\n/g, '<br>')}
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="job-info">
+                    <h2 class="detail-title">${sanitize(job.title)}</h2>
+                    <h4 class="detail-company">${sanitize(job.company_name || job.company)}</h4>
+                    <div class="detail-meta">
+                        <span class="detail-meta-item"><i class="bi bi-geo-alt"></i> ${sanitize(job.location)}</span>
+                        <span class="detail-meta-item" data-bs-toggle="tooltip" title="Job Type"><i class="bi bi-briefcase"></i> ${sanitize(job.job_type_title || job.job_type)}</span>
+                        ${job.salary ? `<span class="detail-meta-item" data-bs-toggle="tooltip" title="Annual Salary"><i class="bi bi-cash"></i> $${sanitize(job.salary.toLocaleString())}/year</span>` : ''}
+                    </div>
+                    <div class="d-flex flex-wrap gap-3">
+                        <span class="detail-meta-item"><i class="bi bi-calendar"></i> Posted: ${formatDate(job.posted_at)}</span>
+                        ${isJobExpiringSoon(job.expires_at) ? 
+                          `<span class="detail-meta-item expires-soon"><i class="bi bi-clock"></i> Expires soon: ${formatDate(job.expires_at)}</span>` : 
+                          `<span class="detail-meta-item"><i class="bi bi-clock"></i> Expires: ${formatDate(job.expires_at)}</span>`}
+                    </div>
+                </div>
+                
+                <!-- Action Buttons and Saved/Apply with hover effect -->
+                <div class="action-buttons d-flex flex-column align-items-end">
+                    <div class="d-flex gap-2">
+                        ${job.application_status ? 
+                          `<div class="alert alert-info mt-2">
+                              <i class="bi bi-info-circle-fill me-2"></i> 
+                              You've already applied to this position. 
+                              Current status: <strong class="${getStatusClass(job.application_status)}">${job.application_status}</strong>
+                          </div>
+                          <a href="job_details.php?id=${sanitize(job.job_id)}" class="btn btn-outline-primary mt-2">
+                              <i class="bi bi-eye"></i> View Application
+                          </a>` : 
+                          `<a href="job_details.php?id=${sanitize(job.job_id)}" class="btn btn-apply">
+                              <i class="bi bi-send-check"></i> Apply Now
+                          </a>
+                          <button class="btn btn-save" onclick="saveJob(${job.job_id})">
+                              <i class="bi bi-bookmark${isJobSaved(job.job_id) ? '-fill' : ''}"></i> ${isJobSaved(job.job_id) ? 'Saved' : 'Save Job'}
+                          </button>`
+                        }
+                    </div>
+                </div>
             </div>
         </div>
     `;
-    
-    // Add skills section if we have details
+
+    // Add skills section with improved layout
     if (jobDetails && jobDetails.skills && jobDetails.skills.length > 0) {
         html += `
             <div class="detail-section">
                 <h5 class="section-title"><i class="bi bi-tools"></i> Required Skills</h5>
                 <div class="skills-container">
         `;
-        
+
         jobDetails.skills.forEach(skill => {
             // Check if student has this skill
             const studentSkill = studentSkills.find(s => s.skill_id == skill.skill_id);
@@ -826,10 +844,20 @@ function renderJobDetails(job, jobDetails) {
                 </span>
             `;
         });
-        
+
         html += `</div></div>`;
     }
-    
+
+    // Add job description with cleaner layout
+    html += `
+        <div class="detail-section">
+            <h5 class="section-title"><i class="bi bi-file-text"></i> Job Description</h5>
+            <div class="job-description">
+                ${sanitize(job.description || 'No description provided').replace(/\n/g, '<br>')}
+            </div>
+        </div>
+    `;
+
     // Add responsibilities if available
     if (jobDetails && jobDetails.responsibilities) {
         html += `
@@ -841,38 +869,14 @@ function renderJobDetails(job, jobDetails) {
             </div>
         `;
     }
-    
-    // Add application status if already applied
-    if (job.application_status) {
-        html += `
-            <div class="alert alert-info mt-4">
-                <i class="bi bi-info-circle-fill me-2"></i> 
-                You've already applied to this position. 
-                Current status: <strong class="${getStatusClass(job.application_status)}">${job.application_status}</strong>
-            </div>
-            
-            <div class="action-buttons">
-                <a href="job_details.php?id=${sanitize(job.job_id)}" class="btn btn-outline-primary">
-                    <i class="bi bi-eye"></i> View Application
-                </a>
-            </div>
-        `;
-    } else {
-        // Add apply button
-        html += `
-            <div class="action-buttons">
-                <a href="job_details.php?id=${sanitize(job.job_id)}" class="btn btn-apply">
-                    <i class="bi bi-send-check"></i> Apply Now
-                </a>
-                <button class="btn btn-save" onclick="saveJob(${job.job_id})">
-                    <i class="bi bi-bookmark${isJobSaved(job.job_id) ? '-fill' : ''}"></i> ${isJobSaved(job.job_id) ? 'Saved' : 'Save Job'}
-                </button>
-            </div>
-        `;
-    }
-    
+
     container.innerHTML = html;
+
+    // Enable tooltips
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    tooltipTriggerList.forEach(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
 }
+
 
 function getStatusClass(status) {
     switch(status.toLowerCase()) {

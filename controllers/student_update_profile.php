@@ -148,6 +148,72 @@ try {
         }
     }
 
+
+// 4. Handle Skills Update
+if (isset($_POST['skills']) && is_array($_POST['skills'])) {
+    // Get all existing skill IDs for this student
+    $getExisting = $conn->prepare("SELECT skill_id FROM stud_skill WHERE stud_id = :stud_id AND deleted_at IS NULL");
+    $getExisting->execute([':stud_id' => $stud_id]);
+    $existingSkills = $getExisting->fetchAll(PDO::FETCH_COLUMN);
+    
+    $processedSkills = [];
+    
+    foreach ($_POST['skills'] as $skill) {
+        if (!empty($skill['skill_id']) && !empty($skill['proficiency'])) {
+            $skillId = $skill['skill_id'];
+            $proficiency = $skill['proficiency'];
+            
+            // Check if this is an existing skill being updated
+            if (in_array($skillId, $existingSkills)) {
+                $updateStmt = $conn->prepare("UPDATE stud_skill SET 
+                    proficiency = :proficiency
+                    WHERE stud_id = :stud_id AND skill_id = :skill_id");
+                $updateStmt->execute([
+                    ':proficiency' => $proficiency,
+                    ':stud_id' => $stud_id,
+                    ':skill_id' => $skillId
+                ]);
+            } else {
+                // This is a new skill
+                $insertStmt = $conn->prepare("INSERT INTO stud_skill 
+                    (stud_id, skill_id, proficiency, group_no, created_at)
+                    VALUES (:stud_id, :skill_id, :proficiency, :group_no, NOW())");
+                $insertStmt->execute([
+                    ':stud_id' => $stud_id,
+                    ':skill_id' => $skillId,
+                    ':proficiency' => $proficiency,
+                    ':group_no' => $stud_id
+                ]);
+            }
+            
+            $processedSkills[] = $skillId;
+        }
+    }
+    
+    // Only proceed with deletion if we have skills to exclude
+    if (!empty($processedSkills)) {
+        // Create named parameters for each skill ID
+        $placeholders = array_map(function($i) {
+            return ':skill_' . $i;
+        }, array_keys($processedSkills));
+
+        $sql = "UPDATE stud_skill SET 
+                deleted_at = NOW()
+                WHERE stud_id = :stud_id AND skill_id NOT IN (" . 
+                implode(',', $placeholders) . ")";
+                
+        $deleteStmt = $conn->prepare($sql);
+
+        // Create parameters array
+        $params = [':stud_id' => $stud_id];
+        foreach ($processedSkills as $i => $skillId) {
+            $params[':skill_' . $i] = $skillId;
+        }
+
+        $deleteStmt->execute($params);
+    }
+}
+
     // Commit all changes if everything succeeded
     $conn->commit();
 

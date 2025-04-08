@@ -56,6 +56,29 @@ try {
     $actor_id = $actor['actor_id'] ?? null;
     $_SESSION['actor_id'] = $actor_id;
 
+    // Fetch skills associated with the student
+    $skills_stmt = $conn->prepare("
+        SELECT sm.skill_name
+        FROM stud_skill ss
+        JOIN skill_masterlist sm ON ss.skill_id = sm.skill_id
+        WHERE ss.stud_id = :stud_id AND ss.deleted_at IS NULL
+    ");
+    
+    $skills_stmt->bindParam(':stud_id', $stud_id, PDO::PARAM_INT);
+    $skills_stmt->execute();
+    $skills = $skills_stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Fetch current courses for the student
+    $courses_stmt = $conn->prepare("
+        SELECT c.course_title, c.course_id
+        FROM course c
+        WHERE c.deleted_at IS NULL
+        AND c.course_id IN (SELECT course_id FROM student WHERE stud_id = :stud_id)
+    ");
+    $courses_stmt->bindParam(':stud_id', $stud_id, PDO::PARAM_INT);
+    $courses_stmt->execute();
+    $courses = $courses_stmt->fetchAll(PDO::FETCH_ASSOC);
+
     // Assign data for UI usage
     $full_name = htmlspecialchars($student['stud_first_name'] . ' ' . ($student['stud_middle_name'] ?? '') . ' ' . $student['stud_last_name']);
     $stud_no = htmlspecialchars($student['stud_no']);
@@ -65,10 +88,192 @@ try {
     $institution = htmlspecialchars($student['institution']);
     $profile_picture = !empty($student['profile_picture']) ? $student['profile_picture'] : 'default.png';
 
+    // Display skills as an array
+    $skills_list = array_map(function($skill) {
+        return htmlspecialchars($skill['skill_name']);
+    }, $skills);
+
+    // Display courses as an array
+    $courses_list = array_map(function($course) {
+        return htmlspecialchars($course['course_title']);
+    }, $courses);
+
     // These values can now be echoed in the HTML
 } catch (Exception $e) {
     error_log("Student Dashboard Error: " . $e->getMessage());
     header("Location: ../auth/logout.php");
     exit();
 }
+// After your existing code, add this section to fetch forum activity
+try {
+    // Fetch recent forum posts with comment counts
+    $forum_stmt = $conn->prepare("
+        SELECT 
+            fp.post_id,
+            fp.content,
+            fp.posted_at,
+            (SELECT COUNT(*) FROM forum_comment fc WHERE fc.post_id = fp.post_id AND fc.deleted_at IS NULL) AS comment_count,
+            f.title AS forum_title,
+            CASE 
+                WHEN s.stud_id IS NOT NULL THEN CONCAT(s.stud_first_name, ' ', s.stud_last_name)
+                WHEN u.user_id IS NOT NULL THEN CONCAT(u.user_first_name, ' ', u.user_last_name)
+                ELSE 'Anonymous'
+            END AS author_name,
+            CASE 
+                WHEN fp.forum_id = 1 THEN 'question' -- Assuming forum_id 1 is for questions
+                WHEN fp.forum_id = 2 THEN 'idea'     -- Assuming forum_id 2 is for ideas
+                ELSE 'discussion'
+            END AS post_type
+        FROM forum_post fp
+        JOIN forum f ON fp.forum_id = f.forum_id AND f.deleted_at IS NULL
+        LEFT JOIN actor a ON fp.poster_id = a.actor_id AND a.deleted_at IS NULL
+        LEFT JOIN student s ON a.entity_type = 'student' AND a.entity_id = s.stud_id AND s.deleted_at IS NULL
+        LEFT JOIN user u ON a.entity_type = 'user' AND a.entity_id = u.user_id AND u.deleted_at IS NULL
+        WHERE fp.deleted_at IS NULL
+        ORDER BY fp.posted_at DESC
+        LIMIT 2
+    ");
+    $forum_stmt->execute();
+    $forum_posts = $forum_stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Format the forum posts for display
+    $recent_forum_activity = array_map(function($post) {
+        return [
+            'title' => strlen($post['content']) > 50 
+                       ? substr($post['content'], 0, 50) . '...' 
+                       : $post['content'],
+            'full_content' => $post['content'],
+            'posted_at' => $post['posted_at'],
+            'comment_count' => $post['comment_count'],
+            'author' => $post['author_name'],
+            'forum_title' => $post['forum_title'],
+            'type' => $post['post_type'],
+            'time_ago' => getTimeAgo($post['posted_at'])
+        ];
+    }, $forum_posts);
+
+} catch (Exception $e) {
+    error_log("Forum Activity Error: " . $e->getMessage());
+    $recent_forum_activity = [];
+}
+
+// Helper function to calculate time ago
+function getTimeAgo($timestamp) {
+    $time = strtotime($timestamp);
+    $time_difference = time() - $time;
+    
+    if ($time_difference < 1) { return 'less than 1 second ago'; }
+    $condition = [
+        12 * 30 * 24 * 60 * 60 => 'year',
+        30 * 24 * 60 * 60 => 'month',
+        24 * 60 * 60 => 'day',
+        60 * 60 => 'hour',
+        60 => 'minute',
+        1 => 'second'
+    ];
+    
+    foreach ($condition as $secs => $str) {
+        $d = $time_difference / $secs;
+        if ($d >= 1) {
+            $t = round($d);
+            return $t . ' ' . $str . ($t > 1 ? 's' : '') . ' ago';
+        }
+    }
+}
+
+
+
+
+// After your existing code, add this section to calculate profile completion
+try {
+    // Define profile fields to check and their weights
+    $profile_fields = [
+        'stud_first_name' => 5,
+        'stud_last_name' => 5,
+        'stud_gender' => 5,
+        'stud_date_of_birth' => 5,
+        'graduation_yr' => 5,
+        'course_id' => 10,
+        'bio' => 10,
+        'resume_file' => 15,
+        'profile_picture' => 10,
+        'institution' => 10,
+        'skills' => 20  // Special field for skills count
+    ];
+    
+    $total_weight = array_sum($profile_fields);
+    $completed_weight = 0;
+    
+    // Check each field
+    foreach ($profile_fields as $field => $weight) {
+        if ($field === 'skills') {
+            // Special handling for skills - consider it complete if at least one skill exists
+            if (!empty($skills) && count($skills) > 0) {
+                $completed_weight += $weight;
+            }
+        } elseif (!empty($student[$field])) {
+            $completed_weight += $weight;
+        }
+    }
+    
+    // Calculate completion percentage (ensure it's between 0 and 100)
+    $completion_percentage = min(100, max(0, round(($completed_weight / $total_weight) * 100)));
+    
+    // Determine progress bar color based on completion
+    if ($completion_percentage < 30) {
+        $progress_class = 'bg-danger';
+    } elseif ($completion_percentage < 70) {
+        $progress_class = 'bg-warning';
+    } else {
+        $progress_class = 'bg-success';
+    }
+    
+} catch (Exception $e) {
+    error_log("Profile Completion Error: " . $e->getMessage());
+    $completion_percentage = 0;
+    $progress_class = 'bg-danger';
+}
+
+
+
+// Fetch applications for the logged-in student
+try {
+    $applications_stmt = $conn->prepare("
+        SELECT at.application_id, at.application_status, at.applied_at, jp.title AS job_title
+        FROM application_tracking at
+        JOIN job_posting jp ON at.job_id = jp.job_id
+        WHERE at.stud_id = :stud_id AND at.deleted_at IS NULL
+        ORDER BY at.applied_at DESC
+    ");
+    $applications_stmt->bindParam(':stud_id', $stud_id, PDO::PARAM_INT);
+    $applications_stmt->execute();
+    $applications = $applications_stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Format the application data for display
+    $application_data = array_map(function($app) {
+        return [
+            'job_title' => htmlspecialchars($app['job_title']),
+            'applied_at' => $app['applied_at'],
+            'application_status' => htmlspecialchars($app['application_status']),
+            'status_class' => getStatusClass($app['application_status']),
+        ];
+    }, $applications);
+} catch (Exception $e) {
+    error_log("Application Status Error: " . $e->getMessage());
+    $application_data = [];
+}
+
+// Helper function to return CSS class based on application status
+function getStatusClass($status) {
+    switch ($status) {
+        case 'Accepted':
+            return 'status-accepted';
+        case 'Rejected':
+            return 'status-rejected';
+        case 'Pending':
+        default:
+            return 'status-pending';
+    }
+}
+
 ?>

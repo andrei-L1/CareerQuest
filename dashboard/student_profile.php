@@ -538,11 +538,11 @@ include '../includes/stud_navbar.php';
                         </a>
                         <?php endif; ?>
                         
-                        <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#editProfileModal">
-                            <i class="fas fa-edit me-1"></i> Edit Profile
-                        </button>
+                        <a href="student_account_settings.php"  class="btn btn-light btn-sm">
+                            <i class="bi bi-pencil me-2"></i> Edit Profile
+                        </a>
                         
-                        <a href="job_search.php" class="btn btn-light btn-sm">
+                        <a href="student_job.php" class="btn btn-light btn-sm">
                             <i class="fas fa-search me-1"></i> Find Jobs
                         </a>
                     </div>
@@ -636,27 +636,70 @@ include '../includes/stud_navbar.php';
                 </div>
                 
                 <!-- Skills Section -->
-                <div class="card card-profile">
-                    <div class="card-header-profile">
-                        <i class="fas fa-code me-2"></i> Skills
+                <div class="card card-profile shadow-sm">
+                    <div class="card-header-profile bg-white border-bottom">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-code me-2 text-primary"></i>
+                            <h6 class="mb-0 fw-semibold">Skills & Competencies</h6>
+                        </div>
                     </div>
-                    <div class="card-body-profile">
-                        <?php if (!empty($student['skills'])): ?>
-                            <?php 
-                            $skills = explode(',', $student['skills']);
-                            foreach($skills as $skill): 
-                                if(trim($skill)): ?>
-                                    <span class="skill-badge"><?php echo htmlspecialchars(trim($skill)); ?></span>
-                                <?php endif; 
-                            endforeach; ?>
+                    <div class="card-body-profile p-4">
+                        <?php if (!empty($skills)): ?>
+                            <div class="skills-container">
+                                <?php foreach ($skills as $skill): ?>
+                                    <div class="skill-item mb-3">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span class="fw-medium text-dark"><?php echo htmlspecialchars($skill['skill_name']); ?></span>
+                                            <small class="text-muted">
+                                                <?php 
+                                                $proficiency = ucfirst($skill['proficiency']);
+                                                echo "{$proficiency}"; 
+                                                ?>
+                                            </small>
+                                        </div>
+                                        
+                                        <?php
+                                        $progress = 0;
+                                        $color_class = '';
+                                        switch($skill['proficiency']) {
+                                            case 'Beginner':
+                                                $progress = 33;
+                                                $color_class = 'bg-info';
+                                                break;
+                                            case 'Intermediate':
+                                                $progress = 66;
+                                                $color_class = 'bg-primary';
+                                                break;
+                                            case 'Advanced':
+                                                $progress = 100;
+                                                $color_class = 'bg-success';
+                                                break;
+                                        }
+                                        ?>
+                                        
+                                        <div class="progress" style="height: 6px;">
+                                            <div class="progress-bar <?php echo $color_class; ?> rounded" 
+                                                role="progressbar" 
+                                                style="width: <?php echo $progress; ?>%" 
+                                                aria-valuenow="<?php echo $progress; ?>" 
+                                                aria-valuemin="0" 
+                                                aria-valuemax="100">
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
                         <?php else: ?>
-                            <div class="alert alert-info mb-0">
-                                <i class="fas fa-info-circle me-2"></i>
-                                Add your skills to make your profile more attractive to employers.
+                            <div class="alert alert-light border d-flex align-items-center mb-0">
+                                <i class="fas fa-info-circle text-primary me-2"></i>
+                                <div>
+                                    <small class="text-muted">Add your skills to showcase your expertise to potential employers.</small>
+                                </div>
                             </div>
                         <?php endif; ?>
                     </div>
                 </div>
+
             </div>
             
             <!-- Right Column - Professional Content -->
@@ -666,7 +709,7 @@ include '../includes/stud_navbar.php';
                     <div class="col-md-4">
                         <div class="card card-profile h-100">
                             <div class="card-body-profile text-center">
-                                <div class="info-value fw-bold text-primary">12</div>
+                                <div class="info-value fw-bold text-primary" id="jobs-applied">12</div>
                                 <div class="info-label">Jobs Applied</div>
                             </div>
                         </div>
@@ -674,7 +717,7 @@ include '../includes/stud_navbar.php';
                     <div class="col-md-4">
                         <div class="card card-profile h-100">
                             <div class="card-body-profile text-center">
-                                <div class="info-value fw-bold text-success">3</div>
+                                <div class="info-value fw-bold text-success" id="interviews">3</div>
                                 <div class="info-label">Interviews</div>
                             </div>
                         </div>
@@ -682,7 +725,7 @@ include '../includes/stud_navbar.php';
                     <div class="col-md-4">
                         <div class="card card-profile h-100">
                             <div class="card-body-profile text-center">
-                                <div class="info-value fw-bold text-warning">85%</div>
+                                <div class="info-value fw-bold text-warning" id="profile-strength">85%</div>
                                 <div class="info-label">Profile Strength</div>
                             </div>
                         </div>
@@ -695,7 +738,7 @@ include '../includes/stud_navbar.php';
                         <div>
                             <i class="fas fa-briefcase me-2"></i> Recent Applications
                         </div>
-                        <a href="applications.php" class="btn btn-sm btn-outline-primary">View All</a>
+                       <!--  <a href="applications.php" class="btn btn-sm btn-outline-primary">View All</a>-->
                     </div>
                     <div class="card-body-profile">
                         <?php if (!empty($applications)): ?>
@@ -716,7 +759,7 @@ include '../includes/stud_navbar.php';
                                 <i class="fas fa-briefcase fa-3x text-muted mb-3"></i>
                                 <h5>No Applications Yet</h5>
                                 <p class="text-muted">Start applying to jobs to track your progress here</p>
-                                <a href="job_search.php" class="btn btn-primary-profile btn-sm">
+                                <a href="student_job.php" class="btn btn-primary-profile btn-sm">
                                     <i class="fas fa-search me-1"></i> Browse Jobs
                                 </a>
                             </div>
@@ -724,44 +767,11 @@ include '../includes/stud_navbar.php';
                     </div>
                 </div>
                 
-                <!-- Recommended Jobs -->
-                <div class="card card-profile mt-4">
-                    <div class="card-header-profile d-flex justify-content-between align-items-center">
-                        <div>
-                            <i class="fas fa-lightbulb me-2"></i> Recommended For You
-                        </div>
-                        <a href="job_search.php" class="btn btn-sm btn-outline-primary">See More</a>
-                    </div>
-                    <div class="card-body-profile">
-                        <?php if (!empty($recommended_jobs)): ?>
-                            <?php foreach($recommended_jobs as $job): ?>
-                            <div class="application-card">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h6 class="mb-0"><?php echo htmlspecialchars($job['title']); ?></h6>
-                                    <span class="badge bg-primary">Match: <?php echo htmlspecialchars($job['match_score']); ?>%</span>
-                                </div>
-                                <div class="text-muted small mb-2"><?php echo htmlspecialchars($job['company']); ?> · <?php echo htmlspecialchars($job['location']); ?></div>
-                                <div class="text-muted small mb-2"><?php echo htmlspecialchars($job['type']); ?> · $<?php echo htmlspecialchars($job['salary']); ?>/yr</div>
-                                <div class="d-flex justify-content-between align-items-center mt-2">
-                                    <small class="text-muted">Posted <?php echo htmlspecialchars($job['posted_date']); ?></small>
-                                    <a href="job_details.php?id=<?php echo htmlspecialchars($job['id']); ?>" class="btn btn-sm btn-outline-primary">View</a>
-                                </div>
-                            </div>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <div class="text-center py-4">
-                                <i class="fas fa-lightbulb fa-3x text-muted mb-3"></i>
-                                <h5>No Recommendations Yet</h5>
-                                <p class="text-muted">Complete your profile to get personalized job recommendations</p>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
 
-    <!-- EDIT PROFILE -->
+    <!-- EDIT PROFILE 
     <div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -771,19 +781,19 @@ include '../includes/stud_navbar.php';
                 </div>
                 <div class="modal-body">
                     <form id="updateProfileForm" method="post" enctype="multipart/form-data">
-                        <!-- Bio -->
+                        // Bio 
                         <div class="mb-3">
                             <label for="bio" class="form-label">Bio</label>
                             <textarea class="form-control" id="bio" name="bio" rows="3"><?php echo htmlspecialchars($student['bio'] ?? ''); ?></textarea>
                         </div>
 
-                        <!-- Profile Picture -->
+                        // Profile Picture 
                         <div class="mb-3">
                             <label for="profile_picture" class="form-label">Profile Picture</label>
                             <input type="file" class="form-control" id="profile_picture" name="profile_picture">
                         </div>
 
-                        <!-- Resume -->
+                        // Resume 
                         <div class="mb-3">
                             <label for="resume" class="form-label">Upload Resume</label>
                             <input type="file" class="form-control" id="resume" name="resume">
@@ -795,6 +805,7 @@ include '../includes/stud_navbar.php';
             </div>
         </div>
     </div>
+    -->
 
 
     <!-- Bootstrap JS Bundle with Popper -->
@@ -802,6 +813,7 @@ include '../includes/stud_navbar.php';
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script>
+        /*
         $(document).ready(function() {
             setTimeout(function() {
             $('.alert-success').alert('close');
@@ -862,7 +874,7 @@ include '../includes/stud_navbar.php';
                             if (response.resume_file) {
                                 $('a[download]').attr('href', '../assets/uploads/' + response.resume_file);
                             }
-                            */
+                            
                             
                             $("#editProfileModal").modal("hide");
                         } else {
@@ -881,6 +893,18 @@ include '../includes/stud_navbar.php';
                 });
             });
         });
+        */
     </script>
+    <script>
+    // Fetch the data from the backend
+    fetch('../controllers/student_profile_api.php')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('jobs-applied').innerText = data.totalApplications;
+            document.getElementById('interviews').innerText = data.totalInterviews;
+            document.getElementById('profile-strength').innerText = data.profileStrength;
+        })
+        .catch(error => console.error('Error fetching data:', error));
+</script>
 </body>
 </html>

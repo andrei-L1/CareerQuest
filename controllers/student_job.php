@@ -69,7 +69,7 @@ class StudentJobController {
 
     private function getRecommendedJobs() {
         $query = "SELECT jp.job_id, jp.title, e.company_name as company, 
-                 jt.job_type_title, jp.location, jp.salary, jp.posted_at, jp.expires_at,
+                 jt.job_type_title, jp.description, jp.location, jp.salary, jp.posted_at, jp.expires_at,
                  ROUND(AVG(CASE 
                      WHEN ss.proficiency = 'Advanced' AND js.importance = 'High' THEN 100
                      WHEN ss.proficiency = 'Advanced' AND js.importance = 'Medium' THEN 80
@@ -103,7 +103,7 @@ class StudentJobController {
             // Get job skills and calculate match score for each
             $jobId = $job['job_id'];
             
-            $skillsQuery = "SELECT js.job_skill_id, sm.skill_id, ss.user_skills_id, 
+            $skillsQuery = "SELECT js.job_skills_id, sm.skill_id, ss.user_skills_id, 
                             ss.proficiency, js.importance
                             FROM job_skill js
                             JOIN skill_masterlist sm ON js.skill_id = sm.skill_id
@@ -125,7 +125,7 @@ class StudentJobController {
                                 VALUES (:user_skills_id, :job_skills_id, :match_score)";
                 $insertStmt = $this->db->prepare($insertQuery);
                 $insertStmt->bindParam(':user_skills_id', $skill['user_skills_id']);
-                $insertStmt->bindParam(':job_skills_id', $skill['job_skill_id']);
+                $insertStmt->bindParam(':job_skills_id', $skill['job_skills_id']);
                 $insertStmt->bindParam(':match_score', $matchScore);
                 $insertStmt->execute();
             }
