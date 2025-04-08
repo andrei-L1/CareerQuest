@@ -1,5 +1,6 @@
 <?php
 require '../controllers/student_dashboard.php';
+require '../auth/auth_check_student.php';
 include '../includes/stud_navbar.php';
 // Only show once per session if not 100% complete and not already shown
 if ($completion_percentage < 100 && !isset($_SESSION['profile_modal_shown'])) {

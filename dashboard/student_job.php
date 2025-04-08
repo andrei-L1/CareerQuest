@@ -1,5 +1,6 @@
 <?php 
 include '../includes/stud_navbar.php';
+require '../auth/auth_check_student.php';
 ?>
 
 <!DOCTYPE html>

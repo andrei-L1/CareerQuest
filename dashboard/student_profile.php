@@ -1,5 +1,6 @@
 <?php
 require '../controllers/student_profile_controller.php';
+require '../auth/auth_check_student.php';
 include '../includes/stud_navbar.php';
 ?>
 

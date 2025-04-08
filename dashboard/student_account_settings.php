@@ -1,6 +1,9 @@
 <?php
 // Start session at the very top
-session_start();
+require '../auth/auth_check_student.php';
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Redirect if not logged in
 if (!isset($_SESSION['stud_id'])) {
