@@ -76,7 +76,7 @@ $page_permissions = [
     'student_job.php' => ['active'],
     'student_account_settings.php' => ['active'],
     'student_skills.php' => ['active'],
-    'student_messages.php' => ['active'],
+    'messages.php' => ['active'],
     'student_forum.php' => ['active'],
     
     // Shared pages

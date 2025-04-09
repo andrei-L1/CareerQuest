@@ -441,6 +441,7 @@ function timeAgo($timestamp) {
 
     </div>
 </div>
+
 <!-- Profile Completion Modal -->
 <div class="modal fade" id="profileCompletionModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
@@ -476,6 +477,18 @@ function timeAgo($timestamp) {
                aria-valuenow="<?php echo $completion_percentage; ?>" aria-valuemin="0" aria-valuemax="100">
           </div>
         </div>
+
+        <?php if (!empty($missing_fields)): ?>
+            <div class="text-start mb-4">
+                <p class="mb-2 fw-semibold text-dark">You're missing the following:</p>
+                <ul class="list-unstyled mb-0 text-muted small">
+                    <?php foreach ($missing_fields as $field): ?>
+                        <li><i class="bi bi-x-circle text-danger me-2"></i><?php echo $field; ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+        <?php endif; ?>
+
 
         <!-- CTA -->
         <a href="student_account_settings.php" class="btn btn-outline-primary rounded-pill px-4 py-2">

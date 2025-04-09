@@ -34,6 +34,23 @@ if ($status === 'deleted') {
     exit();
 }
 
+
+// Fetch actor ID for features like forum/messages/notifications
+$actor_stmt = $conn->prepare("
+    SELECT actor_id
+    FROM actor
+    WHERE (entity_type = 'user' OR entity_type = 'student') 
+      AND entity_id = :user_id AND deleted_at IS NULL
+    LIMIT 1
+");
+
+$actor_stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+$actor_stmt->execute();
+$actor = $actor_stmt->fetch(PDO::FETCH_ASSOC);
+
+$actor_id = $actor['actor_id'] ?? null;
+
+
 // Dynamically fetch allowed roles from database
 $role_stmt = $conn->prepare("SELECT role_title, role_id FROM role");
 $role_stmt->execute();

@@ -182,9 +182,6 @@ function getTimeAgo($timestamp) {
 }
 
 
-
-
-// After your existing code, add this section to calculate profile completion
 try {
     // Define profile fields to check and their weights
     $profile_fields = [
@@ -198,36 +195,56 @@ try {
         'resume_file' => 15,
         'profile_picture' => 10,
         'institution' => 10,
-        'skills' => 20  // Special field for skills count
+        'skills' => 20
     ];
-    
+
+    // Build dynamic SELECT
+    $columns = implode(', ', array_diff(array_keys($profile_fields), ['skills']));
+    $details_stmt = $conn->prepare("
+        SELECT $columns
+        FROM student
+        WHERE stud_id = :stud_id AND deleted_at IS NULL
+    ");
+    $details_stmt->bindParam(':stud_id', $stud_id, PDO::PARAM_INT);
+    $details_stmt->execute();
+    $student = $details_stmt->fetch(PDO::FETCH_ASSOC);
+
     $total_weight = array_sum($profile_fields);
     $completed_weight = 0;
-    
-    // Check each field
+    $missing_fields = [];
+
     foreach ($profile_fields as $field => $weight) {
         if ($field === 'skills') {
-            // Special handling for skills - consider it complete if at least one skill exists
             if (!empty($skills) && count($skills) > 0) {
                 $completed_weight += $weight;
+            } else {
+                $missing_fields[] = 'Skills';
             }
         } elseif (!empty($student[$field])) {
             $completed_weight += $weight;
+        } else {
+            switch ($field) {
+                case 'stud_first_name': $missing_fields[] = 'First Name'; break;
+                case 'stud_last_name': $missing_fields[] = 'Last Name'; break;
+                case 'stud_gender': $missing_fields[] = 'Gender'; break;
+                case 'stud_date_of_birth': $missing_fields[] = 'Date of Birth'; break;
+                case 'graduation_yr': $missing_fields[] = 'Graduation Year'; break;
+                case 'course_id': $missing_fields[] = 'Course'; break;
+                case 'bio': $missing_fields[] = 'Bio'; break;
+                case 'resume_file': $missing_fields[] = 'Resume'; break;
+                case 'profile_picture': $missing_fields[] = 'Profile Picture'; break;
+                case 'institution': $missing_fields[] = 'Institution'; break;
+            }
         }
     }
-    
-    // Calculate completion percentage (ensure it's between 0 and 100)
+
     $completion_percentage = min(100, max(0, round(($completed_weight / $total_weight) * 100)));
-    
-    // Determine progress bar color based on completion
-    if ($completion_percentage < 30) {
-        $progress_class = 'bg-danger';
-    } elseif ($completion_percentage < 70) {
-        $progress_class = 'bg-warning';
-    } else {
-        $progress_class = 'bg-success';
-    }
-    
+
+    $progress_class = match (true) {
+        $completion_percentage < 30 => 'bg-danger',
+        $completion_percentage < 70 => 'bg-warning',
+        default => 'bg-success'
+    };
 } catch (Exception $e) {
     error_log("Profile Completion Error: " . $e->getMessage());
     $completion_percentage = 0;
