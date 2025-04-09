@@ -95,383 +95,632 @@ if (isset($_SESSION['user_id'])) {
 
 
     <style>
-        :root {
-            --primary-color: #4361ee;
-            --secondary-color: #3f37c9;
-            --light-color: #f8f9fa;
-            --dark-color: #212529;
-            --success-color: #4cc9f0;
-            --info-color: #4895ef;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color:rgba(245, 247, 251, 0.75);
-            height: 100vh;
-            margin: 0;
-        }
-
-        .container-fluid {
-            display: flex;
-            justify-content: center; 
-            align-items: center; 
-            padding: 100px;
-            height: 90%;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .chat-container {
-            width: 90%;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            height: 80vh;
-        }
-
-        .sidebar {
-            background-color: white;
-            border-right: 1px solid #e9ecef;
-            height: 100%;
-            overflow-y: auto;
-        }
-        
-        .chat-area {
-            background-color: #f8fafc;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .user-info {
-            padding: 15px;
-            border-bottom: 1px solid #e9ecef;
-            background-color: var(--primary-color);
-            color: white;
-        }
-        
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            overflow: hidden;
-            margin-right: 10px;
-        }
-        
-        .user-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        .thread {
-            padding: 12px 15px;
-            border-bottom: 1px solid #e9ecef;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .thread:hover {
-            background-color: #f8f9fa;
-        }
-        
-        .thread.active {
-            background-color: #e6f2ff;
-        }
-        
-        .thread-unread {
-            font-weight: bold;
-        }
-        
-        .thread-time {
-            font-size: 0.75rem;
-            color: #6c757d;
-        }
-        
-        .thread-last-message {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            font-size: 0.85rem;
-            color: #6c757d;
-        }
-        
-        .message-list {
-            flex: 1;
-            padding: 1rem;
-            overflow-y: auto;
-            background-color: var(--bg-color);
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-        
-        
-        /* Update your message styling */
-        .message {
-            max-width: 80%;
-            margin-bottom: 8px;
-            padding: 12px 16px;
-            border-radius: 18px;
-            position: relative;
-            word-wrap: break-word;
-            line-height: 1.4;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .message-sent {
-            background-color: var(--primary-color);
-            color: white;
-            margin-left: auto;
-            border-bottom-right-radius: 0.25rem;
-        }
-        
-        .message-received {
-            background-color: white;
-            margin-right: auto;
-            border-bottom-left-radius: 0.25rem;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-        }
-        
-        .message-time {
-            display: none;
-            position: absolute;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            padding: 0.25rem 0.5rem;
-            border-radius: 0.25rem;
-            font-size: 0.7rem;
-            white-space: nowrap;
-            z-index: 10;
-        }
-        .message:hover .message-time {
-            display: block;
-        }
-        
-        .message-sent .message-time {
-            left: -0.5rem;
-            top: -1.5rem;
-        }
-        
-        .message-received .message-time {
-            right: -0.5rem;
-            top: -1.5rem;
-        }
-        
-        .message-input-container {
-            padding: 1rem;
-            border-top: 1px solid var(--border-color);
-            background-color: var(--card-bg);
-        }
-        .message-input {
-            border-radius: 1.5rem;
-            padding: 0.75rem 1rem;
-            resize: none;
-            border: 1px solid var(--border-color);
-        }
-
-        /* Add triangle pointers */
-        .message-sent::after {
-            content: '';
-            position: absolute;
-            right: -8px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 0;
-            height: 0;
-            border: 8px solid transparent;
-            border-left: 8px solid var(--primary-color);
-        }
-
-        .message-received::after {
-            content: '';
-            position: absolute;
-            left: -8px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 0;
-            height: 0;
-            border: 8px solid transparent;
-            border-right: 8px solid white;  
-        }
-
-        
-        .message-time {
-            display: none;
-            position: absolute;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.7rem;
-            white-space: nowrap;
-            z-index: 10;
-        }
-
-        .message:hover .message-time {
-            display: block;
-        }
-
-        .message-sent .message-time {
-            left: -10px;
-            top: -25px;
-        }
-
-        .message-received .message-time {
-            right: -10px;
-            top: -25px;
-        }
-                
-        .message-input {
-            padding: 15px;
-            border-top: 1px solid #e9ecef;
-            background-color: white;
-        }
-        
-        .unread-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background-color: var(--info-color);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.7rem;
-        }
-        
-        .chat-header {
-            padding: 15px;
-            border-bottom: 1px solid #e9ecef;
-            background-color: white;
-            display: flex;
-            align-items: center;
-        }
-        
-        .back-to-inbox {
-            margin-right: 10px;
-            display: none;
-        }
-        
-        .empty-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            text-align: center;
-            padding: 40px; 
-            color: #6c757d;
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .empty-state i {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            color: #adb5bd; 
-        }
-
-        .empty-state h4 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #343a40;
-            margin-bottom: 10px;
-        }
-
-        .empty-state-text {
-            font-size: 1rem;
-            margin-bottom: 20px;
-            color: #6c757d;
-        }
-
-        #empty-new-message-btn {
-            font-size: 1rem;
-            padding: 10px 20px;
-            border-radius: 30px;
-        }
-
-        #empty-new-message-btn i {
-            font-size: 1.2rem;
-        }
-
-        .mt-4 small {
-            font-size: 0.875rem;
-            color: #6c757d;
-        }
-
-        
-        
-        @media (max-width: 768px) {
-            .sidebar {
-                display: block;
+            :root {
+                --primary-color: #4361ee;
+                --primary-light: #e0e7ff;
+                --secondary-color: #3f37c9;
+                --accent-color: #4895ef;
+                --light-color: #f8f9fa;
+                --dark-color: #212529;
+                --gray-color: #6c757d;
+                --light-gray: #e9ecef;
+                --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+                --border-radius: 12px;
             }
             
-            .chat-area {
-                display: none;
+            body {
+                font-family: 'Poppins', sans-serif;
+                background-color: #f5f7fb;
+                color: #333;
+                height: 100vh;
+                margin: 0;
             }
-            
-            .chat-area.active {
+
+            .container-fluid {
+                width: 80%;
+                padding: 20px;
+                height: calc(100vh - 72px);
+            }
+
+            .chat-container {
+                width: 100%;
+                height: 100%;
+                border-radius: var(--border-radius);
+                overflow: hidden;
+                box-shadow: var(--card-shadow);
+                background-color: white;
                 display: flex;
             }
+
+            /* Sidebar Styles */
+            .sidebar {
+                width: 350px;
+                background-color: white;
+                border-right: 1px solid var(--light-gray);
+                display: flex;
+                flex-direction: column;
+                transition: all 0.3s ease;
+            }
+
+            .sidebar-header {
+                padding: 18px 20px;
+                border-bottom: 1px solid var(--light-gray);
+                background-color: white;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .user-info {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+            .user-avatar {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                overflow: hidden;
+                margin-right: 10px;
+            }
             
+            .user-avatar img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .user-details {
+                line-height: 1.3;
+            }
+
+            .user-name {
+                font-weight: 600;
+                font-size: 0.95rem;
+                color: var(--dark-color);
+            }
+
+            .user-role {
+                font-size: 0.75rem;
+                color: var(--gray-color);
+            }
+
+            .new-message-btn {
+                background-color: var(--primary-color);
+                color: white;
+                border: none;
+                border-radius: 8px;
+                width: 36px;
+                height: 36px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s;
+            }
+
+            .new-message-btn:hover {
+                background-color: var(--secondary-color);
+                transform: scale(1.05);
+            }
+
+            .threads-container {
+                flex: 1;
+                overflow-y: auto;
+            }
+
+            .thread {
+                padding: 14px 16px;
+                border-bottom: 1px solid var(--light-gray);
+                cursor: pointer;
+                transition: all 0.2s;
+                display: flex;
+                gap: 12px;
+                align-items: center;
+            }
+
+            .thread:hover {
+                background-color: #f8f9fa;
+            }
+
+            .thread.active {
+                background-color: var(--primary-light);
+                border-left: 3px solid var(--primary-color);
+            }
+
+            .thread-avatar {
+                width: 48px;
+                height: 48px;
+                border-radius: 50%;
+                overflow: hidden;
+                background-color: var(--light-gray);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .thread-avatar img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .thread-content {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .thread-header {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 4px;
+            }
+
+            .thread-name {
+                font-weight: 600;
+                font-size: 0.9rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .thread-time {
+                font-size: 0.7rem;
+                color: var(--gray-color);
+                white-space: nowrap;
+                margin-left: 8px;
+            }
+
+            .thread-preview {
+                display: flex;
+                justify-content: space-between;
+            }
+
+            .thread-message {
+                font-size: 0.85rem;
+                color: var(--gray-color);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                flex: 1;
+            }
+
+            .thread-unread {
+                background-color: #f0f4ff;
+            }
+
+            .unread-badge {
+                background-color: var(--accent-color);
+                color: white;
+                border-radius: 50%;
+                width: 20px;
+                height: 20px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 0.7rem;
+                font-weight: 600;
+                margin-left: 8px;
+            }
+
+            /* Chat Area Styles */
+            .chat-area {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                background-color: #f8fafc;
+                position: relative;
+            }
+
+            .chat-header {
+                padding: 16px 20px;
+                border-bottom: 1px solid var(--light-gray);
+                background-color: white;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
             .back-to-inbox {
+                display: none;
+                background: none;
+                border: none;
+                color: var(--gray-color);
+                font-size: 1.2rem;
+            }
+
+            .chat-avatar {
+                width: 42px;
+                height: 42px;
+                border-radius: 50%;
+                overflow: hidden;
+                background-color: var(--light-gray);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .chat-avatar img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .chat-info {
+                flex: 1;
+            }
+
+            .chat-name {
+                font-weight: 600;
+                font-size: 1rem;
+                margin-bottom: 2px;
+            }
+
+            .chat-status {
+                font-size: 0.75rem;
+                color: var(--gray-color);
+            }
+
+            .message-list {
+                flex: 1;
+                padding: 20px;
+                overflow-y: auto;
+                background-color: #f8fafc;
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .message {
+                max-width: 70%;
+                padding: 12px 16px;
+                border-radius: 18px;
+                position: relative;
+                word-wrap: break-word;
+                line-height: 1.4;
+                font-size: 0.9rem;
+                animation: fadeIn 0.3s ease-out;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            }
+
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+
+            .message-sent {
+                background-color: var(--primary-color);
+                color: white;
+                margin-left: auto;
+                border-bottom-right-radius: 4px;
+            }
+
+            .message-received {
+                background-color: white;
+                margin-right: auto;
+                border-bottom-left-radius: 4px;
+            }
+
+            .message-time {
+                display: none;
+                position: absolute;
+                background: rgba(0,0,0,0.7);
+                color: white;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 0.7rem;
+                white-space: nowrap;
+                z-index: 10;
+            }
+
+            .message:hover .message-time {
                 display: block;
             }
-        }
-        /* Bigger Sidebar Navigation */
-        .sidebar-nav {
-            width: 80px; /* Increased from 60px */
-            background-color: #f8f9fa;
-            border-right: 1px solid #e9ecef;
-        }
 
-        .sidebar-nav .btn {
-            width: 56px;  
-            height: 56px; 
-            border-radius: 12px; 
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid var(--border-color);
-            transition: all 0.2s;
-            margin: 0 auto 12px auto; 
-        }
+            .message-sent .message-time {
+                left: -10px;
+                top: -25px;
+            }
 
-        .sidebar-nav .btn i {
-            font-size: 1.75rem; 
-        }
+            .message-received .message-time {
+                right: -10px;
+                top: -25px;
+            }
 
-        .sidebar-nav .btn:hover {
-            background-color: var(--primary-light);
-            border-color: var(--primary-color);
-            transform: scale(1.08); 
-        }
+            .message-input-container {
+                padding: 16px 20px;
+                border-top: 1px solid var(--light-gray);
+                background-color: white;
+            }
 
-        .sidebar-nav .btn:hover {
-            background-color: blue;
-            border-color: var(--primary-color);
-            transform: scale(1.05);
-        }
+            .message-input-group {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
 
-  
-        /* Tooltip styling */
-        .tooltip-inner {
-            background-color: var(--primary-color);
-        }
+            .message-input {
+                flex: 1;
+                border-radius: 24px;
+                padding: 12px 18px;
+                border: 1px solid var(--light-gray);
+                resize: none;
+                font-family: inherit;
+                transition: all 0.2s;
+            }
 
-        .bs-tooltip-end .tooltip-arrow::before {
-            border-right-color: var(--primary-color);
-        }
-    </style>
-    <style>
+            .message-input:focus {
+                outline: none;
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+            }
+
+            .send-button {
+                background-color: var(--primary-color);
+                color: white;
+                border: none;
+                border-radius: 50%;
+                width: 42px;
+                height: 42px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s;
+            }
+
+            .send-button:hover {
+                background-color: var(--secondary-color);
+                transform: scale(1.05);
+            }
+
+            /* Empty States */
+            .empty-state {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 100%;
+                text-align: center;
+                padding: 40px;
+                color: var(--gray-color);
+            }
+
+            .empty-state-icon {
+                font-size: 4rem;
+                color: #d1d5db;
+                margin-bottom: 20px;
+            }
+
+            .empty-state-title {
+                font-size: 1.5rem;
+                font-weight: 600;
+                color: var(--dark-color);
+                margin-bottom: 12px;
+            }
+
+            .empty-state-text {
+                font-size: 0.95rem;
+                margin-bottom: 24px;
+                max-width: 400px;
+                line-height: 1.5;
+            }
+
+            .empty-state-btn {
+                background-color: var(--primary-color);
+                color: white;
+                border: none;
+                border-radius: 24px;
+                padding: 10px 24px;
+                font-weight: 500;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                transition: all 0.2s;
+            }
+
+            .empty-state-btn:hover {
+                background-color: var(--secondary-color);
+                color: white;
+                transform: translateY(-2px);
+            }
+
+            .empty-state-tip {
+                font-size: 0.8rem;
+                color: var(--gray-color);
+                margin-top: 24px;
+            }
+
+            /* Sidebar Navigation */
+            .sidebar-nav {
+                width: 70px;
+                background-color: white;
+                border-right: 1px solid var(--light-gray);
+                padding: 16px 8px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .nav-btn {
+                width: 48px;
+                height: 48px;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background-color: white;
+                border: 1px solid var(--light-gray);
+                color: var(--gray-color);
+                margin-bottom: 12px;
+                transition: all 0.2s;
+            }
+
+            .nav-btn:hover {
+                background-color: var(--primary-light);
+                color: var(--primary-color);
+                border-color: var(--primary-light);
+                transform: translateY(-2px);
+            }
+
+            .nav-btn.active {
+                background-color: var(--primary-light);
+                color: var(--primary-color);
+                border-color: var(--primary-light);
+            }
+
+            .nav-btn i {
+                font-size: 1.25rem;
+            }
+
+            /* Modal Styles */
+            .modal-content {
+                border-radius: var(--border-radius);
+                border: none;
+                box-shadow: var(--card-shadow);
+            }
+
+            .modal-header {
+                border-bottom: 1px solid var(--light-gray);
+                padding: 16px 20px;
+            }
+
+            .modal-title {
+                font-weight: 600;
+            }
+
+            .modal-body {
+                padding: 20px;
+            }
+
+            .search-input {
+                border-radius: 8px;
+                padding: 10px 16px;
+                border: 1px solid var(--light-gray);
+                width: 100%;
+                margin-bottom: 16px;
+            }
+
+            .search-input:focus {
+                outline: none;
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+            }
+
+            .search-results {
+                max-height: 300px;
+                overflow-y: auto;
+            }
+
+            .search-result-item {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 12px 16px;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+
+            .search-result-item:hover {
+                background-color: #f8f9fa;
+            }
+
+            .search-result-item.active {
+                background-color: var(--primary-light);
+            }
+
+            .search-result-avatar {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                overflow: hidden;
+                background-color: var(--light-gray);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .search-result-avatar img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .search-result-info {
+                flex: 1;
+            }
+
+            .search-result-name {
+                font-weight: 600;
+                font-size: 0.9rem;
+                margin-bottom: 2px;
+            }
+
+            .search-result-role {
+                font-size: 0.75rem;
+                color: var(--gray-color);
+            }
+
+            .modal-footer {
+                border-top: 1px solid var(--light-gray);
+                padding: 16px 20px;
+            }
+
+            /* Responsive Styles */
+            @media (max-width: 992px) {
+                .sidebar {
+                    width: 300px;
+                }
+            }
+
+            @media (max-width: 768px) {
+                .sidebar {
+                    width: 100%;
+                    display: block;
+                }
+                
+                .chat-area {
+                    display: none;
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background-color: white;
+                    z-index: 10;
+                }
+                
+                .chat-area.active {
+                    display: flex;
+                }
+                
+                .back-to-inbox {
+                    display: block;
+                }
+            }
+
+            /* Loading Spinner */
+            .loading-spinner {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100%;
+                padding: 40px 0;
+            }
+
+            .spinner {
+                width: 40px;
+                height: 40px;
+                border: 4px solid var(--primary-light);
+                border-top-color: var(--primary-color);
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+            }
+
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+        </style>
+        <style>
 
         /* Navbar background color */
         .navbar {
@@ -535,100 +784,85 @@ if (isset($_SESSION['user_id'])) {
             CareerQuest
         </a>
     </nav>
-    <div class="container-fluid py-3">
-        <div class="row chat-container bg-white">
+    <div class="container-fluid">
+        <div class="chat-container">
+            <!-- Sidebar Navigation -->
+            <div class="sidebar-nav">
+                <a href="../index.php" class="nav-btn" data-bs-toggle="tooltip" data-bs-placement="right" title="Home">
+                    <i class="bi bi-house-door"></i>
+                </a>
+                <a href="../forum/index.php" class="nav-btn" data-bs-toggle="tooltip" data-bs-placement="right" title="Forum">
+                    <i class="bi bi-people"></i>
+                </a>
+                <a href="#" class="nav-btn active" data-bs-toggle="tooltip" data-bs-placement="right" title="Messages">
+                    <i class="bi bi-chat-text"></i>
+                </a>
+            </div>
+            
             <!-- Sidebar -->
-            <div class="col-md-4 col-lg-3 px-0 sidebar">
-                <div class="d-flex h-100">
-                    <!-- Vertical Navigation -->
-                    <div class="sidebar-nav d-flex flex-column p-3 border-end" style="width: 80px; background-color: #f8f9fa;">
-                        <a href="../index.php" class="btn btn-outline-primary mb-3 p-3 d-flex align-items-center justify-content-center" 
-                        data-bs-toggle="tooltip" data-bs-placement="right" title="Home">
-                            <i class="bi bi-house-door fs-3"></i>
-                        </a>
-                        <a href="../forum/index.php" class="btn btn-outline-primary p-3 d-flex align-items-center justify-content-center" 
-                        data-bs-toggle="tooltip" data-bs-placement="right" title="Forum">
-                            <i class="bi bi-people fs-3"></i>
-                        </a>
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <div class="user-info">
+                        <div class="user-avatar">
+                            <?php if (!empty($currentUser['picture'])): ?>
+                                <img src="../uploads/<?php echo htmlspecialchars($currentUser['picture']); ?>" alt="Profile Picture">
+                            <?php else: ?>
+                                <i class="bi bi-person-fill text-muted"></i>
+                            <?php endif; ?>
+                        </div>
+                        <div class="user-details">
+                            <div class="user-name"><?php echo htmlspecialchars($currentUser['name']); ?></div>
+                            <div class="user-role"><?php echo htmlspecialchars($currentUser['role']); ?></div>
+                        </div>
                     </div>
-
-                    <!-- Main Sidebar Content -->
-                    <div class="flex-grow-1 d-flex flex-column" style="width: calc(100% - 60px);">
-                        <div class="user-info d-flex align-items-center">
-                            <div class="user-avatar">
-                                <?php if (!empty($currentUser['picture'])): ?>
-                                    <img src="../uploads/<?php echo htmlspecialchars($currentUser['picture']); ?>" alt="Profile Picture">
-                                <?php else: ?>
-                                    <div class="bg-secondary d-flex align-items-center justify-content-center h-100">
-                                        <i class="bi bi-person-fill text-white"></i>
-                                    </div>
-                                <?php endif; ?>
-                            </div>
-                            <div>
-                                <div class="fw-bold"><?php echo htmlspecialchars($currentUser['name']); ?></div>
-                                <small class="text-white-50"><?php echo htmlspecialchars($currentUser['role']); ?></small>
-                            </div>
-                        </div>
-                        
-                        <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
-                            <h5 class="mb-0">Messages</h5>
-                            <button id="new-message-btn" class="btn btn-sm btn-primary">
-                                <i class="bi bi-plus-lg"></i> New
-                            </button>
-                        </div>
-                        
-                        <div id="threads-list" class="list-group list-group-flush flex-grow-1" style="overflow-y: auto;">
-                            <!-- Threads will be loaded here -->
-                            <div class="text-center py-5">
-                                <div class="spinner-border text-primary" role="status">
-                                    <span class="visually-hidden">Loading...</span>
-                                </div>
-                            </div>
-                        </div>
+                    <button id="new-message-btn" class="new-message-btn" title="New Message">
+                        <i class="bi bi-plus-lg"></i>
+                    </button>
+                </div>
+                
+                <div class="threads-container" id="threads-list">
+                    <div class="loading-spinner">
+                        <div class="spinner"></div>
                     </div>
                 </div>
             </div>
             
             <!-- Chat Area -->
-            <div class="col-md-8 col-lg-9 px-0 chat-area" id="chat-area">
+            <div class="chat-area" id="chat-area">
                 <div class="chat-header">
-                    <button class="btn btn-sm btn-outline-secondary back-to-inbox" id="back-to-inbox">
+                    <button class="back-to-inbox" id="back-to-inbox">
                         <i class="bi bi-arrow-left"></i>
                     </button>
-                    <div class="d-flex align-items-center">
-                        <div id="chat-avatar" class="user-avatar me-2">
-                            <div class="bg-secondary d-flex align-items-center justify-content-center h-100">
-                                <i class="bi bi-person-fill text-white"></i>
-                            </div>
-                        </div>
-                        <div>
-                            <h5 class="mb-0" id="chat-with-name">Select a conversation</h5>
-                            <small class="text-muted" id="chat-status"></small>
-                        </div>
+                    <div class="chat-avatar" id="chat-avatar">
+                        <i class="bi bi-person-fill text-muted"></i>
+                    </div>
+                    <div class="chat-info">
+                        <div class="chat-name" id="chat-with-name">Select a conversation</div>
+                        <div class="chat-status" id="chat-status"></div>
                     </div>
                 </div>
                 
-                <!-- Update your empty-chat-state -->
+                <!-- Empty State -->
                 <div class="empty-state" id="empty-chat-state">
                     <div class="empty-state-icon">
                         <i class="bi bi-chat-square-text"></i>
                     </div>
-                    <h4>Your messages live here</h4>
+                    <h4 class="empty-state-title">Your messages live here</h4>
                     <p class="empty-state-text">Select a conversation or start a new one to begin messaging</p>
-                    <button id="empty-new-message-btn" class="btn btn-primary mt-3">
-                        <i class="bi bi-plus-lg me-2"></i> New Message
+                    <button class="empty-state-btn" id="empty-new-message-btn">
+                        <i class="bi bi-plus-lg"></i> New Message
                     </button>
-                    <div class="mt-4">
-                        <small class="text-muted">Tip: You can search for people by name or email</small>
-                    </div>
+                    <div class="empty-state-tip">Tip: You can search for people by name or email</div>
                 </div>
-                                
+                
+                <!-- Message List -->
                 <div class="message-list d-none" id="message-list"></div>
                 
-                <div class="message-input d-none" id="message-input-container">
-                    <div class="input-group">
-                        <textarea class="form-control" id="message-content" rows="1" placeholder="Type a message..." style="resize: none;"></textarea>
-                        <button class="btn btn-primary" id="send-button" type="button">
+                <!-- Message Input -->
+                <div class="message-input-container d-none" id="message-input-container">
+                    <div class="message-input-group">
+                        <textarea class="message-input" id="message-content" rows="1" placeholder="Type a message..."></textarea>
+                        <button class="send-button" id="send-button" type="button">
                             <i class="bi bi-send-fill"></i>
                         </button>
                     </div>
@@ -639,17 +873,20 @@ if (isset($_SESSION['user_id'])) {
 
     <!-- New Message Modal -->
     <div class="modal fade" id="newMessageModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">New Message</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <input type="text" class="form-control" id="recipient-search" placeholder="Search for users...">
+                    <input type="text" class="search-input" id="recipient-search" placeholder="Search for users...">
+                    <div id="search-results" class="search-results">
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-search" style="font-size: 1.5rem;"></i>
+                            <p>Search for users to message</p>
+                        </div>
                     </div>
-                    <div id="search-results" class="list-group" style="max-height: 300px; overflow-y: auto;"></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
