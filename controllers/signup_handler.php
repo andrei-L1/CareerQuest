@@ -42,8 +42,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($password !== $confirm_password) {
             throw new Exception("Passwords do not match.");
         }
-        if (strlen($password) < 8) {
-            throw new Exception("Password must be at least 8 characters.");
+        if (strlen($password) < 6) {
+            throw new Exception("Password must be at least 6 characters.");
         }
         if (!preg_match('/[A-Z]/', $password) || !preg_match('/[0-9]/', $password)) {
             throw new Exception("Password must contain at least one uppercase letter and one number.");
@@ -75,18 +75,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // === Check for Existing Email ===
         if ($entity === "student") {
             $checkEmailStmt = $conn->prepare("SELECT stud_email FROM student WHERE stud_email = :email");
+            $checkStudnoStmt = $conn->prepare("SELECT stud_no FROM student WHERE stud_no = :studno");
+
         } elseif ($entity === "professional" || $entity === "employer") {
             $checkEmailStmt = $conn->prepare("SELECT user_email FROM user WHERE user_email = :email");
         } else {
             throw new Exception("Invalid entity type.");
         }
-        
+
+        $checkStudnoStmt->bindParam(':studno', $studno, PDO::PARAM_STR);
         $checkEmailStmt->bindParam(':email', $email, PDO::PARAM_STR);
         $checkEmailStmt->execute();
+        $checkStudnoStmt->execute();
         
         if ($checkEmailStmt->rowCount() > 0) {
             throw new Exception("Email already exists. Use a different email.");
         }
+ 
+        if ($checkStudnoStmt->rowCount() > 0) {
+            throw new Exception("Student ID already exists. Please use a different one.");
+        }
+
 
         // === Hash Password ===
         $hashed_password = password_hash($password, PASSWORD_ARGON2ID);
