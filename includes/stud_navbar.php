@@ -76,7 +76,7 @@ $nav_links = [
     "Applications" => "applications.php",
     "Forum" => "forums.php",
     "Messages" => "messages.php",
-    "Notifications" => "notifications.php"
+    "Notifications" => "stud_notification.php"
 ];
 
 // Get student name safely
