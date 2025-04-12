@@ -117,17 +117,24 @@ switch ($action) {
             $stmt->bindParam(':senderId', $currentActorId, PDO::PARAM_INT);
             $stmt->bindParam(':receiverId', $receiverActorId, PDO::PARAM_INT);
             $stmt->bindParam(':threadId', $threadId, PDO::PARAM_INT);
-        
             if ($stmt->execute()) {
-
+                // Trigger event to specific thread
                 $pusher->trigger('thread_' . $threadId, 'new_message', [
                     'content' => $content,
                     'sender_id' => $currentActorId,
+                    'sender_type' => isset($_SESSION['user_id']) ? 'user' : 'student',
                     'thread_id' => $threadId,
+                    'sent_at' => date('Y-m-d H:i:s')
                 ]);
+                
+                // Also trigger update to sender's personal channel
+                $pusher->trigger('user_' . ($_SESSION['user_id'] ?? $_SESSION['stud_id']), 'update', [
+                    'type' => 'message',
+                    'thread_id' => $threadId,
+                    'action' => 'sent'
+                ]);
+                
                 $response = ['status' => 'success', 'thread_id' => $threadId];
-            } else {
-                $response['message'] = 'Failed to send message';
             }
             break;
 
@@ -198,7 +205,20 @@ switch ($action) {
             $response = ['status' => 'success', 'threads' => $threads];
             break;
         
-
+            case 'mark_as_read':
+                $threadId = (int)$_POST['thread_id'];
+                $stmt = $conn->prepare("UPDATE message SET is_read = TRUE WHERE thread_id = :threadId AND receiver_id = :actorId AND is_read = FALSE");
+                if ($stmt->execute([':threadId' => $threadId, ':actorId' => $currentActorId])) {
+                    // Notify all participants that the thread was updated
+                    $pusher->trigger('thread_' . $threadId, 'thread_update', [
+                        'thread_id' => $threadId,
+                        'action' => 'messages_read',
+                        'reader_id' => $currentActorId
+                    ]);
+                    $response = ['status' => 'success'];
+                }
+                break;
+                
             case 'get_messages':
                 $threadId = (int)$_POST['thread_id'];
             

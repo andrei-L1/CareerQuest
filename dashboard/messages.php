@@ -1,6 +1,6 @@
 <?php
 require_once '../config/dbcon.php';
-//include '../includes/stud_navbar.php';
+
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -84,14 +84,6 @@ if (isset($_SESSION['user_id'])) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 
     <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>
-    <script>
-        var pusher = new Pusher('d9d029433bbefa08b6a2', {
-            cluster: 'ap1'
-        });
-
-        // Global variable to store the current thread channel
-        var currentChannel = null;
-    </script>
 
 
     <style>
@@ -117,9 +109,10 @@ if (isset($_SESSION['user_id'])) {
             }
 
             .container-fluid {
-                width: 80%;
-                padding: 20px;
-                height: calc(100vh - 72px);
+                padding: 0;
+                width: 100%;
+                 /*  padding: 20px;*/
+                height: calc(100vh - 0px);
             }
 
             .chat-container {
@@ -134,7 +127,7 @@ if (isset($_SESSION['user_id'])) {
 
             /* Sidebar Styles */
             .sidebar {
-                width: 350px;
+                width: 300px;
                 background-color: white;
                 border-right: 1px solid var(--light-gray);
                 display: flex;
@@ -143,18 +136,16 @@ if (isset($_SESSION['user_id'])) {
             }
 
             .sidebar-header {
-                padding: 18px 20px;
+                padding: 15px;
                 border-bottom: 1px solid var(--light-gray);
-                background-color: white;
                 display: flex;
-                align-items: center;
                 justify-content: space-between;
+                align-items: center;
             }
 
             .user-info {
                 display: flex;
                 align-items: center;
-                gap: 12px;
             }
             .user-avatar {
                 width: 40px;
@@ -162,6 +153,10 @@ if (isset($_SESSION['user_id'])) {
                 border-radius: 50%;
                 overflow: hidden;
                 margin-right: 10px;
+                background-color: #e9ecef;
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
             
             .user-avatar img {
@@ -170,18 +165,14 @@ if (isset($_SESSION['user_id'])) {
                 object-fit: cover;
             }
 
-            .user-details {
-                line-height: 1.3;
-            }
 
             .user-name {
                 font-weight: 600;
-                font-size: 0.95rem;
-                color: var(--dark-color);
+                font-size: 14px;
             }
 
             .user-role {
-                font-size: 0.75rem;
+                font-size: 12px;
                 color: var(--gray-color);
             }
 
@@ -425,7 +416,9 @@ if (isset($_SESSION['user_id'])) {
                 right: -10px;
                 top: -25px;
             }
-
+            .message-input-container textarea {
+                resize: none;
+            }
             .message-input-container {
                 padding: 16px 20px;
                 border-top: 1px solid var(--light-gray);
@@ -529,47 +522,7 @@ if (isset($_SESSION['user_id'])) {
                 margin-top: 24px;
             }
 
-            /* Sidebar Navigation */
-            .sidebar-nav {
-                width: 70px;
-                background-color: white;
-                border-right: 1px solid var(--light-gray);
-                padding: 16px 8px;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-            }
 
-            .nav-btn {
-                width: 48px;
-                height: 48px;
-                border-radius: 12px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                background-color: white;
-                border: 1px solid var(--light-gray);
-                color: var(--gray-color);
-                margin-bottom: 12px;
-                transition: all 0.2s;
-            }
-
-            .nav-btn:hover {
-                background-color: var(--primary-light);
-                color: var(--primary-color);
-                border-color: var(--primary-light);
-                transform: translateY(-2px);
-            }
-
-            .nav-btn.active {
-                background-color: var(--primary-light);
-                color: var(--primary-color);
-                border-color: var(--primary-light);
-            }
-
-            .nav-btn i {
-                font-size: 1.25rem;
-            }
 
             /* Modal Styles */
             .modal-content {
@@ -773,31 +726,24 @@ if (isset($_SESSION['user_id'])) {
                 justify-content: center;
             }
         }
-
+        
     </style>
+    
 </head>
 
 <body>
+    <!--
     <nav class="navbar navbar-light bg-light">
         <a class="navbar-brand" href="#">
-           <!-- <img src="/docs/4.0/assets/brand/bootstrap-solid.svg" width="30" height="30" class="d-inline-block align-top" alt=""> -->
+           <img src="/docs/4.0/assets/brand/bootstrap-solid.svg" width="30" height="30" class="d-inline-block align-top" alt=""> 
             CareerQuest
         </a>
+    -->
     </nav>
     <div class="container-fluid">
         <div class="chat-container">
             <!-- Sidebar Navigation -->
-            <div class="sidebar-nav">
-                <a href="../index.php" class="nav-btn" data-bs-toggle="tooltip" data-bs-placement="right" title="Home">
-                    <i class="bi bi-house-door"></i>
-                </a>
-                <a href="../forum/index.php" class="nav-btn" data-bs-toggle="tooltip" data-bs-placement="right" title="Forum">
-                    <i class="bi bi-people"></i>
-                </a>
-                <a href="#" class="nav-btn active" data-bs-toggle="tooltip" data-bs-placement="right" title="Messages">
-                    <i class="bi bi-chat-text"></i>
-                </a>
-            </div>
+            <?php require '../includes/forum_sidebar.php'; ?>
             
             <!-- Sidebar -->
             <div class="sidebar">
@@ -898,13 +844,81 @@ if (isset($_SESSION['user_id'])) {
 
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    
     <script>
-        let currentThreadId = null;
-        let currentParticipant = null;
-        let currentUser = <?php echo json_encode($currentUser); ?>;
-        let newMessageModal = new bootstrap.Modal(document.getElementById('newMessageModal'));
+        // Initialize Pusher globally
+    var pusher = new Pusher('d9d029433bbefa08b6a2', {
+        cluster: 'ap1',
+        encrypted: true
+    });
 
+    // Global variables to manage channels
+    var currentChannel = null;
+    var subscribedChannels = {};
+    let currentThreadId = null;
+    let currentParticipant = null;
+    let currentUser = <?php echo json_encode($currentUser); ?>;
+    let newMessageModal = new bootstrap.Modal(document.getElementById('newMessageModal'));
+
+    // Function to subscribe to a thread channel
+    function subscribeToThread(threadId) {
+        // Unsubscribe from current channel if different
+        if (currentChannel && currentChannel.name !== 'thread_' + threadId) {
+            pusher.unsubscribe(currentChannel.name);
+        }
+
+        // Subscribe if not already subscribed
+        if (!subscribedChannels['thread_' + threadId]) {
+            currentChannel = pusher.subscribe('thread_' + threadId);
+            subscribedChannels['thread_' + threadId] = true;
+
+            currentChannel.bind('new_message', function(data) {
+                handleNewMessage(data, threadId);
+            });
+
+            currentChannel.bind('thread_update', function(data) {
+                handleThreadUpdate(data);
+            });
+        }
+    }
+
+    // Handle incoming messages
+    function handleNewMessage(data, threadId) {
+        // Only process if this is the current thread or we need to update the thread list
+        if (data.thread_id === threadId || !currentThreadId) {
+            const messageList = document.getElementById('message-list');
+            const isSender = data.sender_type === currentUser.entity_type && 
+                          data.sender_id == currentUser.entity_id;
+            
+            // Add message to UI if this is the current thread
+            if (data.thread_id === currentThreadId) {
+                const messageEl = document.createElement('div');
+                messageEl.className = `message ${isSender ? 'message-sent' : 'message-received'}`;
+                messageEl.innerHTML = `
+                    <div>${data.content}</div>
+                    <div class="message-time">${formatTime(data.sent_at)}</div>
+                `;
+                messageList.appendChild(messageEl);
+                
+                // Scroll to bottom
+                messageList.scrollTop = messageList.scrollHeight;
+                
+                // If the message is not from the current user, mark as read
+                if (!isSender) {
+                    markMessagesAsRead(threadId);
+                }
+            }
+            
+            // Always refresh thread list when new message arrives
+            loadThreads();
+        }
+    }
+
+    // Handle thread updates (like read status changes)
+    function handleThreadUpdate(data) {
+        if (data.thread_id === currentThreadId || data.action === 'update_all') {
+            loadThreads();
+        }
+    }
         // Load threads
         function loadThreads() {
             fetch('../controllers/messages_controller.php', {
@@ -915,6 +929,7 @@ if (isset($_SESSION['user_id'])) {
             .then(response => response.json())
             .then(data => {
                 const threadsList = document.getElementById('threads-list');
+                
                 
                 if (data.status === 'success') {
                     threadsList.innerHTML = '';
@@ -961,7 +976,11 @@ if (isset($_SESSION['user_id'])) {
                     threadsList.appendChild(threadEl);
                 });
 
-
+                data.threads.forEach(thread => {
+                    if (!subscribedChannels['thread_' + thread.thread_id]) {
+                        subscribeToThread(thread.thread_id);
+                    }
+                });
 
                 } else {
                     threadsList.innerHTML = `
@@ -987,11 +1006,8 @@ if (isset($_SESSION['user_id'])) {
 
         // Open a thread
         function openThread(threadId) {
-
-                // Initialize Pusher only when a thread is opened
-                if (currentChannel) {
-                    pusher.unsubscribe(currentChannel.name);
-                }
+            currentThreadId = threadId;
+            subscribeToThread(threadId);    
 
                 // Subscribe to the channel for this specific thread
                 currentChannel = pusher.subscribe('thread_' + threadId);
@@ -1066,9 +1082,16 @@ if (isset($_SESSION['user_id'])) {
                                 img.alt = userData.user.name;
                                 chatAvatar.appendChild(img);
                             } else {
+                                let iconContainer = chatAvatar.querySelector('div');
+                                if (!iconContainer) {
+                                    iconContainer = document.createElement('div');
+                                    chatAvatar.appendChild(iconContainer);
+                                }
+
+                                // Create and append the default icon
                                 const icon = document.createElement('i');
                                 icon.className = 'bi bi-person-fill text-white';
-                                chatAvatar.querySelector('div').appendChild(icon);
+                                iconContainer.appendChild(icon);
                             }
                         }
                     });
@@ -1151,6 +1174,7 @@ if (isset($_SESSION['user_id'])) {
                     document.getElementById('message-content').value = '';
                     if (!currentThreadId) {
                         currentThreadId = data.thread_id;
+                        subscribeToThread(currentThreadId);
                     }
                     openThread(currentThreadId);
                     loadThreads();
@@ -1286,9 +1310,18 @@ if (isset($_SESSION['user_id'])) {
                 img.alt = selectedRecipient.name;
                 chatAvatar.appendChild(img);
             } else {
+             
+                let iconContainer = chatAvatar.querySelector('div');
+                if (!iconContainer) {
+                    iconContainer = document.createElement('div');
+                    chatAvatar.appendChild(iconContainer);
+                }
+
+                // Create and append the icon
                 const icon = document.createElement('i');
                 icon.className = 'bi bi-person-fill text-white';
-                chatAvatar.querySelector('div').appendChild(icon);
+                iconContainer.appendChild(icon);
+
             }
             
             // Clear and focus message input
@@ -1318,6 +1351,15 @@ if (isset($_SESSION['user_id'])) {
         document.addEventListener('DOMContentLoaded', () => {
             loadThreads();
             
+              // Subscribe to a global channel for user updates
+            const userChannel = pusher.subscribe('user_' + currentUser.entity_id);
+            userChannel.bind('update', function(data) {
+                if (data.type === 'message') {
+                    loadThreads();
+                }
+            });
+
+            
             // Check if we should open a thread from URL
             const urlParams = new URLSearchParams(window.location.search);
             const threadId = urlParams.get('thread_id');
@@ -1339,6 +1381,17 @@ if (isset($_SESSION['user_id'])) {
                 document.querySelector('.sidebar').style.display = 'block';
                 document.getElementById('chat-area').classList.remove('active');
             }
+        });
+
+        window.addEventListener('beforeunload', () => {
+            Object.keys(subscribedChannels).forEach(channel => {
+                pusher.unsubscribe(channel);
+            });
+        });
+
+
+        pusher.connection.bind('error', (err) => {
+            console.error('Pusher error:', err);
         });
     </script>
 
