@@ -157,30 +157,37 @@ try {
     $recent_forum_activity = [];
 }
 
-// Helper function to calculate time ago
-function getTimeAgo($timestamp) {
-    $time = strtotime($timestamp);
-    $time_difference = time() - $time;
+function getTimeAgo($timestamp, $referenceTime = null) {
+    // Create a DateTime object in the Manila time zone
+    $timezone = new DateTimeZone('Asia/Manila');
+    $time = new DateTime($timestamp, $timezone);
     
-    if ($time_difference < 1) { return 'less than 1 second ago'; }
-    $condition = [
-        12 * 30 * 24 * 60 * 60 => 'year',
-        30 * 24 * 60 * 60 => 'month',
-        24 * 60 * 60 => 'day',
-        60 * 60 => 'hour',
-        60 => 'minute',
-        1 => 'second'
-    ];
-    
-    foreach ($condition as $secs => $str) {
-        $d = $time_difference / $secs;
-        if ($d >= 1) {
-            $t = round($d);
-            return $t . ' ' . $str . ($t > 1 ? 's' : '') . ' ago';
-        }
+    if ($referenceTime) {
+        // Use provided reference time or default to 'now' in Manila time zone
+        $now = new DateTime($referenceTime, $timezone);
+    } else {
+        $now = new DateTime('now', $timezone);
     }
-}
+    
+    $diff = $now->diff($time);
 
+    if ($diff->y > 0) {
+        return $diff->y . ' year' . ($diff->y > 1 ? 's' : '') . ' ago';
+    }
+    if ($diff->m > 0) {
+        return $diff->m . ' month' . ($diff->m > 1 ? 's' : '') . ' ago';
+    }
+    if ($diff->d > 0) {
+        return $diff->d . ' day' . ($diff->d > 1 ? 's' : '') . ' ago';
+    }
+    if ($diff->h > 0) {
+        return $diff->h . ' hour' . ($diff->h > 1 ? 's' : '') . ' ago';
+    }
+    if ($diff->i > 0) {
+        return $diff->i . ' minute' . ($diff->i > 1 ? 's' : '') . ' ago';
+    }
+    return $diff->s . ' second' . ($diff->s > 1 ? 's' : '') . ' ago';
+}
 
 try {
     // Define profile fields to check and their weights
@@ -270,7 +277,7 @@ try {
     $application_data = array_map(function($app) {
         return [
             'job_title' => htmlspecialchars($app['job_title']),
-            'applied_at' => $app['applied_at'],
+            'applied_at' => getTimeAgo($app['applied_at']),
             'application_status' => htmlspecialchars($app['application_status']),
             'status_class' => getStatusClass($app['application_status']),
         ];

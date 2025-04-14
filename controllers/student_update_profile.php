@@ -75,7 +75,7 @@ try {
         }
 
         if ($fileSize > $maxImageSize) {
-            throw new Exception("Profile picture must be less than 2MB");
+            throw new Exception("Profile picture must be less than 5MB");
         }
 
         // Get old filename for cleanup

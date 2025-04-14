@@ -68,7 +68,7 @@ $notification_count = getUnreadNotificationCount($conn, $studentId);
 
 // Get current page
 $currentPage = basename($_SERVER['PHP_SELF']);
-
+ob_start(); 
 // Navigation links
 $nav_links = [
     "Dashboard" => "../dashboard/student.php",
@@ -76,7 +76,7 @@ $nav_links = [
     "Applications" => "student_applications.php",
     "Forum" => "forums.php",
     "Messages" => "messages.php",
-    "Notifications" => "notifications.php"
+    "Notifications" => "../dashboard/notifications.php"
 ];
 
 // Get student name safely

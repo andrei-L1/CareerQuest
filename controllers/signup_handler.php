@@ -76,6 +76,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($entity === "student") {
             $checkEmailStmt = $conn->prepare("SELECT stud_email FROM student WHERE stud_email = :email");
             $checkStudnoStmt = $conn->prepare("SELECT stud_no FROM student WHERE stud_no = :studno");
+            $checkStudnoStmt->bindParam(':studno', $studno, PDO::PARAM_STR);
+            $checkStudnoStmt->execute();
+
+                
+            if ($checkStudnoStmt->rowCount() > 0) {
+                throw new Exception("Student ID already exists. Please use a different one.");
+            }
+
 
         } elseif ($entity === "professional" || $entity === "employer") {
             $checkEmailStmt = $conn->prepare("SELECT user_email FROM user WHERE user_email = :email");
@@ -83,17 +91,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception("Invalid entity type.");
         }
 
-        $checkStudnoStmt->bindParam(':studno', $studno, PDO::PARAM_STR);
+
         $checkEmailStmt->bindParam(':email', $email, PDO::PARAM_STR);
         $checkEmailStmt->execute();
-        $checkStudnoStmt->execute();
+
         
         if ($checkEmailStmt->rowCount() > 0) {
             throw new Exception("Email already exists. Use a different email.");
-        }
- 
-        if ($checkStudnoStmt->rowCount() > 0) {
-            throw new Exception("Student ID already exists. Please use a different one.");
         }
 
 

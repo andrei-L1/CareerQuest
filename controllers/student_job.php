@@ -10,6 +10,7 @@ if (!isset($_SESSION['stud_id'])) {
     exit();
 }
 
+
 class StudentJobController {
     private $db;
     private $studentId;
@@ -53,47 +54,70 @@ class StudentJobController {
     }
 
     private function getAllJobs() {
-        $stmt = $this->db->prepare("SELECT jp.job_id, jp.title, e.company_name as company, 
-                                  jt.job_type_title, jp.description, jp.location, jp.salary, jp.posted_at, jp.expires_at,
-                                  (SELECT COUNT(*) FROM application_tracking at 
-                                   WHERE at.job_id = jp.job_id AND at.stud_id = :stud_id) as has_applied
-                                  FROM job_posting jp
-                                  JOIN employer e ON jp.employer_id = e.employer_id
-                                  JOIN job_type jt ON jp.job_type_id = jt.job_type_id
-                                  WHERE jp.deleted_at IS NULL AND jp.moderation_status = 'Approved'
-                                  ORDER BY jp.posted_at DESC");
+        $stmt = $this->db->prepare("
+            SELECT jp.job_id, jp.title, e.company_name AS company, 
+                   jt.job_type_title, jp.description, jp.location, jp.salary, jp.posted_at, jp.expires_at,
+                   (SELECT COUNT(*) 
+                    FROM application_tracking at 
+                    WHERE at.job_id = jp.job_id AND at.stud_id = :stud_id) AS has_applied,
+                   GROUP_CONCAT(sm.category SEPARATOR ', ') AS categories
+            FROM job_posting jp
+            JOIN employer e ON jp.employer_id = e.employer_id
+            JOIN job_type jt ON jp.job_type_id = jt.job_type_id
+            LEFT JOIN job_skill js ON jp.job_id = js.job_id
+            LEFT JOIN skill_masterlist sm ON js.skill_id = sm.skill_id
+            WHERE jp.deleted_at IS NULL AND jp.moderation_status = 'Approved'
+            GROUP BY jp.job_id
+            ORDER BY jp.posted_at DESC
+        ");
         $stmt->bindParam(':stud_id', $this->studentId);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-
-    private function getRecommendedJobs() {
+    
+    private function getRecommendedJobs($category = "") {
+        // Start with the basic query
         $query = "SELECT jp.job_id, jp.title, e.company_name as company, 
-                 jt.job_type_title, jp.description, jp.location, jp.salary, jp.posted_at, jp.expires_at,
-                 ROUND(AVG(CASE 
-                     WHEN ss.proficiency = 'Advanced' AND js.importance = 'High' THEN 100
-                     WHEN ss.proficiency = 'Advanced' AND js.importance = 'Medium' THEN 80
-                     WHEN ss.proficiency = 'Intermediate' AND js.importance = 'High' THEN 80
-                     WHEN ss.proficiency = 'Intermediate' AND js.importance = 'Medium' THEN 60
-                     WHEN ss.proficiency = 'Beginner' AND js.importance = 'High' THEN 40
-                     ELSE 20
-                 END), 0) as match_score
-                 FROM job_posting jp
-                 JOIN employer e ON jp.employer_id = e.employer_id
-                 JOIN job_type jt ON jp.job_type_id = jt.job_type_id
-                 JOIN job_skill js ON jp.job_id = js.job_id
-                 JOIN skill_masterlist sm ON js.skill_id = sm.skill_id
-                 JOIN stud_skill ss ON sm.skill_id = ss.skill_id
-                 WHERE jp.deleted_at IS NULL 
-                 AND jp.moderation_status = 'Approved'
-                 AND ss.stud_id = :stud_id
-                 GROUP BY jp.job_id
-                 HAVING match_score > 50
-                 ORDER BY match_score DESC, jp.posted_at DESC
-                 LIMIT 20";
-        
+                     jt.job_type_title, jp.description, jp.location, jp.salary, jp.posted_at, jp.expires_at,
+                     ROUND(AVG(CASE 
+                         WHEN ss.proficiency = 'Advanced' AND js.importance = 'High' THEN 100
+                         WHEN ss.proficiency = 'Advanced' AND js.importance = 'Medium' THEN 80
+                         WHEN ss.proficiency = 'Intermediate' AND js.importance = 'High' THEN 80
+                         WHEN ss.proficiency = 'Intermediate' AND js.importance = 'Medium' THEN 60
+                         WHEN ss.proficiency = 'Beginner' AND js.importance = 'High' THEN 40
+                         ELSE 20
+                     END), 0) as match_score,
+                     GROUP_CONCAT(sm.category SEPARATOR ', ') AS categories
+                     FROM job_posting jp
+                     JOIN employer e ON jp.employer_id = e.employer_id
+                     JOIN job_type jt ON jp.job_type_id = jt.job_type_id
+                     JOIN job_skill js ON jp.job_id = js.job_id
+                     JOIN skill_masterlist sm ON js.skill_id = sm.skill_id
+                     JOIN stud_skill ss ON sm.skill_id = ss.skill_id
+                     WHERE jp.deleted_at IS NULL 
+                     AND jp.moderation_status = 'Approved'
+                     AND ss.stud_id = :stud_id";
+    
+        // Add category filter if specified
+        if ($category !== "") {
+            $query .= " AND sm.category = :category";
+        }
+    
+        // Continue with the rest of the query
+        $query .= " GROUP BY jp.job_id
+                    HAVING match_score > 50
+                    ORDER BY match_score DESC, jp.posted_at DESC
+                    LIMIT 20";
+    
+        // Prepare and execute the statement
         $stmt = $this->db->prepare($query);
         $stmt->bindParam(':stud_id', $this->studentId);
+    
+        // Bind category if it exists
+        if ($category !== "") {
+            $stmt->bindParam(':category', $category);
+        }
+    
         $stmt->execute();
         
         $recommendedJobs = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -130,7 +154,7 @@ class StudentJobController {
                 $insertStmt->execute();
             }
         }
-        
+    
         return $recommendedJobs;
     }
     

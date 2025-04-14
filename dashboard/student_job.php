@@ -12,6 +12,8 @@ require '../auth/auth_check_student.php';
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.8/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.8/dist/sweetalert2.all.min.js"></script>
     <style>
         :root {
             
@@ -25,7 +27,10 @@ require '../auth/auth_check_student.php';
         }
         
         body {
-            background-color: var(--light-bg);
+
+          
+            background-color: #f5f7ff;
+          
         }
         
         .job-container {
@@ -75,54 +80,60 @@ require '../auth/auth_check_student.php';
         
         /* Job Cards */
         .job-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            transition: all 0.2s ease;
             background: white;
-            border-radius: 12px;
-            box-shadow: var(--card-shadow);
-            margin-bottom: 15px;
-            padding: 20px;
-            transition: all 0.3s ease;
-            border-left: 4px solid transparent;
-            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            font-family: 'Roboto', Arial, sans-serif;
             position: relative;
         }
+
         
         .job-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--card-hover-shadow);
-            border-left-color: var(--primary-color);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+            transform: translateY(-1px);
         }
-        
+
         .job-card.active {
-            border-left-color: var(--primary-color);
-            background-color: #f5f7ff;
+            border: 1px solid #4a6bff;
+            background-color: #f8f9ff;
         }
         
         .job-title {
+            font-size: 1.2rem;
             font-weight: 600;
-            color: #222;
-            font-size: 1.1rem;
-            margin-bottom: 5px;
+            color: #2d3748;
+            margin: 5px 0;
         }
+
         
         .company-name {
-            color: #555;
-            font-weight: 500;
+            color: #4a5568;
             font-size: 0.95rem;
-            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
         
         .job-meta {
             display: flex;
             flex-wrap: wrap;
             gap: 12px;
-            margin-bottom: 12px;
+            margin: 10px 0;
+            align-items: center;
         }
-        
         .job-meta-item {
             display: flex;
             align-items: center;
-            font-size: 0.85rem;
-            color: #666;
+            gap: 5px;
+            color: #4a5568;
+            font-size: 0.9rem;
         }
         
         .job-meta-item i {
@@ -131,12 +142,12 @@ require '../auth/auth_check_student.php';
         }
         
         .job-type-badge {
-            font-size: 0.75rem;
-            font-weight: 500;
-            padding: 4px 8px;
+            padding: 3px 8px;
             border-radius: 4px;
-            background-color: #e0e7ff;
-            color: var(--primary-color);
+            font-size: 0.8rem;
+            font-weight: 500;
+            background: #e2e8f0;
+            color: #2d3748;
         }
         
         .salary-highlight {
@@ -179,7 +190,7 @@ require '../auth/auth_check_student.php';
             background: white;
             border-radius: 12px;
             box-shadow: var(--card-shadow);
-            height: 100%;
+            height: 90%;
             padding: 25px;
             position: relative;
         }
@@ -187,7 +198,9 @@ require '../auth/auth_check_student.php';
         .detail-header {
             margin-bottom: 20px;
             padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 16px;
+            margin-bottom: 16px;
         }
         
         .detail-title {
@@ -296,6 +309,7 @@ require '../auth/auth_check_student.php';
         
         .btn-apply {
             background-color: var(--primary-color);
+            color: white;
             border: none;
             padding: 10px 25px;
             font-weight: 500;
@@ -491,6 +505,29 @@ require '../auth/auth_check_student.php';
         </div>
     </div>
 
+
+    <?php
+        require '../config/dbcon.php'; 
+        $jobTypes = [];
+        $categories = [];
+
+        try {
+            $stmt = $conn->prepare("SELECT job_type_title FROM job_type");
+            $stmt->execute();
+            $jobTypes = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        } catch (PDOException $e) {
+            // Optional: handle errors (you can log this in production)
+            echo "Error fetching job types: " . $e->getMessage();
+        }
+        try{
+            $stmt = $conn->prepare("SELECT DISTINCT  category FROM skill_masterlist");
+            $stmt->execute();
+            $categories = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        }catch (PDOException $e){
+            echo "Error fetching categories: " .$e->getMessage();
+        }
+    ?>
+
     <!-- Filters Section -->
     <div class="filter-section">
         <div class="row filter-row g-3">
@@ -506,10 +543,9 @@ require '../auth/auth_check_student.php';
                 <select id="category" class="form-select">
                     <option value="">All Categories</option>
                     <?php
-                    $categories = ['IT', 'Marketing', 'Finance', 'Engineering', 'Design', 'Healthcare', 'Education'];
-                    foreach ($categories as $category) {
-                        echo "<option value='$category'>$category</option>";
-                    }
+                        foreach($categories as $category){
+                            echo "<option value='$category'>$category</option>";
+                        }
                     ?>
                 </select>
             </div>
@@ -518,7 +554,6 @@ require '../auth/auth_check_student.php';
                 <select id="jobType" class="form-select">
                     <option value="">All Types</option>
                     <?php
-                    $jobTypes = ['Full-time', 'Part-time', 'Contract', 'Internship', 'Remote'];
                     foreach ($jobTypes as $type) {
                         echo "<option value='$type'>$type</option>";
                     }
@@ -621,7 +656,7 @@ function fetchJobs() {
             </div>
         </div>`;
     
-    fetch("../controllers/student_job.php?action=get_all_jobs")
+    fetch("../controllers/student_job.php?action=get_all_jobs") 
         .then(response => response.json())
         .then(data => {
             jobData = data;
@@ -703,7 +738,7 @@ function renderJobListings(jobs) {
                 <span class="job-type-badge">${sanitize(job.job_type_title || job.job_type)}</span>
             </div>
             
-            ${job.salary ? `<div class="salary-highlight"><i class="bi bi-cash"></i> $${sanitize(job.salary.toLocaleString())}/year</div>` : ''}
+            ${job.salary ? `<div class="salary"><i class="bi bi-cash"></i> $${sanitize(job.salary.toLocaleString())}/year</div>` : ''}
             
             <div class="d-flex justify-content-between mt-2">
                 ${isJobExpiringSoon(job.expires_at) ? 
@@ -807,9 +842,10 @@ function renderJobDetails(job, jobDetails) {
                           <a href="job_details.php?id=${sanitize(job.job_id)}" class="btn btn-outline-primary mt-2">
                               <i class="bi bi-eye"></i> View Application
                           </a>` : 
-                          `<a href="job_details.php?id=${sanitize(job.job_id)}" class="btn btn-apply">
-                              <i class="bi bi-send-check"></i> Apply Now
-                          </a>
+                          `<button class="btn btn-apply" data-job-id="${job.job_id}" onclick="confirmApply(${job.job_id})">
+                                <i class="bi bi-send-check"></i> Apply Now
+                            </button>
+
                           <button class="btn btn-save" onclick="saveJob(${job.job_id})">
                               <i class="bi bi-bookmark${isJobSaved(job.job_id) ? '-fill' : ''}"></i> ${isJobSaved(job.job_id) ? 'Saved' : 'Save Job'}
                           </button>`
@@ -881,8 +917,8 @@ function renderJobDetails(job, jobDetails) {
 
 function getStatusClass(status) {
     switch(status.toLowerCase()) {
-        case 'applied': return 'status-applied';
-        case 'interview': return 'status-interview';
+        case 'pending': return 'status-pending';
+        case 'accepted': return 'status-accepted';
         case 'rejected': return 'status-rejected';
         default: return '';
     }
@@ -909,13 +945,15 @@ function filterJobs() {
     soonDate.setDate(now.getDate() + 7); // 7 days from now
 
     const filteredJobs = jobData.filter(job => {
+        console.log(jobData);
         const matchesSearch = search === "" || 
              job.title.toLowerCase().includes(search) || 
              (job.company_name && job.company_name.toLowerCase().includes(search)) ||
              (job.company && job.company.toLowerCase().includes(search));
         
         const matchesCategory = category === "" || 
-            (job.category && job.category.toLowerCase().includes(category));
+             (job.categories && job.categories.toLowerCase().split(', ').some(cat => cat.toLowerCase() === category));
+
         
         const matchesJobType = jobType === "" || 
             (job.job_type_title && job.job_type_title.toLowerCase().includes(jobType)) ||
@@ -1081,6 +1119,73 @@ function showToast(message, type = 'success') {
         toast.classList.remove('show');
         setTimeout(() => toast.remove(), 300);
     }, 3000);
+}
+
+
+function applyForJob(jobId) {
+     console.log("Applying for job ID:", jobId);
+    const btn = document.querySelector(`.btn-apply[data-job-id="${jobId}"]`);
+    if (!btn) return;
+    
+    btn.innerHTML = `<i class="bi bi-hourglass"></i> Applying...`;
+    btn.disabled = true;
+    
+    fetch("../controllers/student_apply_job.php", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ job_id: jobId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            btn.innerHTML = `<i class="bi bi-check-circle"></i> Applied`;
+            btn.classList.remove('btn-primary');
+            btn.classList.add('btn-success');
+            showToast('Application submitted successfully!', 'success');
+            
+            // Update the UI to show application status
+            const jobCard = document.querySelector(`.job-card[onclick*="${jobId}"]`);
+            if (jobCard) {
+                const statusBadge = document.createElement('div');
+                statusBadge.className = 'status-badge status-applied mt-2';
+                statusBadge.innerHTML = '<i class="bi bi-send-check"></i> Applied - Pending';
+                jobCard.querySelector('.job-meta').appendChild(statusBadge);
+            }
+            
+            // Refresh the details view
+            if (selectedJobId == jobId) {
+                selectJob(jobId);
+            }
+        } else {
+            btn.innerHTML = `<i class="bi bi-send-check"></i> Apply Now`;
+            btn.disabled = false;
+            showToast(data.message || 'Error submitting application', 'danger');
+        }
+    })
+    .catch(error => {
+        console.error("Error applying for job:", error);
+        btn.innerHTML = `<i class="bi bi-send-check"></i> Apply Now`;
+        btn.disabled = false;
+        showToast('Error submitting application. Please try again.', 'danger');
+    });
+}
+function confirmApply(jobId) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "Do you really want to apply for this job?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, apply!',
+        cancelButtonText: 'No, cancel',
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Proceed with the job application
+            applyForJob(jobId);
+        }
+    });
 }
 </script>
 
