@@ -27,17 +27,14 @@ require '../auth/auth_check_student.php';
         }
         
         body {
-
-          
             background-color: #f5f7ff;
-          
+          /* \font-family: 'Poppins', sans-serif; */
         }
         
         .job-container {
-            font-family: 'Poppins', sans-serif;
             color: #333;
             padding: 20px;
-            max-width: 1400px;
+            max-width: 1350px;
             margin: 0 auto;
         
         }
@@ -53,14 +50,14 @@ require '../auth/auth_check_student.php';
         }
         
         .page-title {
-            font-weight: 600;
+            font-weight: 300;
             color: var(--primary-color);
             margin: 0;
         }
         
         /* Filter Section */
         .filter-section {
-            background: white;
+            background:rgba(252, 252, 252, 0.9);
             padding: 20px;
             border-radius: 12px;
             box-shadow: var(--card-shadow);
@@ -73,7 +70,7 @@ require '../auth/auth_check_student.php';
         
         .filter-label {
             font-size: 0.85rem;
-            font-weight: 500;
+            font-weight: 400;
             color: #666;
             margin-bottom: 5px;
         }
@@ -82,7 +79,7 @@ require '../auth/auth_check_student.php';
         .job-card {
             border: 1px solid #e0e0e0;
             border-radius: 8px;
-            padding: 16px;
+            padding: 25px;
             margin-bottom: 16px;
             transition: all 0.2s ease;
             background: white;
@@ -90,7 +87,6 @@ require '../auth/auth_check_student.php';
             display: flex;
             flex-direction: column;
             height: 100%;
-            font-family: 'Roboto', Arial, sans-serif;
             position: relative;
         }
 
@@ -107,9 +103,9 @@ require '../auth/auth_check_student.php';
         
         .job-title {
             font-size: 1.2rem;
-            font-weight: 600;
+            font-weight: 500;
             color: #2d3748;
-            margin: 5px 0;
+            
         }
 
         
@@ -118,7 +114,7 @@ require '../auth/auth_check_student.php';
             font-size: 0.95rem;
             display: flex;
             align-items: center;
-            gap: 5px;
+            margin-bottom: 10px;
         }
         
         .job-meta {
@@ -145,20 +141,20 @@ require '../auth/auth_check_student.php';
             padding: 3px 8px;
             border-radius: 4px;
             font-size: 0.8rem;
-            font-weight: 500;
+            font-weight: 400;
             background: #e2e8f0;
             color: #2d3748;
         }
         
         .salary-highlight {
-            font-weight: 600;
+            font-weight: 400;
             color: var(--success-color);
-            font-size: 0.95rem;
+            font-size: 0.85rem;
         }
         
         .expires-soon {
             color: var(--danger-color);
-            font-weight: 500;
+            font-weight: 400;
         }
         
         .match-badge {
@@ -240,10 +236,10 @@ require '../auth/auth_check_student.php';
         }
         
         .section-title {
-            font-weight: 600;
+            font-weight: 500;
             color: #333;
             margin-bottom: 12px;
-            font-size: 1.1rem;
+            font-size: 0.9rem;
             display: flex;
             align-items: center;
         }
@@ -312,7 +308,7 @@ require '../auth/auth_check_student.php';
             color: white;
             border: none;
             padding: 10px 25px;
-            font-weight: 500;
+            font-weight: 400;
             flex-grow: 1;
         }
         
@@ -324,7 +320,7 @@ require '../auth/auth_check_student.php';
             border: 1px solid var(--primary-color);
             color: var(--primary-color);
             padding: 10px 25px;
-            font-weight: 500;
+            font-weight: 400;
             flex-grow: 1;
         }
         
@@ -565,7 +561,7 @@ require '../auth/auth_check_student.php';
                 <input type="text" id="location" class="form-control" placeholder="Any location">
             </div>
             <div class="col-md-2 d-flex align-items-end">
-                <button class="btn btn-primary w-100 d-flex align-items-center justify-content-center" onclick="filterJobs()">
+                <button class="btn btn-primary w-100 d-flex align-items-center justify-content-center" onclick="filterJobs()" style="background-color: #1A4D8F; border-color: #1A4D8F;">
                     <i class="bi bi-funnel-fill me-2"></i> Filter
                 </button>
             </div>
@@ -619,7 +615,7 @@ require '../auth/auth_check_student.php';
         </div>
     </div>
 </div>
-
+<?php include '../includes/stud_footer.php'; ?>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     fetchJobs();

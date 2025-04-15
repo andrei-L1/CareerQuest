@@ -236,7 +236,7 @@ require "../auth/auth_check.php";
                         <ul class="list-group list-group-flush">
                             <?php if (!empty($recentActivities)): ?>
                                 <?php foreach ($recentActivities as $activity): ?>
-                                    <li class="list-group-item d-flex align-items-center p-2 mb-2  shadow-sm hover-shadow">
+                                    <li class="list-group-item d-flex align-items-center p-2 mb-2 shadow-sm hover-shadow">
                                         <?php 
                                             // Choose icon based on activity type
                                             $icon = '';
@@ -244,14 +244,20 @@ require "../auth/auth_check.php";
                                                 case 'User registered':
                                                     $icon = 'fas fa-user-plus';  // User registration icon
                                                     break;
-                                                case 'Login':
-                                                    $icon = 'fas fa-sign-in-alt';  // Login icon
+                                                case 'Student registered':
+                                                    $icon = 'fas fa-user-graduate';  // Student registration icon
                                                     break;
-                                                case 'Logout':
-                                                    $icon = 'fas fa-sign-out-alt'; // Logout icon
+                                                case 'Job posted by':
+                                                    $icon = 'fas fa-briefcase';  // Job posting icon
                                                     break;
-                                                case 'Password changed':
-                                                    $icon = 'fas fa-key';  // Password change icon
+                                                case 'Application submitted':
+                                                    $icon = 'fas fa-paper-plane';  // Application submitted icon
+                                                    break;
+                                                case 'Forum post created':
+                                                    $icon = 'fas fa-comments';  // Forum post icon
+                                                    break;
+                                                case 'Forum comment added':
+                                                    $icon = 'fas fa-comment-dots';  // Forum comment icon
                                                     break;
                                                 default:
                                                     $icon = 'fas fa-cogs';  // Default icon for other activities
@@ -264,6 +270,9 @@ require "../auth/auth_check.php";
                                         <div class="activity-details">
                                             <?php if ($activity['activity_type'] === 'User registered' && !empty($activity['user_type'])): ?>
                                                 <span class="badge bg-success"><?= htmlspecialchars($activity['user_type']) ?></span>
+                                                <strong><?= htmlspecialchars($activity['entity_name']) ?></strong>
+                                            <?php elseif ($activity['activity_type'] === 'Forum post created' || $activity['activity_type'] === 'Forum comment added'): ?>
+                                                <span class="badge bg-info"><?= htmlspecialchars($activity['activity_type']) ?></span>
                                                 <strong><?= htmlspecialchars($activity['entity_name']) ?></strong>
                                             <?php else: ?>
                                                 <span class="badge bg-secondary"><?= htmlspecialchars($activity['activity_type']) ?></span>
@@ -279,6 +288,7 @@ require "../auth/auth_check.php";
                     </div>
                 </div>
             </div>
+
 
             <!-- Notifications Section -->
             <div class="col-md-4">

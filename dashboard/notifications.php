@@ -174,7 +174,7 @@ foreach ($notifications as $n) {
         
         body {
             background-color: #f5f7ff;
-           
+            /* font-family: 'Poppins', sans-serif; */
         }
         
         .dashboard-container {
@@ -563,7 +563,7 @@ foreach ($notifications as $n) {
         </div>
     </div>
 </div>
-
+<?php include '../includes/stud_footer.php'; ?>
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <!-- jQuery -->

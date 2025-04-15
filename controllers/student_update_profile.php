@@ -46,6 +46,7 @@ try {
         stud_email = :email,
         institution = :institution,
         graduation_yr = :graduation_yr,
+        course_id = :course_id,
         bio = :bio
         WHERE stud_id = :stud_id");
 
@@ -58,6 +59,7 @@ try {
         ':email' => $_POST['email'],
         ':institution' => $_POST['institution'] ?? null,
         ':graduation_yr' => !empty($_POST['graduation_yr']) ? $_POST['graduation_yr'] : null,
+        ':course_id' => $_POST['course_id'] ?? null,
         ':bio' => $_POST['bio'] ?? null,
         ':stud_id' => $stud_id
     ]);

@@ -532,7 +532,7 @@ include '../includes/stud_navbar.php';
                     
                     <div class="action-buttons">
                         <?php if (!empty($student['resume_file'])): ?>
-                        <a href="../assets/uploads/<?php echo htmlspecialchars($student['resume_file']); ?>" 
+                        <a href="../uploads/<?php echo htmlspecialchars($student['resume_file']); ?>" 
                            class="btn btn-light btn-sm" 
                            download>
                             <i class="fas fa-download me-1"></i> Download Resume
@@ -808,7 +808,7 @@ include '../includes/stud_navbar.php';
     </div>
     -->
 
-
+    <?php include '../includes/stud_footer.php'; ?>
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

@@ -82,6 +82,19 @@ $nav_links = [
 // Get student name safely
 $firstName = htmlspecialchars($studentData['stud_first_name'] ?? 'Student');
 $lastName = htmlspecialchars($studentData['stud_last_name'] ?? '');
+
+
+$resumeFile = $studentData['resume_file'] ?? '';
+
+// Define the base directory for uploads
+$uploadsDir = '../uploads/';
+
+// Check if the resume file exists
+if (!empty($resumeFile) && file_exists($uploadsDir . $resumeFile)) {
+    $resumeLink = $uploadsDir . $resumeFile; // Direct link to the file for viewing
+} else {
+    $resumeLink = ''; // No resume available
+}
 ?>
 
 
@@ -106,13 +119,13 @@ $lastName = htmlspecialchars($studentData['stud_last_name'] ?? '');
             --warning-color: #DD6B20;
             --hover-color: rgba(58, 123, 213, 0.1);
             --transition-speed: 0.3s;
-            --nav-height: 80px;
+            --nav-height: 70px;
             --border-radius: 8px;
             --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         }
         
         body {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Poppins', sans-serif !important;
             background-color: var(--light-bg);
         }
         
@@ -485,7 +498,11 @@ $lastName = htmlspecialchars($studentData['stud_last_name'] ?? '');
                         <li><h6 class="dropdown-header"><?= htmlspecialchars($firstName . ' ' . $lastName) ?></h6></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="../dashboard/student_profile.php">My Profile</a></li>
-                        <li><a class="dropdown-item" href="resume.php">My Resume</a></li>
+                        <?php if ($resumeLink): ?>
+                            <li><a class="dropdown-item" href="<?= $resumeLink ?>" target="_blank">My Resume</a></li>
+                        <?php else: ?>
+                            <li><a class="dropdown-item" href="javascript:void(0);">No Resume Uploaded</a></li>
+                        <?php endif; ?>
                         <li><a class="dropdown-item" href="../dashboard/student_account_settings.php">Account Settings</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item text-danger" href="../auth/logout.php">Logout</a></li>

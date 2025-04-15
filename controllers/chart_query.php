@@ -73,7 +73,6 @@ try {
 }
 
 
-
 try {
     $query = "
         -- New Job Postings
@@ -116,6 +115,29 @@ try {
         JOIN student s ON at.stud_id = s.stud_id
         WHERE at.deleted_at IS NULL
 
+        UNION
+
+        -- Forum Post Created
+        SELECT 'Forum post created' AS activity_type, 
+               f.title AS entity_name, 
+               NULL AS user_type, 
+               fp.posted_at AS activity_date
+        FROM forum_post fp
+        JOIN forum f ON fp.forum_id = f.forum_id
+        WHERE fp.deleted_at IS NULL
+
+        UNION
+
+        -- Forum Comment Added
+        SELECT 'Forum comment added' AS activity_type, 
+               CONCAT(u.user_first_name, ' ', u.user_last_name) AS entity_name, 
+               NULL AS user_type, 
+               fc.commented_at AS activity_date
+        FROM forum_comment fc
+        JOIN actor a ON fc.commenter_id = a.actor_id
+        JOIN user u ON a.entity_id = u.user_id AND a.entity_type = 'user'
+        WHERE fc.deleted_at IS NULL
+
         ORDER BY activity_date DESC
         LIMIT 5";  
 
@@ -127,6 +149,7 @@ try {
     error_log("Database Error: " . $e->getMessage());
     $recentActivities = [];
 }
+
 
 try {
     $query = "

@@ -227,6 +227,13 @@ try {
             } else {
                 $missing_fields[] = 'Skills';
             }
+        } elseif ($field === 'course_id') {
+            // If course_id is empty or 0, add it to missing_fields and don't count its weight
+            if (empty($student[$field]) || $student[$field] == 1) {
+                $missing_fields[] = 'Course';
+            } else {
+                $completed_weight += $weight;
+            }
         } elseif (!empty($student[$field])) {
             $completed_weight += $weight;
         } else {
@@ -236,7 +243,6 @@ try {
                 case 'stud_gender': $missing_fields[] = 'Gender'; break;
                 case 'stud_date_of_birth': $missing_fields[] = 'Date of Birth'; break;
                 case 'graduation_yr': $missing_fields[] = 'Graduation Year'; break;
-                case 'course_id': $missing_fields[] = 'Course'; break;
                 case 'bio': $missing_fields[] = 'Bio'; break;
                 case 'resume_file': $missing_fields[] = 'Resume'; break;
                 case 'profile_picture': $missing_fields[] = 'Profile Picture'; break;

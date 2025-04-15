@@ -40,7 +40,7 @@ if ($completion_percentage < 100 && !isset($_SESSION['profile_modal_shown'])) {
         }
         
         body {
-         
+          /* font-family: 'Poppins', sans-serif; */
             background-color: #f5f7ff;
         }
         
@@ -669,7 +669,7 @@ if ($completion_percentage < 100 && !isset($_SESSION['profile_modal_shown'])) {
     </div>
   </div>
 </div>
-
+<?php include '../includes/stud_footer.php'; ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Simple animation trigger

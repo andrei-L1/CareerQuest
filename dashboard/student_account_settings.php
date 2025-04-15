@@ -31,42 +31,70 @@ include '../includes/stud_navbar.php';
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
-    <style>
+      <style>
         :root {
-            --primary-color: #3A7BD5;
-            --secondary-color: #00D2FF;
+            --primary-color: #4361ee;
+            --primary-light: #eef2ff;
+            --secondary-color: #3f37c9;
             --accent-color: #f8f9fa;
-            --text-color: #495057;
-            --light-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            --transition: all 0.3s ease;
+            --text-color: #2b2d42;
+            --light-text: #8d99ae;
+            --light-bg: #f8f9fa;
+            --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --border-radius: 12px;
+            --section-gap: 2rem;
         }
         
         body {
-            background-color: #f5f7fa;
+            background-color: var(--light-bg);
             color: var(--text-color);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Poppins', sans-serif;
+            line-height: 1.6;
+        }
+        
+        .settings-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
         }
         
         .settings-card {
-            border-radius: 12px;
-            box-shadow: var(--light-shadow);
-            margin-bottom: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            margin-bottom: 2rem;
             border: none;
             overflow: hidden;
             transition: var(--transition);
+            background: white;
         }
         
         .settings-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
         }
         
         .settings-header {
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            padding: 20px;
+            padding: 1.5rem;
             font-weight: 600;
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .settings-header i {
+            font-size: 1.1em;
+        }
+        
+        .profile-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1.5rem;
+            text-align: center;
         }
         
         .profile-picture-preview {
@@ -75,74 +103,136 @@ include '../includes/stud_navbar.php';
             object-fit: cover;
             border-radius: 50%;
             border: 5px solid white;
-            box-shadow: var(--light-shadow);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             transition: var(--transition);
             cursor: pointer;
+            margin-bottom: 1.5rem;
         }
         
         .profile-picture-preview:hover {
-            transform: scale(1.05);
+            transform: scale(1.03);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .profile-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: var(--text-color);
+        }
+        
+        .profile-email {
+            color: var(--light-text);
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .profile-institution {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--light-text);
+            font-size: 0.85rem;
         }
         
         .form-section {
-            margin-bottom: 30px;
-            padding: 20px;
+            margin-bottom: var(--section-gap);
+            padding: 1.5rem;
             background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border-radius: var(--border-radius);
         }
         
         .form-section h5 {
             color: var(--primary-color);
-            border-bottom: 2px solid var(--primary-color);
-            padding-bottom: 10px;
-            margin-bottom: 20px;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.1rem;
         }
         
         .form-control, .form-select {
-            border-radius: 6px;
-            padding: 10px 15px;
-            border: 1px solid #ced4da;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            border: 1px solid #e0e0e0;
             transition: var(--transition);
+            font-size: 0.95rem;
         }
         
         .form-control:focus, .form-select:focus {
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.25rem rgba(58, 123, 213, 0.25);
+            box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+        }
+        
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+            font-size: 0.95rem;
         }
         
         .btn-primary {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             border: none;
-            padding: 10px 25px;
-            border-radius: 6px;
+            padding: 0.75rem 1.75rem;
+            border-radius: 8px;
             font-weight: 500;
             transition: var(--transition);
+            letter-spacing: 0.5px;
         }
         
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+        }
+        
+        .btn-outline-secondary {
+            border-radius: 8px;
+            padding: 0.75rem 1.75rem;
+            transition: var(--transition);
+        }
+        
+        .btn-outline-secondary:hover {
+            background-color: #f1f3f9;
         }
         
         .file-upload-wrapper {
             position: relative;
-            margin-bottom: 15px;
+            margin-bottom: 1rem;
         }
         
         .file-upload-label {
             display: block;
-            padding: 12px;
-            border: 2px dashed #ced4da;
-            border-radius: 6px;
+            padding: 2rem;
+            border: 2px dashed #e0e0e0;
+            border-radius: var(--border-radius);
             text-align: center;
             cursor: pointer;
             transition: var(--transition);
+            background-color: #fafbff;
         }
         
         .file-upload-label:hover {
             border-color: var(--primary-color);
-            background-color: rgba(58, 123, 213, 0.05);
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+        
+        .file-upload-icon {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 0.75rem;
+        }
+        
+        .file-upload-text {
+            margin-bottom: 0.25rem;
+            font-weight: 500;
+        }
+        
+        .file-upload-subtext {
+            font-size: 0.8rem;
+            color: var(--light-text);
         }
         
         .file-upload-input {
@@ -178,39 +268,137 @@ include '../includes/stud_navbar.php';
             margin-bottom: 0;
             border-radius: 50%;
             background: white;
-            border: 1px solid #ced4da;
-            box-shadow: var(--light-shadow);
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             cursor: pointer;
             text-align: center;
             line-height: 40px;
             color: var(--primary-color);
+            transition: var(--transition);
+        }
+        
+        .avatar-edit label:hover {
+            background-color: var(--primary-light);
+            transform: scale(1.1);
         }
         
         .progress {
             height: 8px;
-            margin-top: 10px;
+            margin-top: 1rem;
             border-radius: 4px;
+            background-color: #f0f0f0;
         }
         
         .progress-bar {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 4px;
         }
         
         .section-divider {
-            border-top: 1px solid rgba(0, 0, 0, 0.1);
-            margin: 30px 0;
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            margin: 2rem 0;
         }
         
-        @media (max-width: 768px) {
+        .quick-links .list-group-item {
+            border: none;
+            padding: 0.75rem 1rem;
+            background: transparent;
+            transition: var(--transition);
+        }
+        
+        .quick-links .list-group-item:hover {
+            background-color: var(--primary-light);
+            padding-left: 1.25rem;
+        }
+        
+        .quick-links .list-group-item i {
+            color: var(--primary-color);
+            width: 24px;
+            text-align: center;
+        }
+        
+        .quick-links .list-group-item a {
+            text-decoration: none;
+            color: var(--text-color);
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        
+        .skill-row {
+            background-color: #f9fafd;
+            border: 1px solid #e0e0e0 !important;
+            transition: var(--transition);
+        }
+        
+        .skill-row:hover {
+            background-color: #f1f5ff;
+            border-color: var(--primary-light) !important;
+        }
+        
+        .remove-skill {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .bio-counter {
+            font-size: 0.85rem;
+            color: var(--light-text);
+        }
+        
+        .bio-counter.warning {
+            color: #ff6b6b;
+        }
+        
+        .alert {
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+        }
+        
+        .alert i {
+            margin-right: 0.5rem;
+        }
+        
+        @media (max-width: 992px) {
+            .settings-container {
+                padding: 1rem;
+            }
+            
             .profile-picture-preview {
                 width: 120px;
                 height: 120px;
             }
         }
+        
+        @media (max-width: 768px) {
+            .form-section {
+                padding: 1.25rem;
+            }
+            
+            .settings-header {
+                padding: 1rem;
+                font-size: 1.1rem;
+            }
+            
+            .profile-card {
+                padding: 1.5rem 1rem;
+            }
+        }
+        
+        /* Animation classes */
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
-    <div class="container py-4 animate__animated animate__fadeIn">
+    <div class="container py-3 animate__animated animate__fadeIn">
         <div class="row">
             <div class="col-lg-3">
                 <div class="card settings-card">
@@ -244,7 +432,7 @@ include '../includes/stud_navbar.php';
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item d-flex align-items-center">
                                 <i class="fas fa-user-circle me-2 text-primary"></i>
-                                <a href="profile.php" class="text-decoration-none">View Public Profile</a>
+                                <a href="student_profile.php" class="text-decoration-none">View Public Profile</a>
                             </li>
                             <li class="list-group-item d-flex align-items-center">
                                 <i class="fas fa-lock me-2 text-primary"></i>
@@ -346,19 +534,6 @@ include '../includes/stud_navbar.php';
                                         <input type="email" class="form-control" name="email" 
                                                value="<?= htmlspecialchars($student['stud_email'] ?? '') ?>" required>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Phone Number</label>
-                                        <input type="tel" class="form-control" name="phone" 
-                                               value="<?= htmlspecialchars($student['phone'] ?? '') ?>" placeholder="+1 (123) 456-7890">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">LinkedIn Profile</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text"><i class="fab fa-linkedin"></i></span>
-                                            <input type="url" class="form-control" name="linkedin" 
-                                                   value="<?= htmlspecialchars($student['linkedin'] ?? '') ?>" placeholder="https://linkedin.com/in/username">
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                             
@@ -380,15 +555,18 @@ include '../includes/stud_navbar.php';
                                                value="<?= htmlspecialchars($student['graduation_yr'] ?? '') ?>">
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label">Major/Field of Study</label>
-                                        <input type="text" class="form-control" name="major" 
-                                               value="<?= htmlspecialchars($student['major'] ?? '') ?>">
+                                        <label class="form-label">Course</label>
+                                        <select class="form-select" name="course_id">
+                                            <?php foreach ($courses as $course): ?>
+                                                <option value="<?= $course['course_id'] ?>" 
+                                                    <?= (!empty($student['course_id']) && $student['course_id'] == $course['course_id']) ? 'selected' : '' ?>>
+                                                    <?= htmlspecialchars($course['course_title']) ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Current GPA</label>
-                                        <input type="number" step="0.01" min="0" max="4" class="form-control" name="gpa" 
-                                               value="<?= htmlspecialchars($student['gpa'] ?? '') ?>">
-                                    </div>
+
+
                                 </div>
                             </div>
                             
@@ -424,7 +602,7 @@ include '../includes/stud_navbar.php';
                                         </div>
                                         <?php if (!empty($student['resume_file'])): ?>
                                             <div class="mt-3">
-                                                <a href="../assets/uploads/<?= htmlspecialchars($student['resume_file']) ?>" 
+                                                <a href="../uploads/<?= htmlspecialchars($student['resume_file']) ?>" 
                                                    class="btn btn-sm btn-outline-primary" download>
                                                     <i class="fas fa-download me-1"></i> Download Current Resume
                                                 </a>
@@ -468,7 +646,7 @@ include '../includes/stud_navbar.php';
             </div>
         </div>
     </div>
-
+    <?php include '../includes/stud_footer.php'; ?>
     <!-- JavaScript Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

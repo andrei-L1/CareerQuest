@@ -14,9 +14,28 @@ if (!isset($_SESSION['stud_id'])) {
 $stud_id = $_SESSION['stud_id'];
 
 try {
+
+    // Fetch all available courses
+    $coursesStmt = $conn->prepare("SELECT course_id, course_title FROM course WHERE deleted_at IS NULL");
+    $coursesStmt->execute();
+    $courses = $coursesStmt->fetchAll(PDO::FETCH_ASSOC);
+
     // Fetch student details
     $stmt = $conn->prepare("
-        SELECT stud_first_name, stud_last_name, stud_email, institution, graduation_yr, course.course_title, bio, profile_picture, resume_file 
+        SELECT 
+            stud_first_name, 
+            stud_middle_name, 
+            stud_last_name, 
+            stud_gender, 
+            stud_date_of_birth,
+            stud_email, 
+            institution, 
+            graduation_yr, 
+            student.course_id,  
+            course.course_title, 
+            bio, 
+            profile_picture, 
+            resume_file 
         FROM student 
         LEFT JOIN course ON student.course_id = course.course_id
         WHERE stud_id = :stud_id
@@ -32,7 +51,7 @@ try {
 
     // Fetch skills with proficiency level
     $skillsStmt = $conn->prepare("
-        SELECT sm.skill_name, ss.proficiency
+        SELECT sm.skill_id, sm.skill_name, ss.proficiency, ss.user_skills_id
         FROM stud_skill ss
         JOIN skill_masterlist sm ON ss.skill_id = sm.skill_id
         WHERE ss.stud_id = :stud_id AND ss.deleted_at IS NULL

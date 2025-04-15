@@ -23,6 +23,7 @@ if (isset($_POST['action']) && $_POST['action'] == 'add') {
     exit;
 }
 
+/*
 // Handle Fetch Skills with Pagination
 if (isset($_POST['action']) && $_POST['action'] == 'fetch') {
     $limit = isset($_POST['limit']) ? intval($_POST['limit']) : 5;
@@ -46,6 +47,20 @@ if (isset($_POST['action']) && $_POST['action'] == 'fetch') {
     ]);
     exit;
 }
+
+*/
+// Handle Fetch Skills (no pagination)
+if (isset($_POST['action']) && $_POST['action'] == 'fetch') {
+    $stmt = $conn->prepare("SELECT * FROM skill_masterlist WHERE deleted_at IS NULL ORDER BY skill_id DESC");
+    $stmt->execute();
+    $skills = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    echo json_encode([
+        'skills' => $skills
+    ]);
+    exit;
+}
+
 
 // Handle Edit Skill
 if (isset($_POST['action']) && $_POST['action'] == 'edit') {
@@ -72,7 +87,14 @@ if (isset($_POST['action']) && $_POST['action'] == 'delete') {
     echo $stmt->execute() ? 'success' : 'error';
     exit;
 }
+try {
+    $stmt = $conn->prepare("SELECT skill_id, skill_name, category FROM skill_masterlist WHERE deleted_at IS NULL");
+    $stmt->execute();
+    $skills = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-
+    echo json_encode($skills);
+} catch (PDOException $e) {
+    echo json_encode(['error' => $e->getMessage()]);
+}
 
 ?>
