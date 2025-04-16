@@ -451,14 +451,8 @@ try {
                         <i class="bi bi-plus-lg"></i> Add Skill
                     </button>
 
-                    <!-- Right: Filters -->
-                    <div class="d-flex align-items-center gap-3">
-                        <input type="text" id="skillFilter" class="form-control w-60" placeholder="Search skills...">
-                        <select id="categoryFilter" class="form-select w-30">
-                            <option value="">All Categories</option>
-                            <!-- Categories will be loaded dynamically -->
-                        </select>
-                    </div>
+                    <!-- Right: Search Input -->
+                    <input type="text" id="skillFilter" class="form-control w-50" placeholder="Search skills...">
                 </div>
 
 
@@ -822,62 +816,13 @@ try {
     });
 </script>
 <script>
-$(document).ready(function () {
-    // Load skills initially
-    loadSkills();
-
-    // Filtering logic
-    $('#skillFilter, #categoryFilter').on('input change', function () {
-        filterSkills();
-    });
-
-    function loadSkills() {
-        $.ajax({
-            url: '../controllers/admin_skill_controller.php', // Your endpoint to fetch skills
-            method: 'GET',
-            success: function (data) {
-                let skills = JSON.parse(data);
-                let categories = new Set();
-                let rows = '';
-
-                skills.forEach(skill => {
-                    rows += `
-                        <tr>
-                            <td>${skill.skill_id}</td>
-                            <td>${skill.skill_name}</td>
-                            <td>${skill.category}</td>
-                            <td class="text-center">
-                                <!-- Action buttons go here -->
-                            </td>
-                        </tr>
-                    `;
-                    if (skill.category) categories.add(skill.category);
-                });
-
-                $('#skillList').html(rows);
-
-                // Populate category dropdown
-                $('#categoryFilter').append([...categories].sort().map(cat => 
-                    `<option value="${cat}">${cat}</option>`
-                ));
-            }
-        });
-    }
-
-    function filterSkills() {
-        let textFilter = $('#skillFilter').val().toLowerCase();
-        let selectedCategory = $('#categoryFilter').val();
-
+    $(document).ready(function () {
+    $('#skillFilter').on('keyup', function () {
+        var value = $(this).val().toLowerCase();
         $('#skillList tr').filter(function () {
-            let rowText = $(this).text().toLowerCase();
-            let rowCategory = $(this).find('td:nth-child(3)').text();
-
-            let textMatch = rowText.indexOf(textFilter) > -1;
-            let categoryMatch = !selectedCategory || rowCategory === selectedCategory;
-
-            $(this).toggle(textMatch && categoryMatch);
+            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
         });
-    }
+    });
 });
 
 </script>

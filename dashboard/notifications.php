@@ -173,11 +173,12 @@ foreach ($notifications as $n) {
         }
         
         body {
-            background-color: #f5f7ff;
+            background-color: #f8f9fa;
             /* font-family: 'Poppins', sans-serif; */
         }
         
         .dashboard-container {
+            min-height: 70vh;
             padding: 2rem;
             max-width: 1200px;
             margin: 0 auto;
@@ -255,7 +256,7 @@ foreach ($notifications as $n) {
         .nav-tabs .nav-link {
             border: none;
             color: #6c757d;
-            font-weight: 500;
+            font-weight: 300;
             padding: 0.75rem 1.25rem;
             position: relative;
         }
@@ -341,12 +342,44 @@ foreach ($notifications as $n) {
             animation: fadeIn 0.4s ease-out forwards;
         }
     </style>
+    <style>
+        #notificationTabs .nav-link {
+            font-size: 0.75rem;  /* Smaller font size */
+            padding: 0.375rem 0.75rem;  /* Smaller padding for compact buttons */
+            height: 36px;  /* Reduced height */
+            line-height: 1.5;  /* Ensure text is vertically centered */
+            display: flex;  /* Use flexbox for centering */
+            align-items: center;  /* Vertically center content */
+            justify-content: center;  /* Horizontally center content */
+        }
+
+        #notificationTabs .nav-link i {
+            font-size: 1rem;  /* Slightly smaller icon */
+            margin-right: 0.25rem;  /* Space between icon and text */
+        }
+
+        #notificationTabs .badge {
+            font-size: 0.7rem; /* Smaller badge text */
+            padding: 0.25rem 0.5rem;  /* Adjust badge padding */
+        }
+
+        .btn-mark-read {
+            background-color: #1A4D8F;
+            color: white;
+            font-weight: 300;
+        }
+
+        .btn-mark-read:hover {
+            background-color:rgb(120, 172, 245); 
+            color: #fff;
+        }
+    </style>
 </head>
 <body>
 
 <div class="container dashboard-container">
     <div class="d-flex justify-content-between align-items-center mb-4 fade-in">
-        <h2 class="text-primary fw-bold mb-0">
+        <h2 class="fw-normal mb-0" style="color: #1A4D8F;">
             <i class="bi bi-bell-fill me-2"></i>Notifications
             <?php if ($unread_count > 0): ?>
                 <span class="badge bg-danger ms-2 align-middle"><?= $unread_count ?> unread</span>
@@ -355,7 +388,7 @@ foreach ($notifications as $n) {
         
         <div class="d-flex gap-2">
             <form method="post" class="d-inline">
-                <button type="submit" name="mark_all_read" class="btn btn-success btn-sm">
+                <button type="submit" name="mark_all_read" class="btn btn-sm btn-mark-read">
                     <i class="bi bi-check-all me-1"></i> Mark all as read
                 </button>
             </form>
@@ -505,6 +538,7 @@ foreach ($notifications as $n) {
                     <div class="card notification-card card-unread">
                         <div class="card-body">
                             <div class="d-flex align-items-start">
+                                <!--
                                 <?php if ($notification['actor_id']) : ?>
                                     <?php if ($notification['actor_picture']) : ?>
                                         <img src="<?= htmlspecialchars($notification['actor_picture']) ?>"
@@ -516,7 +550,7 @@ foreach ($notifications as $n) {
                                         </div>
                                     <?php endif; ?>
                                 <?php endif; ?>
-                                
+                                    -->
                                 <div class="flex-grow-1">
                                     <?php if ($notification['actor_id']) : ?>
                                         <h6 class="mb-1 fw-semibold">
@@ -570,12 +604,14 @@ foreach ($notifications as $n) {
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
+
 // Real-time notification updates
 function checkNewNotifications() {
     $.ajax({
-        url: 'check_notifications.php',
+        url: '../controllers/notifications_controller.php',
         type: 'GET',
         data: {
+            action: 'get_notifications',
             reference_type: '<?= $reference_type ?>',
             reference_id: '<?= $reference_id ?>',
             last_check: new Date().toISOString()

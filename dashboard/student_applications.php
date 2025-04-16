@@ -79,29 +79,36 @@ foreach ($applications as $app) {
 $stats['match_avg'] = $stats['total'] > 0 ? round($total_match / $stats['total'], 1) : 0;
 
 // Function to format date as time ago
-function getTimeAgo($date) {
-    $timestamp = strtotime($date);
-    $currentTime = time();
-    $diff = $currentTime - $timestamp;
+function getTimeAgo($timestamp, $referenceTime = null) {
+    // Create a DateTime object in the Manila time zone
+    $timezone = new DateTimeZone('Asia/Manila');
+    $time = new DateTime($timestamp, $timezone);
     
-    $intervals = array(
-        31536000 => 'year',
-        2592000 => 'month',
-        604800 => 'week',
-        86400 => 'day',
-        3600 => 'hour',
-        60 => 'minute',
-        1 => 'second'
-    );
-    
-    foreach ($intervals as $seconds => $label) {
-        $value = floor($diff / $seconds);
-        if ($value >= 1) {
-            return $value . ' ' . $label . ($value == 1 ? '' : 's') . ' ago';
-        }
+    if ($referenceTime) {
+        // Use provided reference time or default to 'now' in Manila time zone
+        $now = new DateTime($referenceTime, $timezone);
+    } else {
+        $now = new DateTime('now', $timezone);
     }
     
-    return 'just now';
+    $diff = $now->diff($time);
+
+    if ($diff->y > 0) {
+        return $diff->y . ' year' . ($diff->y > 1 ? 's' : '') . ' ago';
+    }
+    if ($diff->m > 0) {
+        return $diff->m . ' month' . ($diff->m > 1 ? 's' : '') . ' ago';
+    }
+    if ($diff->d > 0) {
+        return $diff->d . ' day' . ($diff->d > 1 ? 's' : '') . ' ago';
+    }
+    if ($diff->h > 0) {
+        return $diff->h . ' hour' . ($diff->h > 1 ? 's' : '') . ' ago';
+    }
+    if ($diff->i > 0) {
+        return $diff->i . ' minute' . ($diff->i > 1 ? 's' : '') . ' ago';
+    }
+    return $diff->s . ' second' . ($diff->s > 1 ? 's' : '') . ' ago';
 }
 
 // Function to get application timeline
@@ -128,9 +135,12 @@ function getApplicationTimeline($conn, $application_id) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Applications</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS (for toasts and other components) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <style>
         :root {
             --primary-color: #1A4D8F;
@@ -147,7 +157,7 @@ function getApplicationTimeline($conn, $application_id) {
         }
         
         body {
-            background-color: #f5f7ff;
+            background-color: #f8f9fa;
             
         /* font-family: 'Poppins', sans-serif; */
         }
@@ -335,18 +345,42 @@ function getApplicationTimeline($conn, $application_id) {
         .empty-state {
             text-align: center;
             padding: 3rem 1rem;
-            color: #adb5bd;
+            max-width: 400px;
+            margin: 0 auto;
         }
         
         .empty-state i {
-            font-size: 3rem;
-            margin-bottom: 15px;
-            color: #e9ecef;
+            font-size: 3.0rem;
+            margin-bottom: 1rem;
+            color: #dee2e6;
+        }
+
+        #search-icon{
+            font-size: 1.0rem;
+            margin-bottom: 1rem;
+            color: #dee2e6;
         }
         
-        .empty-state p {
-            margin-bottom: 0;
-            font-weight: 500;
+        .empty-state-title {
+            color: #343a40;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .empty-state-description {
+            color: #6c757d;
+            margin-bottom: 1.5rem;
+        }
+        
+        .btn-primary {
+            background-color: #1A4D8F;
+            border-color: #1A4D8F;
+            padding: 0.5rem 1.5rem;
+        }
+        
+        .btn-primary:hover {
+            background-color: #153d70;
+            border-color: #153d70;
         }
         
         /* Responsive Adjustments */
@@ -389,13 +423,76 @@ function getApplicationTimeline($conn, $application_id) {
             background: white;
             border-radius: var(--border-radius);
             box-shadow: var(--card-shadow);
-            padding: 1rem;
+            padding: 1.25rem 1.5rem;
             margin-bottom: 1.5rem;
+            border: 1px solid rgba(0, 0, 0, 0.05);
         }
-        
-        .filter-btn {
+
+        .filter-controls .d-flex {
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .filter-controls .fw-semibold {
+            font-size: 0.95rem;
+            color: #555;
             margin-right: 0.5rem;
-            margin-bottom: 0.5rem;
+        }
+
+        .filter-btn {
+            padding: 0.35rem 0.9rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        /* Override Bootstrap btn-sm styles */
+        .btn-sm.filter-btn {
+            padding: 0.35rem 0.9rem;
+            line-height: 1.3;
+        }
+
+        /* Color overrides for the status buttons */
+        .filter-btn.btn-outline-primary {
+            color: #4285f4;
+            border-color: #4285f4;
+        }
+        .filter-btn.btn-outline-warning {
+            color: #f4b400;
+            border-color: #f4b400;
+        }
+        .filter-btn.btn-outline-success {
+            color: #0f9d58;
+            border-color: #0f9d58;
+        }
+        .filter-btn.btn-outline-danger {
+            color: #db4437;
+            border-color: #db4437;
+        }
+
+        /* Active state for all buttons */
+        .filter-btn.active {
+            color: white !important;
+        }
+        .filter-btn.btn-outline-primary.active {
+            background: #4285f4;
+        }
+        .filter-btn.btn-outline-warning.active {
+            background: #f4b400;
+        }
+        .filter-btn.btn-outline-success.active {
+            background: #0f9d58;
+        }
+        .filter-btn.btn-outline-danger.active {
+            background: #db4437;
+        }
+
+        /* Hover states */
+        .filter-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
         }
         
         /* Job Type Badge */
@@ -460,7 +557,7 @@ function getApplicationTimeline($conn, $application_id) {
 <div class="container dashboard-container">
     <div class="row mb-4">
         <div class="col-12">
-            <h2 class="fw-bold text-dark mb-0">My Applications</h2>
+            <h2 class="fw-normal text-dark mb-0">My Applications</h2>
             <p class="text-muted">Track the status of your job applications</p>
         </div>
     </div>
@@ -498,15 +595,14 @@ function getApplicationTimeline($conn, $application_id) {
     <!-- Filter Controls -->
     <div class="filter-controls fade-in">
         <div class="d-flex flex-wrap align-items-center">
-            <span class="me-2 fw-semibold">Filter by:</span>
+            <span class="fw-semibold">Filter by:</span>
             <a href="?status=all" class="btn btn-sm btn-outline-primary filter-btn <?= (!isset($_GET['status']) || $_GET['status'] == 'all') ? 'active' : '' ?>">All</a>
             <a href="?status=pending" class="btn btn-sm btn-outline-warning filter-btn <?= (isset($_GET['status']) && $_GET['status'] == 'pending') ? 'active' : '' ?>">Pending</a>
             <a href="?status=accepted" class="btn btn-sm btn-outline-success filter-btn <?= (isset($_GET['status']) && $_GET['status'] == 'accepted') ? 'active' : '' ?>">Accepted</a>
             <a href="?status=rejected" class="btn btn-sm btn-outline-danger filter-btn <?= (isset($_GET['status']) && $_GET['status'] == 'rejected') ? 'active' : '' ?>">Rejected</a>
-
         </div>
     </div>
-    
+
     <!-- Applications List -->
     <?php if (!empty($applications)): ?>
         <?php foreach ($applications as $application): 
@@ -659,17 +755,19 @@ function getApplicationTimeline($conn, $application_id) {
         <div class="application-card fade-in">
             <div class="empty-state">
                 <i class="bi bi-inbox"></i>
-                <p>No applications found</p>
-                <a href="job_search.php" class="btn btn-primary mt-3">
-                    <i class="bi bi-search"></i> Browse Jobs
+                <h4 class="empty-state-title">No applications found</h4>
+                <p class="empty-state-description">You haven't applied to any jobs yet</p>
+                <a href="student_job.php" class="btn btn-primary mt-3">
+                    <i class="bi bi-search" id="search-icon"></i> Browse Jobs
                 </a>
             </div>
         </div>
     <?php endif; ?>
 </div>
 <?php include '../includes/stud_footer.php'; ?>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
+<!-- Bootstrap Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     // Enhanced modal handling
     document.addEventListener('DOMContentLoaded', function() {
@@ -709,6 +807,41 @@ function getApplicationTimeline($conn, $application_id) {
         });
     });
 </script>
+<script>
+    window.onload = function() {
+        const toastElement = document.querySelector('.toast');
+        if (toastElement) {
+            // Initialize the toast
+            const toast = new bootstrap.Toast(toastElement, {
+                delay: 5000 // 5 seconds
+            });
+            toast.show(); // Show the toast
+
+            // Clean the URL after the toast disappears
+            setTimeout(function() {
+                history.replaceState(null, null, window.location.pathname); // Removes the query parameters
+            }, 5000); // 5 seconds after the toast shows
+        }
+    };
+</script>
 
 </body>
 </html>
+
+<?php
+if (isset($_SESSION['message'])) {
+    echo '
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div class="toast align-items-center text-bg-success" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    ' . $_SESSION['message'] . '
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+    ';
+    unset($_SESSION['message']);  
+}
+?>

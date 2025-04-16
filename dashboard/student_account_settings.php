@@ -33,7 +33,7 @@ include '../includes/stud_navbar.php';
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
       <style>
         :root {
-            --primary-color: #4361ee;
+            --primary-color: #1A4D8F;;
             --primary-light: #eef2ff;
             --secondary-color: #3f37c9;
             --accent-color: #f8f9fa;
@@ -77,8 +77,9 @@ include '../includes/stud_navbar.php';
         .settings-header {
             padding: 1.5rem;
             font-weight: 600;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            font-weight: 600;
+            color: var(--primary-color);        
             font-size: 1.25rem;
             display: flex;
             align-items: center;
@@ -137,20 +138,25 @@ include '../includes/stud_navbar.php';
         
         .form-section {
             margin-bottom: var(--section-gap);
-            padding: 1.5rem;
+            padding-left: 10px;
+            padding-right: 10px;
             background-color: white;
             border-radius: var(--border-radius);
+            border-bottom: 2px solid rgba(0, 0, 0, 0.05);
         }
         
         .form-section h5 {
             color: var(--primary-color);
-            font-weight: 600;
+            font-weight: 400;
             margin-bottom: 1.5rem;
             display: flex;
             align-items: center;
             gap: 0.75rem;
             font-size: 1.1rem;
+            padding: 0;
+            margin: 0;
         }
+
         
         .form-control, .form-select {
             border-radius: 8px;

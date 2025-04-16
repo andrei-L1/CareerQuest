@@ -41,7 +41,7 @@ if ($completion_percentage < 100 && !isset($_SESSION['profile_modal_shown'])) {
         
         body {
           /* font-family: 'Poppins', sans-serif; */
-            background-color: #f5f7ff;
+            background-color: #f8f9fa;
         }
         
         .dashboard-container {

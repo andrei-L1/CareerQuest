@@ -27,7 +27,8 @@ require '../auth/auth_check_student.php';
         }
         
         body {
-            background-color: #f5f7ff;
+          /* background-color: #f5f7ff; */
+            background-color: #f8f9fa;
           /* \font-family: 'Poppins', sans-serif; */
         }
         

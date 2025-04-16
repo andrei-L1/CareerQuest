@@ -5,6 +5,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 $response = ['status' => 'error', 'message' => 'Invalid action'];
+$action = $_REQUEST['action'] ?? null;
 
 // Get actor ID from session or create if doesn't exist
 function getCurrentActorId($conn) {
@@ -48,6 +49,12 @@ if (!$currentActorId && $action !== 'get_user_info') {
     echo json_encode(['status' => 'error', 'message' => 'Not authenticated']);
     exit;
 }
+
+
+
+
+
+
 
 // Function to get notifications for the current actor
 function getNotifications($actorId, $conn, $limit = 10, $unreadOnly = false) {
@@ -98,15 +105,47 @@ function markNotificationsAsRead($notificationIds, $conn) {
 // Example usage to get notifications
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'get_notifications') {
     $unreadOnly = isset($_GET['unread_only']) && $_GET['unread_only'] === 'true';
-    $notifications = getNotifications($currentActorId, $conn, 10, $unreadOnly);
-    
-    $response = [
-        'status' => 'success',
-        'data' => $notifications,
-        'count' => count($notifications),
-        'unread_count' => count(getNotifications($currentActorId, $conn, 100, true))
-    ];
-    
+    $lastCheck = isset($_GET['last_check']) ? $_GET['last_check'] : null;
+
+    try {
+        // Build base query
+        $sql = "SELECT * FROM notification 
+                WHERE actor_id = :actorId 
+                AND deleted_at IS NULL";
+
+        if ($unreadOnly) {
+            $sql .= " AND is_read = FALSE";
+        }
+
+        if (!empty($lastCheck)) {
+            $sql .= " AND created_at > :lastCheck";
+        }
+
+        $sql .= " ORDER BY created_at DESC LIMIT 10";
+
+        $stmt = $conn->prepare($sql);
+        $stmt->bindValue(':actorId', $currentActorId, PDO::PARAM_INT);
+
+        if (!empty($lastCheck)) {
+            $stmt->bindValue(':lastCheck', $lastCheck);
+        }
+
+        $stmt->execute();
+        $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $response = [
+            'status' => 'success',
+            'new_count' => count($notifications),
+            'latest_notification' => !empty($notifications) ? $notifications[0] : null
+        ];
+    } catch (PDOException $e) {
+        $response = [
+            'status' => 'error',
+            'message' => 'Failed to fetch notifications',
+            'error' => $e->getMessage()
+        ];
+    }
+
     echo json_encode($response);
     exit;
 }
