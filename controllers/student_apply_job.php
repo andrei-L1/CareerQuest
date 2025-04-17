@@ -39,37 +39,20 @@ try {
     $employer = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if ($employer) {
-        // Check if actor already exists for employer
+        // Get or create actor for employer
         $stmt = $conn->prepare("SELECT actor_id FROM actor WHERE entity_type = 'user' AND entity_id = :user_id");
         $stmt->execute([':user_id' => $employer['user_id']]);
         $actor = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$actor) {
-            // If actor doesn't exist, insert a new actor for employer
             $stmt = $conn->prepare("INSERT INTO actor (entity_type, entity_id) VALUES ('user', :user_id)");
             $stmt->execute([':user_id' => $employer['user_id']]);
-            $actor_id = $conn->lastInsertId();
+            $employer_actor_id = $conn->lastInsertId();
         } else {
-            $actor_id = $actor['actor_id'];
+            $employer_actor_id = $actor['actor_id'];
         }
         
-        // Get the job title
-        $stmt = $conn->prepare("SELECT title FROM job_posting WHERE job_id = :job_id");
-        $stmt->execute([':job_id' => $job_id]);
-        $job_title = $stmt->fetchColumn();
-
-        // Create notification for employer (student applied to their job)
-        $stmt = $conn->prepare("INSERT INTO notification 
-                            (actor_id, message, notification_type, action_url, reference_type, reference_id)
-                            VALUES (:actor_id, :message, 'application', :url, 'user', :user_id)");
-        $stmt->execute([
-            ':actor_id' => $actor_id, // Employer receives the notification
-            ':message' => "New application for: $job_title",
-            ':url' => "/skillmatch/dashboard/employer_applications.php?job_id=$job_id",
-            ':user_id' => $employer['user_id'] // Employer receives notification
-        ]);
-
-        // Get or create actor for the student (applicant)
+        // Get or create actor for student (applicant)
         $stmt = $conn->prepare("SELECT actor_id FROM actor WHERE entity_type = 'student' AND entity_id = :stud_id");
         $stmt->execute([':stud_id' => $_SESSION['stud_id']]);
         $student_actor = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -82,15 +65,33 @@ try {
             $student_actor_id = $student_actor['actor_id'];
         }
 
+        // Get the job title
+        $stmt = $conn->prepare("SELECT title FROM job_posting WHERE job_id = :job_id");
+        $stmt->execute([':job_id' => $job_id]);
+        $job_title = $stmt->fetchColumn();
+
+        // Create notification for employer (student applied to their job)
+        $stmt = $conn->prepare("INSERT INTO notification 
+            (actor_id, message, notification_type, action_url, reference_type, reference_id)
+            VALUES (:actor_id, :message, 'application', :url, 'user', :reference_actor_id)");
+    
+        $stmt->execute([
+            ':actor_id' => $employer_actor_id, // Employer receives the notification
+            ':message' => "New application for: $job_title",
+            ':url' => "/skillmatch/dashboard/employer_applications.php?job_id=$job_id",
+            ':reference_actor_id' => $student_actor_id // References the student who applied
+        ]);
+
         // Create confirmation notification for student (confirming application)
         $stmt = $conn->prepare("INSERT INTO notification 
-                            (actor_id, message, notification_type, action_url, reference_type, reference_id)
-                            VALUES (:actor_id, :message, 'application', :url, 'student', :stud_id)");
+            (actor_id, message, notification_type, action_url, reference_type, reference_id)
+            VALUES (:actor_id, :message, 'application', :url, 'student', :reference_actor_id)");
+        
         $stmt->execute([
-            ':actor_id' => $student_actor_id, // Student performed the action
+            ':actor_id' => $student_actor_id, // Student receives the notification
             ':message' => "You applied for: $job_title",
             ':url' => "/skillmatch/dashboard/student_applications.php?job_id=$job_id",
-            ':stud_id' => $_SESSION['stud_id'] // Student receives notification
+            ':reference_actor_id' => $employer_actor_id // References the employer who posted the job
         ]);
     }
     

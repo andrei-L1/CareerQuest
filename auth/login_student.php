@@ -98,6 +98,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+
+// Check for 'unauthorized_access' query parameter
+if (isset($_GET['unauthorized_access']) && $_GET['unauthorized_access'] == 1) {
+    $error = "You do not have permission to access this page.";
+}
 ?>
 
 <!DOCTYPE html>

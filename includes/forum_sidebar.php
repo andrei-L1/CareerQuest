@@ -1,6 +1,17 @@
 <?php
 // Get the current page name
 $current_page = basename($_SERVER['PHP_SELF']);
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+$dashboardLink = '../index.php'; 
+
+if (isset($_SESSION['stud_id'])) {
+    $dashboardLink = '../dashboard/student.php';
+} elseif (isset($_SESSION['user_id'])) {
+    $dashboardLink = '../dashboard/employer.php';
+}
 ?>
 
 <style>
@@ -48,7 +59,11 @@ $current_page = basename($_SERVER['PHP_SELF']);
 </style>
 
 <div class="sidebar-nav">
-    <a href="../index.php" class="nav-btn <?php echo ($current_page == 'index.php') ? 'active' : ''; ?>" data-bs-toggle="tooltip" data-bs-placement="right" title="Home">
+    <a href="<?= $dashboardLink ?>" 
+    class="nav-btn <?= ($current_page == basename($dashboardLink)) ? 'active' : ''; ?>" 
+    data-bs-toggle="tooltip" 
+    data-bs-placement="right" 
+    title="Home">
         <i class="bi bi-house-door"></i>
     </a>
     <a href="../dashboard/forums.php" class="nav-btn <?php echo ($current_page == 'forums.php') ? 'active' : ''; ?>" data-bs-toggle="tooltip" data-bs-placement="right" title="Forum">

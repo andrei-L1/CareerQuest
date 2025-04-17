@@ -16,7 +16,7 @@ require '../auth/auth_check_student.php';
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.6.8/dist/sweetalert2.all.min.js"></script>
     <style>
         :root {
-            
+            --primary-color: #1A4D8F;
             --accent-color: #4cc9f0;
             --success-color: #38b000;
             --warning-color: #ffaa00;
@@ -35,7 +35,7 @@ require '../auth/auth_check_student.php';
         .job-container {
             color: #333;
             padding: 20px;
-            max-width: 1350px;
+            max-width: 1400px;
             margin: 0 auto;
         
         }
@@ -45,7 +45,7 @@ require '../auth/auth_check_student.php';
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 0px;
             padding-bottom: 15px;
             border-bottom: 1px solid #e0e0e0;
         }
@@ -54,9 +54,10 @@ require '../auth/auth_check_student.php';
             font-weight: 300;
             color: var(--primary-color);
             margin: 0;
+            font-size: 35px;
         }
         
-        /* Filter Section */
+        /* Filter Section 
         .filter-section {
             background:rgba(252, 252, 252, 0.9);
             padding: 20px;
@@ -75,6 +76,7 @@ require '../auth/auth_check_student.php';
             color: #666;
             margin-bottom: 5px;
         }
+        */
         
         /* Job Cards */
         .job-card {
@@ -131,6 +133,13 @@ require '../auth/auth_check_student.php';
             gap: 5px;
             color: #4a5568;
             font-size: 0.9rem;
+
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 400;
+            background: #e2e8f0;
+            color: #2d3748;
         }
         
         .job-meta-item i {
@@ -146,7 +155,15 @@ require '../auth/auth_check_student.php';
             background: #e2e8f0;
             color: #2d3748;
         }
-        
+        .expires-soon{
+            margin-left: 5px;
+        }
+        .text-muted{
+            margin-left: 5px;
+        }
+        .salary{
+            margin-left: 5px;
+        }
         .salary-highlight {
             font-weight: 400;
             color: var(--success-color);
@@ -451,8 +468,31 @@ require '../auth/auth_check_student.php';
             color: #b91c1c;
         }
         
-        /* Chip Filters */
-        .filter-chips {
+    </style>
+    <style>
+        .filter-container {
+            overflow: hidden;
+            transition: height 0.3s ease-out;
+            height: 0;
+        }
+
+        .filter-section {
+            padding: 1.5rem;
+            background: white;
+            border-radius: 0.375rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+            margin-bottom: 1rem;
+        }
+
+        .filter-toggle-btn .bi {
+            transition: transform 0.3s ease;
+        }
+
+        .filter-toggle-btn.collapsed .bi {
+            transform: rotate(-90deg);
+        }
+                /* Chip Filters */
+                .filter-chips {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
@@ -484,7 +524,129 @@ require '../auth/auth_check_student.php';
             background-color: var(--primary-color);
             color: white;
         }
+
+        .filter-chip:hover {
+            background: #e9ecef;
+            transform: translateY(-1px);
+        }
+
+        .filter-chip.active {
+            background: #1A4D8F;
+            color: white;
+            border-color: #1A4D8F;
+        }
+
+        .filter-label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #495057;
+        }
     </style>
+    <style>
+    /* Base Styles */
+        .jobsearch-input::placeholder {
+            font-size: 16px; 
+            color: #999;      
+        }
+
+        .jobsearch-container {
+            max-width: 75%;
+            margin: 0 auto;
+            padding: 16px;
+            font-family: Arial, sans-serif;
+            margin-bottom: 5px;
+        }
+
+        .jobsearch-form {
+            display: flex;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            height: 56px;
+            align-items: center;
+            padding: 4px;
+        }
+
+        /* Search Fields */
+        .jobsearch-field {
+            flex: 1;
+            position: relative;
+            padding: 0 8px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .jobsearch-what-field::after {
+            content: "";
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 60%;
+            width: 1px;
+            background-color: #e0e0e0;
+        }
+
+        /* Input Containers */
+        .jobsearch-input-wrapper {
+            display: flex;
+            align-items: center;
+            height: 100%;
+        }
+
+        .jobsearch-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            padding: 0 8px;
+            font-size: 14px;
+            height: 100%;
+            background: transparent;
+        }
+
+        /* Location Button */
+        .jobsearch-location-btn {
+            background: none;
+            border: none;
+            padding: 0 8px;
+            cursor: pointer;
+            color: #666;
+            display: flex;
+            align-items: center;
+        }
+
+        .jobsearch-location-btn:hover {
+            color: #333;
+        }
+
+        /* Search Button */
+        .jobsearch-submit-container {
+            padding-left: 8px;
+            padding-right: 10px;
+        }
+
+        .jobsearch-submit-btn {
+            background-color: #2557a7;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 0 24px;
+            height: 48px;
+            font-size: 16px;
+            cursor: pointer;
+            white-space: nowrap;
+            font-weight: 400;
+            border-radius: 6px;
+        }
+
+        .jobsearch-submit-btn:hover {
+            background-color: #1a4b8e;
+        }
+
+    </style>
+
 </head>
 <body>
 
@@ -525,71 +687,131 @@ require '../auth/auth_check_student.php';
         }
     ?>
 
-    <!-- Filters Section -->
-    <div class="filter-section">
-        <div class="row filter-row g-3">
-            <div class="col-md-4">
-                <div class="filter-label">Search Keywords</div>
-                <div class="input-group">
-                    <span class="input-group-text"><i class="bi bi-search"></i></span>
-                    <input type="text" id="search" class="form-control" placeholder="Job title, company, or keywords">
+    <div class="jobsearch-container">
+        <div class="jobsearch-form" >
+            <!-- What Field -->
+            <div class="jobsearch-field jobsearch-what-field">
+                <div class="jobsearch-input-wrapper">
+                    <input 
+                    type="text" 
+                    id="search" 
+                    class="jobsearch-input" 
+                    name="q" 
+                    placeholder="Job title, keywords, or company" 
+                    autocomplete="off"
+                    />
                 </div>
             </div>
-            <div class="col-md-2">
-                <div class="filter-label">Category</div>
-                <select id="category" class="form-select">
-                    <option value="">All Categories</option>
-                    <?php
-                        foreach($categories as $category){
-                            echo "<option value='$category'>$category</option>";
-                        }
-                    ?>
-                </select>
+            
+            <!-- Where Field -->
+            <div class="jobsearch-field jobsearch-where-field">
+                <div class="jobsearch-input-wrapper">
+                    <input 
+                    type="text" 
+                    id="location" 
+                    class="jobsearch-input" 
+                    name="l" 
+                    placeholder="Any location" 
+                    autocomplete="off"
+                    />
+                    <button type="button" class="jobsearch-location-btn">
+                        <span class="jobsearch-location-icon">
+                            <svg viewBox="0 0 16 16" width="16" height="16">
+                                <path d="M8 0C4.3 0 1.3 3 1.3 6.7c0 5.3 6.3 9.2 6.5 9.3.1.1.3.1.4 0 .2-.1 6.5-4 6.5-9.3C14.7 3 11.7 0 8 0zm0 9.5c-1.6 0-2.8-1.3-2.8-2.8S6.4 4 8 4s2.8 1.3 2.8 2.8-1.3 2.7-2.8 2.7z" fill="currentColor"></path>
+                            </svg>
+                        </span>
+                    </button>
+                </div>
             </div>
-            <div class="col-md-2">
-                <div class="filter-label">Job Type</div>
-                <select id="jobType" class="form-select">
-                    <option value="">All Types</option>
-                    <?php
-                    foreach ($jobTypes as $type) {
-                        echo "<option value='$type'>$type</option>";
-                    }
-                    ?>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <div class="filter-label">Location</div>
-                <input type="text" id="location" class="form-control" placeholder="Any location">
-            </div>
-            <div class="col-md-2 d-flex align-items-end">
+            
+            <!-- Submit Button -->
+            <div class="jobsearch-submit-container">
                 <button class="btn btn-primary w-100 d-flex align-items-center justify-content-center" onclick="filterJobs()" style="background-color: #1A4D8F; border-color: #1A4D8F;">
-                    <i class="bi bi-funnel-fill me-2"></i> Filter
+                        Find Jobs
                 </button>
             </div>
         </div>
-        
-        <!-- Quick Filters -->
-        <div class="filter-chips mt-3">
-            <div class="form-check form-check-inline m-0">
-                <input class="form-check-input d-none" type="checkbox" id="remoteOnly" value="1">
-                <label class="filter-chip" for="remoteOnly" onclick="toggleFilterChip(this)">
-                    <i class="bi bi-laptop"></i> Remote Only
-                </label>
-            </div>
-            <div class="form-check form-check-inline m-0">
-                <input class="form-check-input d-none" type="checkbox" id="expiringSoon" value="1">
-                <label class="filter-chip" for="expiringSoon" onclick="toggleFilterChip(this)">
-                    <i class="bi bi-clock"></i> Expiring Soon
-                </label>
-            </div>
-            <div class="form-check form-check-inline m-0">
-                <input class="form-check-input d-none" type="checkbox" id="highMatch" value="1">
-                <label class="filter-chip" for="highMatch" onclick="toggleFilterChip(this)">
-                    <i class="bi bi-lightning-charge"></i> High Match
-                </label>
+    </div>
+
+
+    <!-- Filter Toggle Button -->
+    <div class="mb-3">
+        <button class="btn btn-outline-primary filter-toggle-btn" type="button" id="filterToggleBtn">
+            <i class="bi bi-funnel-fill me-2"></i> <span class="btn-text">Show Filters</span>
+        </button>
+    </div>
+
+    <!-- Filters Section -->
+        <div class="filter-container" id="filterContainer">
+            <div class="filter-section">
+                <div class="row filter-row g-3">
+                    <!--
+                    <div class="col-md-4">
+                        <div class="filter-label">Search Keywords</div>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" id="search" class="form-control" placeholder="Job title, company, or keywords">
+                        </div>
+                    </div>
+                    -->
+                    <div class="col-md-5">
+                        <div class="filter-label">Category</div>
+                        <select id="category" class="form-select">
+                            <option value="">All Categories</option>
+                            <?php
+                                foreach($categories as $category){
+                                    echo "<option value='$category'>$category</option>";
+                                }
+                            ?>
+                        </select>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="filter-label">Job Type</div>
+                        <select id="jobType" class="form-select">
+                            <option value="">All Types</option>
+                            <?php
+                            foreach ($jobTypes as $type) {
+                                echo "<option value='$type'>$type</option>";
+                            }
+                            ?>
+                        </select>
+                    </div>
+                    <!-- 
+                    <div class="col-md-2">
+                        <div class="filter-label">Location</div>
+                        <input type="text" id="location" class="form-control" placeholder="Any location">
+                    </div>
+                    -->
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button class="btn btn-primary w-100 d-flex align-items-center justify-content-center" onclick="filterJobs()" style="background-color: #1A4D8F; border-color: #1A4D8F;">
+                            <i class="bi bi-funnel-fill me-2"></i> Filter
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Quick Filters -->
+                <div class="filter-chips mt-3">
+                    <div class="form-check form-check-inline m-0">
+                        <input class="form-check-input d-none" type="checkbox" id="remoteOnly" value="1">
+                        <label class="filter-chip" for="remoteOnly" onclick="toggleFilterChip(this)">
+                            <i class="bi bi-laptop"></i> Remote Only
+                        </label>
+                    </div>
+                    <div class="form-check form-check-inline m-0">
+                        <input class="form-check-input d-none" type="checkbox" id="expiringSoon" value="1">
+                        <label class="filter-chip" for="expiringSoon" onclick="toggleFilterChip(this)">
+                            <i class="bi bi-clock"></i> Expiring Soon
+                        </label>
+                    </div>
+                    <div class="form-check form-check-inline m-0">
+                        <input class="form-check-input d-none" type="checkbox" id="highMatch" value="1">
+                        <label class="filter-chip" for="highMatch" onclick="toggleFilterChip(this)">
+                            <i class="bi bi-lightning-charge"></i> High Match
+                        </label>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
 
     <!-- Main Content -->
     <div class="row">
@@ -617,6 +839,68 @@ require '../auth/auth_check_student.php';
     </div>
 </div>
 <?php include '../includes/stud_footer.php'; ?>
+
+<script>
+    // Toggle Filters Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const filterToggle = document.getElementById('filterToggleBtn');
+        const filterContainer = document.getElementById('filterContainer');
+        
+        // Initialize as collapsed
+        filterContainer.classList.add('collapsed');
+        
+        filterToggle.addEventListener('click', function() {
+            const content = filterContainer.querySelector('.filter-section');
+            
+            if (filterContainer.classList.contains('collapsed')) {
+                // Calculate full height
+                const contentHeight = content.scrollHeight;
+                filterContainer.style.height = contentHeight + 'px';
+                filterContainer.classList.remove('collapsed');
+                this.querySelector('.btn-text').textContent = 'Hide Filters';
+                this.classList.remove('collapsed');
+                
+                // Remove fixed height after transition to allow responsive behavior
+                setTimeout(() => {
+                    filterContainer.style.height = 'auto';
+                }, 300);
+            } else {
+                // Set fixed height before collapsing for smooth animation
+                filterContainer.style.height = filterContainer.scrollHeight + 'px';
+                setTimeout(() => {
+                    filterContainer.style.height = '0';
+                }, 10);
+                
+                filterContainer.classList.add('collapsed');
+                this.querySelector('.btn-text').textContent = 'Show Filters';
+                this.classList.add('collapsed');
+            }
+        });
+        
+        // Handle window resize when filters are open
+        window.addEventListener('resize', function() {
+            if (!filterContainer.classList.contains('collapsed')) {
+                const content = filterContainer.querySelector('.filter-section');
+                filterContainer.style.height = content.scrollHeight + 'px';
+            }
+        });
+    });
+
+    // Toggle Filter Chips
+    function toggleFilterChip(element) {
+        const checkbox = document.getElementById(element.htmlFor);
+        checkbox.checked = !checkbox.checked;
+        element.classList.toggle('active', checkbox.checked);
+        filterJobs(); // Optional: trigger filtering immediately
+    }
+
+    // Filter Jobs Function (placeholder)
+    function filterJobs() {
+        // Your existing filter logic here
+        console.log('Filtering jobs...');
+    }
+</script>
+
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     fetchJobs();
@@ -1053,18 +1337,41 @@ function formatDate(dateString) {
     });
 }
 
-function getTimeAgo(dateString) {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+function getTimeAgo(timestamp, referenceTime = null) {
+    const manilaTimeZone = 'Asia/Manila';
     
-    if (diffInDays === 0) return "Today";
-    if (diffInDays === 1) return "Yesterday";
-    if (diffInDays < 7) return `${diffInDays} days ago`;
-    if (diffInDays < 30) return `${Math.floor(diffInDays / 7)} weeks ago`;
-    return formatDate(dateString);
+    // Convert both timestamps to Manila time
+    const date = new Date(timestamp);
+    const now = referenceTime ? new Date(referenceTime) : new Date();
+
+    const options = { timeZone: manilaTimeZone, year: 'numeric', month: '2-digit', day: '2-digit', 
+                      hour: '2-digit', minute: '2-digit', second: '2-digit' };
+    
+    // Parse the formatted time into date components
+    const manilaDate = new Date(new Intl.DateTimeFormat('en-US', options).format(date));
+    const manilaNow = new Date(new Intl.DateTimeFormat('en-US', options).format(now));
+    
+    let diffInSeconds = Math.floor((manilaNow - manilaDate) / 1000);
+
+    const units = [
+        { label: 'year', seconds: 365 * 24 * 60 * 60 },
+        { label: 'month', seconds: 30 * 24 * 60 * 60 },
+        { label: 'day', seconds: 24 * 60 * 60 },
+        { label: 'hour', seconds: 60 * 60 },
+        { label: 'minute', seconds: 60 },
+        { label: 'second', seconds: 1 },
+    ];
+
+    for (const unit of units) {
+        const value = Math.floor(diffInSeconds / unit.seconds);
+        if (value > 0) {
+            return `${value} ${unit.label}${value > 1 ? 's' : ''} ago`;
+        }
+    }
+
+    return 'just now';
 }
+
 
 function sanitize(text) {
     if (!text) return '';

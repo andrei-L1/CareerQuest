@@ -4,33 +4,27 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-
-// Check if both user_id and stud_id are not set simultaneously
-if (isset($_SESSION['user_id']) && isset($_SESSION['stud_id'])) {
-    echo "Error: Both user and student IDs are set. Only one should be set.";
-    exit;
-}
-
-// Check if neither user_id nor stud_id is set
-if (!isset($_SESSION['user_id']) && !isset($_SESSION['stud_id'])) {
+// Redirect if not logged in as employer
+if (!isset($_SESSION['user_id'])) {
     header("Location: ../index.php");
-    exit;
+    exit();
 }
+
 // Include your external PDO database connection
 require '../config/dbcon.php';
 
-// Function to fetch student details from the database
-function getStudentDetails($conn, $studentId) {
-    $stmt = $conn->prepare("SELECT * FROM student WHERE stud_id = :student_id AND deleted_at IS NULL");
-    $stmt->bindParam(':student_id', $studentId, PDO::PARAM_INT);
+// Function to fetch employer details from the database
+function getEmployerDetails($conn, $userId) {
+    $stmt = $conn->prepare("SELECT * FROM user WHERE user_id = :user_id AND deleted_at IS NULL");
+    $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
     $stmt->execute();
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
 // Function to get unread notification count using PDO
-function getUnreadNotificationCount($conn, $studentId) {
-    $stmt = $conn->prepare("SELECT actor_id FROM actor WHERE entity_type = 'student' AND entity_id = :student_id");
-    $stmt->bindParam(':student_id', $studentId, PDO::PARAM_INT);
+function getUnreadNotificationCount($conn, $userId) {
+    $stmt = $conn->prepare("SELECT actor_id FROM actor WHERE entity_type = 'user' AND entity_id = :user_id");
+    $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
     $stmt->execute();
     
     if ($stmt->rowCount() === 1) {
@@ -46,75 +40,77 @@ function getUnreadNotificationCount($conn, $studentId) {
     return 0;
 }
 
-function getUnreadMessageCount($conn, $studentId) {
-    // Get the actor_id of the student
-    $stmt = $conn->prepare("SELECT actor_id FROM actor WHERE entity_type = 'student' AND entity_id = :studentId");
-    $stmt->bindParam(':studentId', $studentId, PDO::PARAM_INT);
+
+function getUnreadMessageCount($conn, $userId) {
+    // Get the actor_id of the user
+    $stmt = $conn->prepare("SELECT actor_id FROM actor WHERE entity_type = 'user' AND entity_id = :user_id");
+    $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
     $stmt->execute();
     
     if ($stmt->rowCount() === 1) {
         $actor = $stmt->fetch(PDO::FETCH_ASSOC);
         $actorId = $actor['actor_id'];
         
-        // Count unread messages for this student (as receiver)
+        // Count unread messages for this user (as receiver)
         $stmt = $conn->prepare("SELECT COUNT(*) as count FROM message 
                                 WHERE receiver_id = :actor_id AND is_read = 0 AND deleted_at IS NULL");
         $stmt->bindParam(':actor_id', $actorId, PDO::PARAM_INT);
         $stmt->execute();
-        
-        // Return the unread message count
-        return (int) $stmt->fetchColumn(); // Casting to int for consistency
+       return (int) $stmt->fetchColumn();
     }
-    return 0; // No unread messages if no actor_id found
+    return 0;
 }
 
 
-// Get student ID from session
-$studentId = $_SESSION['stud_id'];
+// Get employer user ID from session
+$userId = $_SESSION['user_id'];
 
-// Fetch student data
-$studentData = getStudentDetails($conn, $studentId);
+// Fetch employer data
+$employerData = getEmployerDetails($conn, $userId);
 
 // Set session variables if data is found
-if ($studentData) {
-    $_SESSION['stud_first_name'] = $studentData['stud_first_name'];
-    $_SESSION['stud_last_name'] = $studentData['stud_last_name'];
-    $_SESSION['profile_picture'] = $studentData['profile_picture'];
+if ($employerData) {
+    $_SESSION['user_first_name'] = $employerData['user_first_name'];
+    $_SESSION['user_last_name'] = $employerData['user_last_name'];
+    $_SESSION['picture_file'] = $employerData['picture_file'];
 }
 
 // Profile picture handling
-$profilePicture = $studentData['profile_picture'] ?? '';
+$profilePicture = $employerData['profile_picture'] ?? '';
 if (!empty($profilePicture) && file_exists('../uploads/' . $profilePicture)) {
     $profile_pic = '../uploads/' . $profilePicture;
-}
- else {
-    $name = trim(($studentData['stud_first_name'] ?? '') . ' ' . ($studentData['stud_last_name'] ?? ''));
-    $profile_pic = 'https://ui-avatars.com/api/?name=' . urlencode($name ?: 'Student') . '&background=457B9D&color=fff&rounded=true&size=128';
+} else {
+    $name = trim(($employerData['user_first_name'] ?? '') . ' ' . ($employerData['user_last_name'] ?? ''));
+    $profile_pic = 'https://ui-avatars.com/api/?name=' . urlencode($name ?: 'Employer') . '&background=457B9D&color=fff&rounded=true&size=128';
 }
 
 // Get unread notification count
-$notification_count = getUnreadNotificationCount($conn, $studentId);
-$message_count = getUnreadMessageCount($conn, $studentId);
+$notification_count = getUnreadNotificationCount($conn, $userId);
+$message_count = getUnreadMessageCount($conn, $userId);
 
 // Get current page
 $currentPage = basename($_SERVER['PHP_SELF']);
 ob_start(); 
-// Navigation links
+// Navigation links for employer
 $nav_links = [
-    "Dashboard" => "../dashboard/student.php",
-    "Jobs" => "../dashboard/student_job.php",
-    "Applications" => "student_applications.php",
-    "Notifications" => "../dashboard/notifications.php",
+    "Dashboard" => "../dashboard/employer.php",
+    "Jobs" => "../dashboard/employer_jobs.php",
+    "Applications" => "employer_applications.php",
+    "Notifications" => "../dashboard/employer_notifications.php",
     "Forum" => "forums.php",
     "Messages" => "messages.php"
 ];
 
-// Get student name safely
-$firstName = htmlspecialchars($studentData['stud_first_name'] ?? 'Student');
-$lastName = htmlspecialchars($studentData['stud_last_name'] ?? '');
+// Get employer name safely
+$firstName = htmlspecialchars($employerData['user_first_name'] ?? 'Employer');
+$lastName = htmlspecialchars($employerData['user_last_name'] ?? '');
 
+// Job-related details
+$companyName = $employerData['company_name'] ?? '';
+$jobTitle = $employerData['job_title'] ?? '';
 
-$resumeFile = $studentData['resume_file'] ?? '';
+// Resume file handling (if any)
+$resumeFile = $employerData['resume_file'] ?? '';
 
 // Define the base directory for uploads
 $uploadsDir = '../uploads/';
@@ -126,7 +122,6 @@ if (!empty($resumeFile) && file_exists($uploadsDir . $resumeFile)) {
     $resumeLink = ''; // No resume available
 }
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -484,10 +479,9 @@ if (!empty($resumeFile) && file_exists($uploadsDir . $resumeFile)) {
     </style>
 </head>
 <body>
-
 <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="../dashboard/student.php">
+        <a class="navbar-brand fw-bold" href="../dashboard/employer.php">
             CareerQuest
         </a>
 
@@ -507,6 +501,7 @@ if (!empty($resumeFile) && file_exists($uploadsDir . $resumeFile)) {
                                 </span>
                             <?php endif; ?>
 
+
                             <?php if ($name === "Messages" && $message_count > 0): ?>
                                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                                     <?= $message_count ?>
@@ -514,7 +509,7 @@ if (!empty($resumeFile) && file_exists($uploadsDir . $resumeFile)) {
                             <?php endif; ?>
 
                             <?php if ($name === "Forum"): ?>
-                              <!--  <span class="badge bg-primary ms-1">New</span> -->
+                              <!-- <span class="badge bg-primary ms-1">New</span> -->
                             <?php endif; ?>
                         </a>
                     </li>
@@ -529,18 +524,18 @@ if (!empty($resumeFile) && file_exists($uploadsDir . $resumeFile)) {
                             <img src="<?= $profile_pic ?>" class="rounded-circle" width="36" height="36" alt="Profile">
                             <span class="position-absolute bottom-0 end-0 p-1 bg-success border border-light rounded-circle"></span>
                         </div>
-                        <span class="d-none d-lg-inline"><?= $_SESSION['stud_first_name'] ?? 'Student' ?></span>
+                        <span class="d-none d-lg-inline"><?= $_SESSION['user_first_name'] ?? 'Employer' ?> </span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><h6 class="dropdown-header"><?= htmlspecialchars($firstName . ' ' . $lastName) ?></h6></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="../dashboard/student_profile.php">My Profile</a></li>
+                        <li><a class="dropdown-item" href="../dashboard/employer_profile.php">My Profile</a></li>
                         <?php if ($resumeLink): ?>
                             <li><a class="dropdown-item" href="<?= $resumeLink ?>" target="_blank">My Resume</a></li>
                         <?php else: ?>
                             <li><a class="dropdown-item" href="javascript:void(0);">No Resume Uploaded</a></li>
                         <?php endif; ?>
-                        <li><a class="dropdown-item" href="../dashboard/student_account_settings.php">Account Settings</a></li>
+                        <li><a class="dropdown-item" href="../dashboard/employer_account_settings.php">Account Settings</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item text-danger" href="../auth/logout.php">Logout</a></li>
                     </ul>
@@ -550,9 +545,9 @@ if (!empty($resumeFile) && file_exists($uploadsDir . $resumeFile)) {
     </div>
 </nav>
 
+
 <!-- Keep this ONLY -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
     // Initialize all dropdown functionality
     document.addEventListener('DOMContentLoaded', function() {
@@ -601,16 +596,17 @@ if (!empty($resumeFile) && file_exists($uploadsDir . $resumeFile)) {
         // Animation for notification bell if there are unread notifications
         <?php if ($notification_count > 0): ?>
         const notificationBell = document.querySelector('.has-notifications i');
-        setInterval(() => {
-            notificationBell.style.animation = 'none';
-            setTimeout(() => {
-                notificationBell.style.animation = 'ring 0.5s ease-in-out';
-            }, 50);
-        }, 8000);
+        if (notificationBell) {
+            setInterval(() => {
+                notificationBell.style.animation = 'none';
+                setTimeout(() => {
+                    notificationBell.style.animation = 'ring 0.5s ease-in-out';
+                }, 50);
+            }, 8000);
+        }
         <?php endif; ?>
     });
 </script>
-
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
@@ -656,6 +652,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
 
 </body>
 </html>

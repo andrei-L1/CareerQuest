@@ -63,6 +63,7 @@ $page_permissions = [
     'admin_data_management.php' => [$roles['Admin'] ?? 0],
     'admin_job_management.php' => [$roles['Admin'] ?? 0],
     'employer.php' => [$roles['Employer'] ?? 0],
+    'employer_notifications.php' => [$roles['Employer'] ?? 0],
     'professional.php' => [$roles['Professional'] ?? 0],
     'moderator.php' => [$roles['Moderator'] ?? 0],
 ];
@@ -74,7 +75,9 @@ $current_page = filter_var(basename($_SERVER['PHP_SELF']), FILTER_SANITIZE_STRIN
 if (isset($page_permissions[$current_page]) && !in_array($role_id, $page_permissions[$current_page])) {
     session_unset();
     session_destroy();
-    header("Location: ../auth/login_user.php?unauthorized_access=1");
+    // Redirect to appropriate login based on role
+    $login_page = ($role_name === 'employer') ? '../auth/login_employer.php' : '../auth/login_user.php';
+    header("Location: $login_page?unauthorized_access=1");
     exit();
 }
 
@@ -82,7 +85,9 @@ if (isset($page_permissions[$current_page])) {
     $allowed_roles = $page_permissions[$current_page] ?? [];
     if (!in_array($role_id, $allowed_roles)) {
         error_log("Unauthorized access attempt by user ID: $user_id on $current_page.");
-        header("Location: ../auth/login_user.php?unauthorized_access=1");
+        // Redirect to appropriate login based on role
+        $login_page = ($role_name === 'employer') ? '../auth/login_employer.php' : '../auth/login_user.php';
+        header("Location: $login_page?unauthorized_access=1");
         exit();
     }
 }

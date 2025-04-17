@@ -627,7 +627,7 @@ if (isset($_SESSION['user_id'])) {
 
                             <!-- Employer Login -->
                             <div class="col-12">
-                                <a href="auth/login_user.php" class="card role-card h-100 text-decoration-none bg-gradient-success-hover">
+                                <a href="auth/login_employer.php" class="card role-card h-100 text-decoration-none bg-gradient-success-hover">
                                     <div class="card-body d-flex align-items-center gap-4 py-4">
                                         <div class="icon-container bg-white bg-opacity-25 p-3 rounded-circle">
                                             <i class="fas fa-briefcase fa-2x text-white"></i>

@@ -1,6 +1,8 @@
 <?php
 require_once '../config/dbcon.php';
-include '../includes/stud_navbar.php';
+include '../includes/employer_navbar.php';
+require_once '../auth/employer_auth.php';
+require_once '../auth/auth_check.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -78,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     if (!$actor) {
         $_SESSION['error_message'] = "Could not find your user record in the notification system";
-        header("Location: notifications.php");
+        header("Location: employer_notifications.php");
         exit;
     }
     
@@ -92,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } catch (PDOException $e) {
             $_SESSION['error_message'] = "Error marking notifications as read: " . $e->getMessage();
         }
-        header("Location: notifications.php");
+        header("Location: employer_notifications.php");
         exit;
     }
     
@@ -104,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } catch (PDOException $e) {
             $_SESSION['error_message'] = "Error deleting notifications: " . $e->getMessage();
         }
-        header("Location: notifications.php");
+        header("Location: employer_notifications.php");
         exit;
     }
 }
@@ -114,7 +116,7 @@ if (isset($_GET['notification_id'])) {
     $notification_id = $_GET['notification_id'];
     $stmt = $conn->prepare("UPDATE notification SET is_read = TRUE WHERE notification_id = ?");
     $stmt->execute([$notification_id]);
-    header("Location: notifications.php");
+    header("Location: employer_notifications.php");
     exit;
 }
 
@@ -122,25 +124,26 @@ if (isset($_GET['delete_notification_id'])) {
     $notification_id = $_GET['delete_notification_id'];
     $stmt = $conn->prepare("UPDATE notification SET deleted_at = CURRENT_TIMESTAMP WHERE notification_id = ?");
     $stmt->execute([$notification_id]);
-    header("Location: notifications.php");
+    header("Location: employer_notifications.php");
     exit;
 }
 
-// Fetch notifications (corrected to match second system's logic)
+// Fetch notifications (unchanged query)
+// For employer notifications (showing who applied)
 $query = "
     SELECT n.*, 
-        a.entity_type AS actor_entity_type,
-        a.entity_id AS actor_entity_id,
-        COALESCE(u.user_first_name, s.stud_first_name) AS actor_first_name,
-        COALESCE(u.user_last_name, s.stud_last_name) AS actor_last_name,
-        COALESCE(u.picture_file, s.profile_picture) AS actor_picture,
-        ref_a.entity_type AS reference_entity_type,
-        ref_a.entity_id AS reference_entity_id
+        ref_a.entity_type AS applicant_entity_type,
+        ref_a.entity_id AS applicant_entity_id,
+        COALESCE(s.stud_first_name, u.user_first_name) AS applicant_first_name,
+        COALESCE(s.stud_last_name, u.user_last_name) AS applicant_last_name,
+        COALESCE(s.profile_picture, u.picture_file) AS applicant_picture,
+        j.title AS job_title
     FROM notification n
-    JOIN actor a ON n.actor_id = a.actor_id  -- Who receives the notification
-    LEFT JOIN user u ON a.entity_type = 'user' AND a.entity_id = u.user_id
-    LEFT JOIN student s ON a.entity_type = 'student' AND a.entity_id = s.stud_id
-    LEFT JOIN actor ref_a ON n.reference_id = ref_a.actor_id  -- Who performed the action
+    JOIN actor a ON n.actor_id = a.actor_id  -- Employer receiving notification
+    LEFT JOIN actor ref_a ON n.reference_id = ref_a.actor_id  -- Student who applied
+    LEFT JOIN student s ON ref_a.entity_type = 'student' AND ref_a.entity_id = s.stud_id
+    LEFT JOIN user u ON ref_a.entity_type = 'user' AND ref_a.entity_id = u.user_id
+    LEFT JOIN job_posting j ON n.action_url LIKE CONCAT('%job_id=', j.job_id, '%')
     WHERE a.entity_type = ? 
     AND a.entity_id = ?
     AND n.deleted_at IS NULL
@@ -150,17 +153,23 @@ $stmt = $conn->prepare($query);
 $stmt->execute([$currentUser['entity_type'], $currentUser['entity_id']]);
 $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Process notifications (unchanged)
+// Process notifications for employer view
 foreach ($notifications as &$notification) {
-    if (!empty($notification['actor_id'])) {
-        $firstName = $notification['actor_first_name'] ?? '';
-        $lastName = $notification['actor_last_name'] ?? '';
-        $actorName = trim("$firstName $lastName");
-        $notification['message'] = str_replace('{actor}', $actorName, $notification['message']);
+    if (!empty($notification['applicant_entity_id'])) {
+        $firstName = $notification['applicant_first_name'] ?? '';
+        $lastName = $notification['applicant_last_name'] ?? '';
+        $applicantName = trim("$firstName $lastName");
+        $jobTitle = $notification['job_title'] ?? 'the job';
+        
+        // Customize message for employer view
+        $notification['message'] = str_replace(
+            ['{actor}', 'applied for:'], 
+            [$applicantName, 'applied to your job:'], 
+            $notification['message']
+        );
     }
 }
 unset($notification);
-
 
 // Count unread notifications
 $unread_count = 0;
@@ -168,7 +177,6 @@ foreach ($notifications as $n) {
     if (!$n['is_read']) $unread_count++;
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -401,6 +409,15 @@ foreach ($notifications as $n) {
             background-color:rgb(120, 172, 245); 
             color: #fff;
         }
+
+        .applicant-image {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body>
@@ -474,12 +491,16 @@ foreach ($notifications as $n) {
                     <div class="card notification-card <?= $notification['is_read'] ? 'card-read' : 'card-unread' ?>">
                         <div class="card-body">
                             <div class="d-flex align-items-start">
-                                <?php if ($notification['actor_entity_type'] === 'user') : ?>
-                                    <?php if ($notification['actor_picture']) : ?>
-                                        <img src="<?= htmlspecialchars($notification['actor_picture']) ?>"
-                                            alt="Actor"
-                                            class="actor-image me-3">
-                                    <?php else : ?>
+                               
+                                <?php if ($notification['applicant_entity_id']) : ?>
+                                    <?php 
+                                        $imagePath = !empty($notification['applicant_picture']) ? "../uploads/" . $notification['applicant_picture'] : null;
+                                        if ($imagePath && file_exists($imagePath)) : ?>
+                                            <img src="<?= htmlspecialchars($imagePath) ?>"
+                                                alt="Applicant"
+                                                class="applicant-image me-3"
+                                                style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%;">
+                                        <?php else : ?>
                                         <div class="actor-image me-3 bg-primary-light d-flex align-items-center justify-content-center">
                                             <i class="fas fa-user text-primary"></i>
                                         </div>
@@ -487,18 +508,17 @@ foreach ($notifications as $n) {
                                 <?php endif; ?>
                                 
                                 <div class="flex-grow-1">
-                                    <?php if ($notification['actor_entity_type'] === 'user') : ?>
-                                        <h6 class="mb-1 fw-semibold">
-                                            <?= htmlspecialchars($notification['actor_first_name'] . ' ' . $notification['actor_last_name']) ?>
-                                        </h6>
-                                    <?php endif; ?>
+                                    <h6 class="mb-1 fw-semibold">
+                                        <span class="badge bg-primary">Application</span>
+                                        <span class="mx-2">|</span>
+                                        <span><?= htmlspecialchars($notification['applicant_first_name'] . ' ' . $notification['applicant_last_name']) ?></span>
+                                    </h6>
 
-                                    <?php if ($notification['actor_entity_type'] === 'student' || $notification['notification_type'] === 'application' ): ?>
-                                        <h6 class="mb-1 fw-semibold">
-                                            <span>Application</span>
-                                            <span class="mx-2">|</span>
-                                            <span><?= htmlspecialchars($notification['actor_first_name'] . ' ' . $notification['actor_last_name']) ?></span>
-                                        </h6>
+                                    <?php if (!empty($notification['job_title'])) : ?>
+                                        <p class="text-muted mb-2">
+                                            <i class="bi bi-briefcase me-1"></i>
+                                            <?= htmlspecialchars($notification['job_title']) ?>
+                                        </p>
                                     <?php endif; ?>
                                     
                                     <p class="notification-message mb-2">
@@ -514,13 +534,13 @@ foreach ($notifications as $n) {
                                         
                                         <div class="action-buttons d-flex gap-2">
                                             <?php if (!$notification['is_read']) : ?>
-                                                <a href="notifications.php?notification_id=<?= $notification['notification_id'] ?>"
+                                                <a href="employer_notifications.php?notification_id=<?= $notification['notification_id'] ?>"
                                                    class="btn btn-sm btn-success">
                                                     <i class="bi bi-check-circle me-1"></i> Read
                                                 </a>
                                             <?php endif; ?>
                                             
-                                            <a href="notifications.php?delete_notification_id=<?= $notification['notification_id'] ?>"
+                                            <a href="employer_notifications.php?delete_notification_id=<?= $notification['notification_id'] ?>"
                                                class="btn btn-sm btn-outline-danger">
                                                 <i class="bi bi-trash me-1"></i> Delete
                                             </a>
@@ -563,68 +583,77 @@ foreach ($notifications as $n) {
                         echo '<div class="date-divider">' . $current_date . '</div>';
                     }
                 ?>
-                    <div class="card notification-card card-unread">
-                        <div class="card-body">
-                            <div class="d-flex align-items-start">
-                                <!--
-                                <?php if ($notification['actor_id']) : ?>
-                                    <?php if ($notification['actor_picture']) : ?>
-                                        <img src="<?= htmlspecialchars($notification['actor_picture']) ?>"
-                                            alt="Actor"
-                                            class="actor-image me-3">
+                <div class="card notification-card card-unread">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start">
+                            <?php if ($notification['applicant_entity_id']) : ?>
+                                <?php 
+                                    $imagePath = !empty($notification['applicant_picture']) ? "../uploads/" . $notification['applicant_picture'] : null;
+                                    if ($imagePath && file_exists($imagePath)) : ?>
+                                        <img src="<?= htmlspecialchars($imagePath) ?>"
+                                            alt="Applicant"
+                                            class="applicant-image me-3"
+                                            style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%;">
                                     <?php else : ?>
-                                        <div class="actor-image me-3 bg-primary-light d-flex align-items-center justify-content-center">
-                                            <i class="fas fa-user text-primary"></i>
-                                        </div>
-                                    <?php endif; ?>
+                                    <div class="applicant-image me-3 bg-primary-light d-flex align-items-center justify-content-center">
+                                        <i class="fas fa-user text-primary"></i>
+                                    </div>
                                 <?php endif; ?>
-                                    -->
-                                <div class="flex-grow-1">
-                                    <?php if ($notification['actor_id']) : ?>
-                                        <h6 class="mb-1 fw-semibold">
-                                            <?= htmlspecialchars($notification['actor_first_name'] . ' ' . $notification['actor_last_name']) ?>
-                                        </h6>
-                                    <?php endif; ?>
-                                    
-                                    <p class="notification-message mb-2">
-                                        <?= htmlspecialchars($notification['message']) ?>
+                            <?php endif; ?>
+                            
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1 fw-semibold">
+                                    <span class="badge bg-primary">Application</span>
+                                    <span class="mx-2">|</span>
+                                    <span><?= htmlspecialchars($notification['applicant_first_name'] . ' ' . $notification['applicant_last_name']) ?></span>
+                                </h6>
+
+                                <p class="notification-message mb-2">
+                                    <?= htmlspecialchars($notification['message']) ?>
+                                </p>
+
+                                <?php if (!empty($notification['job_title'])) : ?>
+                                    <p class="text-muted mb-2">
+                                        <i class="bi bi-briefcase me-1"></i>
+                                        <?= htmlspecialchars($notification['job_title']) ?>
                                     </p>
+                                <?php endif; ?>
+                                
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="notification-time">
+                                        <i class="bi bi-clock me-1"></i>
+                                        <?= date("g:i a", strtotime($notification['created_at'])) ?>
+                                    </span>
                                     
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <span class="notification-time">
-                                            <i class="bi bi-clock me-1"></i>
-                                            <?= date("g:i a", strtotime($notification['created_at'])) ?>
-                                            • <?= ucfirst($notification['notification_type']) ?>
-                                        </span>
+                                    <div class="action-buttons d-flex gap-2">
+                                        <a href="employer_notifications.php?notification_id=<?= $notification['notification_id'] ?>"
+                                        class="btn btn-sm btn-success">
+                                            <i class="bi bi-check-circle me-1"></i> Read
+                                        </a>
                                         
-                                        <div class="action-buttons d-flex gap-2">
-                                            <a href="notifications.php?notification_id=<?= $notification['notification_id'] ?>"
-                                               class="btn btn-sm btn-success">
-                                                <i class="bi bi-check-circle me-1"></i> Read
+                                        <a href="employer_notifications.php?delete_notification_id=<?= $notification['notification_id'] ?>"
+                                        class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash me-1"></i> Delete
+                                        </a>
+                                        
+                                        <?php if ($notification['action_url']) : ?>
+                                            <a href="<?= htmlspecialchars($notification['action_url']) ?>"
+                                            class="btn btn-sm btn-primary">
+                                                <i class="bi bi-arrow-right-circle me-1"></i> View
                                             </a>
-                                            
-                                            <a href="notifications.php?delete_notification_id=<?= $notification['notification_id'] ?>"
-                                               class="btn btn-sm btn-outline-danger">
-                                                <i class="bi bi-trash me-1"></i> Delete
-                                            </a>
-                                            
-                                            <?php if ($notification['action_url']) : ?>
-                                                <a href="<?= htmlspecialchars($notification['action_url']) ?>"
-                                                   class="btn btn-sm btn-primary">
-                                                    <i class="bi bi-arrow-right-circle me-1"></i> View
-                                                </a>
-                                            <?php endif; ?>
-                                        </div>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                </div>
                 <?php endforeach; ?>
             <?php endif; ?>
         </div>
     </div>
 </div>
+
 <?php include '../includes/stud_footer.php'; ?>
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

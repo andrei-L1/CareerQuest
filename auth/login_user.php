@@ -55,12 +55,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Invalid email format.";
     } else {
         $stmt = $conn->prepare("
-            SELECT user.*, actor.actor_id 
+            SELECT user.*, actor.actor_id, role.role_title
             FROM user 
             JOIN actor ON user.user_id = actor.entity_id
+            JOIN role ON user.role_id = role.role_id
             WHERE user.user_email = :email AND actor.entity_type = 'user'
         ");
-    
         
         $stmt->bindParam(':email', $email, PDO::PARAM_STR);
         $stmt->execute();
@@ -70,24 +70,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($user['status'] === 'Deleted') {
                 $error = "Your account has been deactivated. Please contact support.";
             } elseif (password_verify($password, $user['user_password'])) {
+                // ✅ Check if the user has the "Employer" role
+                if ($user['role_title'] !== 'Professional' && $user['role_title'] !== 'Admin') {
+                    $error = "You must have an Professional role to log in.";
+                } else {
+                    // ✅ Destroy previous session to prevent login conflicts
+                    session_unset();
+                    session_destroy();
+                    session_start();
+                    session_regenerate_id(true);
 
+                    // ✅ Store actor_id in session
+                    $_SESSION['user_id'] = $user['user_id'];
+                    $_SESSION['actor_id'] = $user['actor_id']; 
+                    $_SESSION['role_id'] = $user['role_id'];
+                    $_SESSION['entity'] = 'user';
+                    $_SESSION['login_attempts'] = 0;
+                    $_SESSION['lockout_time'] = 0;
 
-              // ✅ Destroy previous session to prevent login conflicts
-                session_unset();
-                session_destroy();
-                session_start();
-                session_regenerate_id(true);
-
-                // ✅ Store actor_id in session
-                $_SESSION['user_id'] = $user['user_id'];
-                $_SESSION['actor_id'] = $user['actor_id']; 
-                $_SESSION['role_id'] = $user['role_id'];
-                $_SESSION['entity'] = 'user';
-                $_SESSION['login_attempts'] = 0;
-                $_SESSION['lockout_time'] = 0;
-        
-                require '../controllers/auth_redirect.php';
-                exit();
+                    require '../controllers/auth_redirect.php';
+                    exit();
+                }
             } else {
                 $error = "Invalid email or password.";
             }
@@ -95,7 +98,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = "Invalid email, password, or inactive account.";
         }
         
-
         // Failed login attempt
         $_SESSION['login_attempts']++;
         if ($_SESSION['login_attempts'] >= $max_attempts) {
@@ -104,15 +106,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
-?>
 
+
+// Check for 'unauthorized_access' query parameter
+if (isset($_GET['unauthorized_access']) && $_GET['unauthorized_access'] == 1) {
+    $error = "You do not have permission to access this page.";
+}
+?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Login | Professional Portal</title>
+    <title>Login Professional</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -436,7 +443,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="login-container">
         <div class="login-header">
             <h3>Welcome Back</h3>
-            <p>Employer/Professional Login</p>
+            <p>Professional Login</p>
         </div>
         
         <?php if (isset($_GET['account_deleted'])): ?>
@@ -505,7 +512,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </p>
             <p><a href="../index.php">Back to Home</a></p>
             <p class="switch-user-type">
-                Not an Employer or a Professional? 
+                Not a Professional? 
                 <a href="../index.php?openloginModal=true">Click here</a>
             </p>
         </div>

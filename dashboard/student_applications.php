@@ -164,7 +164,7 @@ function getApplicationTimeline($conn, $application_id) {
         
         .dashboard-container {
             padding: 2rem;
-            max-width: 1300px;
+            max-width: 1400px;
             margin: 0 auto;
         }
         
