@@ -1491,6 +1491,56 @@ function confirmApply(jobId) {
         }
     });
 }
+
+document.addEventListener("DOMContentLoaded", function() {
+    // Function to handle job selection
+    function handleJobSelection() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const jobId = urlParams.get('id');
+        
+        if (jobId && /^\d+$/.test(jobId)) {
+            // Show loading state
+            const detailsSection = document.getElementById("jobDetails");
+            if (detailsSection) {
+                detailsSection.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="fas fa-spinner fa-spin fa-2x"></i>
+                        <p>Loading job details...</p>
+                    </div>`;
+            }
+            
+            // Clean URL but preserve parameters
+            history.replaceState(null, null, window.location.pathname + '?' + urlParams.toString());
+            
+            // Try to select job
+            const attemptSelection = () => {
+                if (typeof selectJob === 'function') {
+                    selectJob(jobId);
+                    if (detailsSection) {
+                        detailsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                } else {
+                    // If selectJob isn't available yet, try again
+                    setTimeout(attemptSelection, 100);
+                }
+            };
+            
+            // Start with a small delay to let other scripts load
+            setTimeout(attemptSelection, 300);
+        }
+    }
+    
+    // Check URL for selection trigger
+    if (window.location.hash === '#select') {
+        handleJobSelection();
+    }
+    
+    // Optional: Also check for a parameter like ?select_job=1
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('select_job')) {
+        handleJobSelection();
+    }
+});
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

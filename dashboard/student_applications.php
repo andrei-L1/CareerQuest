@@ -705,7 +705,7 @@ function getApplicationTimeline($conn, $application_id) {
                                 </div>
                                 
                                 <div class="d-flex justify-content-end mt-3 gap-2 flex-wrap">
-                                    <a href="student_job.php?id=<?= $application['job_id'] ?>" class="btn btn-sm btn-outline-primary">
+                                    <a href="student_job.php?id=<?= $application['job_id'] ?>#select" class="btn btn-sm btn-outline-primary">
                                         <i class="bi bi-eye-fill"></i> View Job
                                     </a>
                                     <?php if ($application['unread_messages'] > 0): ?>
