@@ -432,7 +432,7 @@ if ($completion_percentage < 100 && !isset($_SESSION['profile_modal_shown'])) {
                         <i class="bi bi-envelope-fill"></i> <?= $email; ?>
                     </span>
                     <span class="profile-meta-item">
-                        <i class="bi bi-mortarboard-fill"></i> <?= $degree_program ?? 'Not specified'; ?>
+                        <i class="bi bi-mortarboard-fill"></i> <?= $course_title ?? 'Not specified'; ?>
                     </span>
                 </div>
                 

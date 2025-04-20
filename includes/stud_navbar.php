@@ -541,6 +541,7 @@ if (!empty($resumeFile) && file_exists($uploadsDir . $resumeFile)) {
                             <li><a class="dropdown-item" href="javascript:void(0);">No Resume Uploaded</a></li>
                         <?php endif; ?>
                         <li><a class="dropdown-item" href="../dashboard/student_account_settings.php">Account Settings</a></li>
+                        <li><a  class="dropdown-item" href="student_saved_jobs.php">Saved Jobs</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item text-danger" href="../auth/logout.php">Logout</a></li>
                     </ul>

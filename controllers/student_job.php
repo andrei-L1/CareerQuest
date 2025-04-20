@@ -229,28 +229,49 @@ class StudentJobController {
     }
 
     private function saveJob($jobId) {
-        $query = "SELECT COUNT(*) FROM saved_jobs 
-                 WHERE job_id = :job_id AND stud_id = :stud_id";
+        // Check if the job is already saved
+        $query = "SELECT saved_id, deleted_at FROM saved_jobs 
+                  WHERE job_id = :job_id AND stud_id = :stud_id";
         $stmt = $this->db->prepare($query);
         $stmt->bindParam(':job_id', $jobId);
         $stmt->bindParam(':stud_id', $this->studentId);
         $stmt->execute();
-        
-        if ($stmt->fetchColumn() > 0) {
-            return ['success' => false, 'message' => 'Job already saved'];
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+        if ($result) {
+            if (is_null($result['deleted_at'])) {
+                // Already saved and active
+                return ['success' => false, 'message' => 'Job already saved'];
+            } else {
+                // Restore soft-deleted entry
+                $restoreQuery = "UPDATE saved_jobs 
+                                 SET deleted_at = NULL, saved_at = NOW() 
+                                 WHERE saved_id = :saved_id";
+                $stmt = $this->db->prepare($restoreQuery);
+                $stmt->bindParam(':saved_id', $result['saved_id']);
+                $success = $stmt->execute();
+    
+                return [
+                    'success' => $success,
+                    'message' => $success ? 'Job re-saved successfully' : 'Failed to re-save job'
+                ];
+            }
         }
-        
-        $query = "INSERT INTO saved_jobs (job_id, stud_id, saved_at)
-                 VALUES (:job_id, :stud_id, NOW())";
-        $stmt = $this->db->prepare($query);
+    
+        // New save
+        $insertQuery = "INSERT INTO saved_jobs (job_id, stud_id, saved_at) 
+                        VALUES (:job_id, :stud_id, NOW())";
+        $stmt = $this->db->prepare($insertQuery);
         $stmt->bindParam(':job_id', $jobId);
         $stmt->bindParam(':stud_id', $this->studentId);
-        
+        $success = $stmt->execute();
+    
         return [
-            'success' => $stmt->execute(),
-            'message' => $stmt->execute() ? 'Job saved successfully' : 'Failed to save job'
+            'success' => $success,
+            'message' => $success ? 'Job saved successfully' : 'Failed to save job'
         ];
     }
+    
 }
 
 // Create controller instance and handle request
