@@ -65,14 +65,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindParam(':email', $email, PDO::PARAM_STR);
         $stmt->execute();
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
-        
+
+
+
         if ($user) {
             if ($user['status'] === 'Deleted') {
                 $error = "Your account has been deactivated. Please contact support.";
             } elseif (password_verify($password, $user['user_password'])) {
                 // ✅ Check if the user has the "Employer" role
-                if ($user['role_title'] !== 'Professional'){
-                    $error = "You must have an Professional role to log in.";
+                if ( $user['role_title'] !== 'Admin' &&  $user['role_title'] !== 'Moderator') {
+                    $error = "You must have an Admin or a Moderator role to log in.";
                 } else {
                     // ✅ Destroy previous session to prevent login conflicts
                     session_unset();
@@ -119,7 +121,7 @@ if (isset($_GET['unauthorized_access']) && $_GET['unauthorized_access'] == 1) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Professional</title>
+    <title>Login Admin</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -443,7 +445,7 @@ if (isset($_GET['unauthorized_access']) && $_GET['unauthorized_access'] == 1) {
     <div class="login-container">
         <div class="login-header">
             <h3>Welcome Back</h3>
-            <p>Professional Login</p>
+            <p>Admin/Moderator Login</p>
         </div>
         
         <?php if (isset($_GET['account_deleted'])): ?>
@@ -473,7 +475,7 @@ if (isset($_GET['unauthorized_access']) && $_GET['unauthorized_access'] == 1) {
                 </script>
             <?php endif; ?>
         
-        <form method="POST" action="login_user.php">
+        <form method="POST" action="login_admin.php">
             <div class="form-group">
                 <i class="fas fa-envelope form-icon"></i>
                 <input type="email" name="email" id="email" class="form-control" placeholder=" " required
@@ -489,7 +491,7 @@ if (isset($_GET['unauthorized_access']) && $_GET['unauthorized_access'] == 1) {
                     <i class="fas fa-eye"></i>
                 </button>
             </div>
-            
+            <!-- 
             <div class="form-options">
                 <div class="remember-me">
                     <input type="checkbox" id="remember" name="remember">
@@ -497,6 +499,7 @@ if (isset($_GET['unauthorized_access']) && $_GET['unauthorized_access'] == 1) {
                 </div>
                 <a href="forgot-password.php" class="forgot-password">Forgot password?</a>
             </div>
+            -->
             
             <button type="submit" class="btn btn-primary">
                 <span>Login</span>
@@ -504,7 +507,7 @@ if (isset($_GET['unauthorized_access']) && $_GET['unauthorized_access'] == 1) {
             </button>
         </form>
         
-
+                <!-- 
         <div class="login-footer">
             <p class="switch-user-type">
                 Don't have an account?
@@ -516,6 +519,7 @@ if (isset($_GET['unauthorized_access']) && $_GET['unauthorized_access'] == 1) {
                 <a href="../index.php?openloginModal=true">Click here</a>
             </p>
         </div>
+        -->
     </div>
 
     <script>

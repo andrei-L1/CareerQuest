@@ -22,9 +22,245 @@ require "../auth/auth_check.php";
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-    <link rel="stylesheet" href="../assests/sidebar.css">
+
     <!-- Custom Styles -->
     <style>
+        :root {
+            --primary-color: #0A2647; /* Navy Blue */
+            --secondary-color: #2C7865; /* Teal */
+            --accent-color: #FFD700; /* Gold */
+            --background-light: #F5F5F5; /* Light Gray */
+            --text-dark: #333333; /* Dark Gray */
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --font-family: 'Poppins', sans-serif;
+
+
+            --sidebar-width: 280px;
+            --sidebar-collapsed-width: 80px;
+            --sidebar-bg: #2c3e50;
+            --sidebar-active-bg: #34495e;
+            --sidebar-text: #ecf0f1;
+            --sidebar-active-text: #3498db;
+            --sidebar-hover-bg: #34495e;
+            --sidebar-transition: all 0.3s ease;
+            --main-content-padding: 20px;
+        }
+
+        body {
+            background-color: var(--background-light);
+            color: var(--text-dark);
+            /* font-family: var(--font-family);*/
+            transition: background-color 0.3s ease, color 0.3s ease;
+
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            overflow-x: hidden;
+            transition: var(--sidebar-transition);
+        }
+
+        .main-content {
+            margin-left: 350px;
+            margin-right: 150px;
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+
+        .sidebar.collapsed + .main-content {
+            margin-left: 200px;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            transition: var(--sidebar-transition);
+            z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed-width);
+        }
+
+        .sidebar-toggle {
+            padding: 15px;
+            text-align: right;
+            cursor: pointer;
+            color: var(--sidebar-text);
+            transition: var(--sidebar-transition);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-toggle:hover {
+            color: var(--sidebar-active-text);
+        }
+
+        .sidebar.collapsed .sidebar-toggle {
+            text-align: center;
+            padding: 15px 0;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 0;
+        }
+
+        .sidebar-nav::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+        }
+
+        .nav-item {
+            position: relative;
+            margin: 5px 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            transition: var(--sidebar-transition);
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            transition: var(--sidebar-transition);
+            white-space: nowrap;
+        }
+
+        .nav-links:hover {
+            background: var(--sidebar-hover-bg);
+            color: var(--sidebar-active-text);
+        }
+
+        .nav-links.active {
+            background: var(--sidebar-active-bg);
+            color: var(--sidebar-active-text);
+            font-weight: 500;
+        }
+
+        .nav-links i {
+            margin-right: 10px;
+            width: 24px;
+            text-align: center;
+            font-size: 1.1rem;
+            transition: var(--sidebar-transition);
+        }
+
+        .sidebar.collapsed .nav-links i {
+            margin-right: 0;
+            font-size: 1.3rem;
+        }
+
+        .nav-links span {
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .sidebar.collapsed .nav-links span {
+            opacity: 0;
+            position: absolute;
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--sidebar-bg);
+            padding: 5px 15px;
+            border-radius: 4px;
+            white-space: nowrap;
+            pointer-events: none;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 1001;
+        }
+
+        .sidebar.collapsed .nav-item:hover span {
+            opacity: 1;
+            transform: translate(10px, -50%);
+        }
+
+        /* Dark Mode Toggle */
+        .dark-mode-toggle {
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: var(--sidebar-text);
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: var(--sidebar-transition);
+        }
+
+        .toggle-btn:hover {
+            color: var(--sidebar-active-text);
+        }
+
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background-color: #121212;
+            color: #ffffff;
+        }
+
+        body.dark-mode .sidebar {
+            background-color: #1a1a1a;
+        }
+
+        body.dark-mode .nav-links.active {
+            background-color: #2a2a2a;
+        }
+
+        body.dark-mode .nav-links:hover {
+            background-color: #2a2a2a;
+        }
+
+        /* Logout button styling */
+        .logout-link {
+            color: #e74c3c;
+            transition: color 0.2s;
+        }
+
+        .logout-link:hover {
+            color: #c0392b;
+            text-decoration: none;
+        }
+
+        body.dark-mode .logout-link {
+            color: #ff6b6b;
+        }
+
+        body.dark-mode .logout-link:hover {
+            color: #ff5252;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: var(--sidebar-width);
+            }
+
+            .sidebar.collapsed {
+                transform: translateX(0);
+                width: var(--sidebar-collapsed-width);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+        }
 
          /* Custom Scrollbar */
         ::-webkit-scrollbar {
@@ -39,20 +275,7 @@ require "../auth/auth_check.php";
             background: var(--primary-color);
             border-radius: 10px;
         }
-        :root {
-            --primary-color: #0A2647; /* Navy Blue */
-            --secondary-color: #2C7865; /* Teal */
-            --accent-color: #FFD700; /* Gold */
-            --background-light: #F5F5F5; /* Light Gray */
-            --text-dark: #333333; /* Dark Gray */
-            --shadow-color: rgba(0, 0, 0, 0.1);
-        }
 
-        body {
-            background-color: var(--background-light);
-            color: var(--text-dark);
-            font-family: 'Poppins', sans-serif;
-        }
 
         .main-content {
             margin-left: 350px; 
@@ -136,21 +359,29 @@ require "../auth/auth_check.php";
         <div class="sidebar-toggle" id="sidebarToggle">
             <i class="fas fa-chevron-right"></i>
         </div>
-        <div class="sidebar-sticky pt-3">
+        <div class="sidebar-nav">
             <ul class="nav flex-column">
                 <?php foreach ($sidebar_menu as $item): ?>
                     <?php 
-                        // Check if the menu item matches the current page
-                        $is_active = ($current_page == basename($item[2])) ? 'active' : ''; 
+                        $is_active = ($current_page == basename($item[2])) ? 'active' : '';
+                        $icon = $item[1];
+                        $title = $item[0];
+                        $link = $item[2];
+                        $logout_attr = ($title === "Logout") ? 'onclick="confirmLogout(event)"' : '';
                     ?>
                     <li class="nav-item">
-                        <a class="nav-link <?= $is_active ?>" href="<?= $item[2] ?>" <?= $item[0] === "Logout" ? 'onclick="confirmLogout(event)"' : '' ?>>
-                            <i class="<?= $item[1] ?> me-2"></i>
-                            <span><?= $item[0] ?></span> 
+                        <a class="nav-links <?= $is_active ?>" href="<?= $link ?>" <?= $logout_attr ?>>
+                            <i class="<?= $icon ?>"></i>
+                            <span><?= $title ?></span>
                         </a>
                     </li>
                 <?php endforeach; ?>
             </ul>
+        </div>
+        <div class="dark-mode-toggle">
+            <button class="toggle-btn" id="darkModeToggle">
+                <i class="fas fa-moon"></i>
+            </button>
         </div>
     </nav>
 
@@ -159,9 +390,11 @@ require "../auth/auth_check.php";
     <main class="main-content" id="mainContent">
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
             <h1 class="h2">Welcome Aboard <?php echo htmlspecialchars($_SESSION['user_first_name']); ?>!</h1>
+             <!-- 
             <button class="btn btn-outline-secondary" id="darkModeToggle" data-bs-toggle="tooltip" data-bs-placement="top" title="Toggle Dark Mode">
                 <i class="fas fa-moon"></i> Dark Mode
             </button>
+            -->
         </div>
 
         <!-- Quick Stats -->
