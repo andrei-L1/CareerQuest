@@ -23,26 +23,14 @@ if (isset($_POST['action']) && $_POST['action'] == 'add') {
     exit;
 }
 
-// Handle Fetch Courses with Pagination
+// Handle Fetch All Courses (No Pagination)
 if (isset($_POST['action']) && $_POST['action'] == 'fetch') {
-    $limit = isset($_POST['limit']) ? intval($_POST['limit']) : 5;
-    $page = isset($_POST['page']) ? intval($_POST['page']) : 1;
-    $start = ($page - 1) * $limit;
-
-    $totalStmt = $conn->query("SELECT COUNT(*) FROM course WHERE deleted_at IS NULL");
-    $totalRecords = $totalStmt->fetchColumn();
-    $totalPages = ceil($totalRecords / $limit);
-
-    $stmt = $conn->prepare("SELECT * FROM course WHERE deleted_at IS NULL ORDER BY course_id DESC LIMIT :start, :limit");
-    $stmt->bindParam(':start', $start, PDO::PARAM_INT);
-    $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+    $stmt = $conn->prepare("SELECT * FROM course WHERE deleted_at IS NULL ORDER BY course_id DESC");
     $stmt->execute();
     $courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     echo json_encode([
-        'courses' => $courses,
-        'totalPages' => $totalPages,
-        'currentPage' => $page
+        'courses' => $courses
     ]);
     exit;
 }

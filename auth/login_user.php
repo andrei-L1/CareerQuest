@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = "Your account has been deactivated. Please contact support.";
             } elseif (password_verify($password, $user['user_password'])) {
                 // ✅ Check if the user has the "Employer" role
-                if ($user['role_title'] !== 'Professional' && $user['role_title'] !== 'Admin') {
+                if ($user['role_title'] !== 'Professional' && $user['role_title'] !== 'Admin' && $user['role_title'] !== 'Moderator')                {
                     $error = "You must have an Professional role to log in.";
                 } else {
                     // ✅ Destroy previous session to prevent login conflicts

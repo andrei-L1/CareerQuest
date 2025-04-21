@@ -44,6 +44,14 @@ class StudentJobController {
                     }
                     echo json_encode($this->saveJob($data['job_id']));
                     break;
+                case 'unsave_job':
+                    $data = json_decode(file_get_contents('php://input'), true);
+                    if (!isset($data['job_id'])) {
+                        throw new Exception("Job ID required");
+                    }
+                    echo json_encode($this->unsaveJob($data['job_id']));
+                    break;
+
                 default:
                     throw new Exception("Invalid action");
             }
@@ -60,6 +68,9 @@ class StudentJobController {
                    (SELECT COUNT(*) 
                     FROM application_tracking at 
                     WHERE at.job_id = jp.job_id AND at.stud_id = :stud_id) AS has_applied,
+                   (SELECT COUNT(*) 
+                    FROM saved_jobs sj 
+                    WHERE sj.job_id = jp.job_id AND sj.stud_id = :stud_id AND sj.deleted_at IS NULL) AS is_saved,
                    GROUP_CONCAT(sm.category SEPARATOR ', ') AS categories
             FROM job_posting jp
             JOIN employer e ON jp.employer_id = e.employer_id
@@ -269,6 +280,34 @@ class StudentJobController {
         return [
             'success' => $success,
             'message' => $success ? 'Job saved successfully' : 'Failed to save job'
+        ];
+    }
+
+    private function unsaveJob($jobId) {
+        // Check if the job is actually saved
+        $query = "SELECT saved_id FROM saved_jobs 
+                  WHERE job_id = :job_id AND stud_id = :stud_id AND deleted_at IS NULL";
+        $stmt = $this->db->prepare($query);
+        $stmt->bindParam(':job_id', $jobId);
+        $stmt->bindParam(':stud_id', $this->studentId);
+        $stmt->execute();
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+        if (!$result) {
+            return ['success' => false, 'message' => 'Job not found in saved items'];
+        }
+    
+        // Soft delete the saved job
+        $updateQuery = "UPDATE saved_jobs 
+                        SET deleted_at = NOW() 
+                        WHERE saved_id = :saved_id";
+        $stmt = $this->db->prepare($updateQuery);
+        $stmt->bindParam(':saved_id', $result['saved_id']);
+        $success = $stmt->execute();
+    
+        return [
+            'success' => $success,
+            'message' => $success ? 'Job unsaved successfully' : 'Failed to unsave job'
         ];
     }
     

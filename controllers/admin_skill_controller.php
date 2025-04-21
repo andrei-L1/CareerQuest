@@ -1,6 +1,7 @@
 <?php 
 require "../config/dbcon.php";
 require "../auth/auth_check.php"; 
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -23,32 +24,6 @@ if (isset($_POST['action']) && $_POST['action'] == 'add') {
     exit;
 }
 
-/*
-// Handle Fetch Skills with Pagination
-if (isset($_POST['action']) && $_POST['action'] == 'fetch') {
-    $limit = isset($_POST['limit']) ? intval($_POST['limit']) : 5;
-    $page = isset($_POST['page']) ? intval($_POST['page']) : 1;
-    $start = ($page - 1) * $limit;
-
-    $totalStmt = $conn->query("SELECT COUNT(*) FROM skill_masterlist WHERE deleted_at IS NULL");
-    $totalRecords = $totalStmt->fetchColumn();
-    $totalPages = ceil($totalRecords / $limit);
-
-    $stmt = $conn->prepare("SELECT * FROM skill_masterlist WHERE deleted_at IS NULL ORDER BY skill_id DESC LIMIT :start, :limit");
-    $stmt->bindParam(':start', $start, PDO::PARAM_INT);
-    $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
-    $stmt->execute();
-    $skills = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    echo json_encode([
-        'skills' => $skills,
-        'totalPages' => $totalPages,
-        'currentPage' => $page
-    ]);
-    exit;
-}
-
-*/
 // Handle Fetch Skills (no pagination)
 if (isset($_POST['action']) && $_POST['action'] == 'fetch') {
     $stmt = $conn->prepare("SELECT * FROM skill_masterlist WHERE deleted_at IS NULL ORDER BY skill_id DESC");
@@ -60,7 +35,6 @@ if (isset($_POST['action']) && $_POST['action'] == 'fetch') {
     ]);
     exit;
 }
-
 
 // Handle Edit Skill
 if (isset($_POST['action']) && $_POST['action'] == 'edit') {
@@ -87,7 +61,9 @@ if (isset($_POST['action']) && $_POST['action'] == 'delete') {
     echo $stmt->execute() ? 'success' : 'error';
     exit;
 }
+
 try {
+    // Fetch all skills, no pagination
     $stmt = $conn->prepare("SELECT skill_id, skill_name, category FROM skill_masterlist WHERE deleted_at IS NULL");
     $stmt->execute();
     $skills = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -96,5 +72,4 @@ try {
 } catch (PDOException $e) {
     echo json_encode(['error' => $e->getMessage()]);
 }
-
 ?>

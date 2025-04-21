@@ -9,6 +9,7 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 $user_id = $_SESSION['user_id'];
+
 // Handle Add Job Type
 if (isset($_POST['action']) && $_POST['action'] == 'add') {
     $title = $_POST['title'];
@@ -22,29 +23,15 @@ if (isset($_POST['action']) && $_POST['action'] == 'add') {
     exit;
 }
 
-// Handle Fetch Job Types with Pagination
+// Handle Fetch All Job Types (No Pagination)
 if (isset($_POST['action']) && $_POST['action'] == 'fetch') {
-    $limit = isset($_POST['limit']) ? intval($_POST['limit']) : 5; // Default 5 per page
-    $page = isset($_POST['page']) ? intval($_POST['page']) : 1;
-    $start = ($page - 1) * $limit;
-
-    // Get total count for pagination
-    $totalStmt = $conn->query("SELECT COUNT(*) FROM job_type");
-    $totalRecords = $totalStmt->fetchColumn();
-    $totalPages = ceil($totalRecords / $limit);
-
-    // Fetch paginated job types
-    $stmt = $conn->prepare("SELECT * FROM job_type ORDER BY job_type_id DESC LIMIT :start, :limit");
-    $stmt->bindParam(':start', $start, PDO::PARAM_INT);
-    $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+    $stmt = $conn->prepare("SELECT * FROM job_type ORDER BY job_type_id DESC");
     $stmt->execute();
     $jobTypes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Return JSON response
     echo json_encode([
-        'jobTypes' => $jobTypes,
-        'totalPages' => $totalPages,
-        'currentPage' => $page
+        'jobTypes' => $jobTypes
     ]);
     exit;
 }
@@ -74,6 +61,4 @@ if (isset($_POST['action']) && $_POST['action'] == 'delete') {
     echo $stmt->execute() ? 'success' : 'error';
     exit;
 }
-
-
 ?>

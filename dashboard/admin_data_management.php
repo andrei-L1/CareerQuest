@@ -430,31 +430,22 @@ try {
                                     <th class="text-center">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="jobTypeList">
+                            <tbody id="jobTypeListContainer">
                                 <!-- Job Types will be loaded dynamically here -->
                             </tbody>
                         </table>
                     </div>
                 </div>
-
-                <!-- Pagination Controls -->
-                <div id="paginationControls" class="mt-3 d-flex justify-content-center"></div>
             </div>
-
 
             <!-- Skill Management -->
             <div class="tab-pane fade p-4 rounded shadow" id="skillPanel" role="tabpanel">
                 <h3 class="mb-3 text-primary"><i class="bi bi-tools"></i> Manage Skills</h3>
                 <div class="mb-3 d-flex justify-content-between align-items-center">
-                    <!-- Left: Add Skill Button -->
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSkillModal">
                         <i class="bi bi-plus-lg"></i> Add Skill
                     </button>
-
-                    <!-- Right: Search Input -->
-                    <input type="text" id="skillFilter" class="form-control w-50" placeholder="Search skills...">
                 </div>
-
 
                 <div class="card">
                     <div class="card-body">
@@ -473,9 +464,6 @@ try {
                         </table>
                     </div>
                 </div>
-
-                <!-- Pagination Controls -->
-                <div id="skillPaginationControls" class="mt-3 d-flex justify-content-center"></div>
             </div>
 
             <!-- Course Management -->
@@ -499,18 +487,13 @@ try {
                                     <th class="text-center">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="courseList">
+                            <tbody id="courseListContainer">
                                 <!-- Courses will be loaded dynamically here -->
                             </tbody>
                         </table>
                     </div>
                 </div>
-
-                <!-- Pagination Controls -->
-                <div id="coursePaginationControls" class="mt-3 d-flex justify-content-center"></div>
             </div>
-
-
 
             <!-- Role Management -->
             <div class="tab-pane fade p-4 rounded shadow" id="rolePanel" role="tabpanel">
@@ -533,244 +516,220 @@ try {
                                     <th class="text-center">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="roleList">
+                            <tbody id="roleListContainer">
                                 <!-- Roles will be loaded dynamically here -->
                             </tbody>
                         </table>
                     </div>
                 </div>
-
-                <!-- Pagination Controls -->
-                <div id="rolePaginationControls" class="mt-3 d-flex justify-content-center"></div>
             </div>
-
         </div>
+
+        <!-- Add Job Type Modal -->
+        <div class="modal fade" id="addJobTypeModal" tabindex="-1" aria-labelledby="addJobTypeModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add Job Type</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="addJobTypeForm">
+                            <div class="mb-3">
+                                <label for="jobTypeTitle" class="form-label">Job Type Title</label>
+                                <input type="text" class="form-control" id="jobTypeTitle" name="title" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="jobTypeDescription" class="form-label">Description</label>
+                                <textarea class="form-control" id="jobTypeDescription" name="description"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Job Type Modal -->
+        <div class="modal fade" id="editJobTypeModal" tabindex="-1" aria-labelledby="editJobTypeModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Job Type</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editJobTypeForm">
+                            <input type="hidden" id="editJobTypeId" name="id">
+                            <div class="mb-3">
+                                <label for="editJobTypeTitle" class="form-label">Job Type Title</label>
+                                <input type="text" class="form-control" id="editJobTypeTitle" name="title" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editJobTypeDescription" class="form-label">Description</label>
+                                <textarea class="form-control" id="editJobTypeDescription" name="description"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Update</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Skill Modal -->
+        <div class="modal fade" id="addSkillModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add Skill</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="addSkillForm">
+                            <div class="mb-3">
+                                <label class="form-label">Skill Name</label>
+                                <input type="text" class="form-control" id="skillName" name="skill_name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Category</label>
+                                <input type="text" class="form-control" id="skillCategory" name="category" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save Skill</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Skill Modal -->
+        <div class="modal fade" id="editSkillModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Skill</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editSkillForm">
+                            <input type="hidden" id="editSkillId" name="id"> 
+                            <div class="mb-3">
+                                <label class="form-label">Skill Name</label>
+                                <input type="text" class="form-control" id="editSkillName" name="skill_name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Category</label>
+                                <input type="text" class="form-control" id="editSkillCategory" name="category" required> 
+                            </div>
+                            <button type="submit" class="btn btn-success">Update Skill</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Course Modal -->
+        <div class="modal fade" id="addCourseModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add Course</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="addCourseForm">
+                            <div class="mb-3">
+                                <label class="form-label">Course Title</label>
+                                <input type="text" class="form-control" id="courseTitle" name="course_title" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Description</label>
+                                <textarea class="form-control" id="courseDescription" name="course_description" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-success">Add Course</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Course Modal -->
+        <div class="modal fade" id="editCourseModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Course</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editCourseForm">
+                            <input type="hidden" id="editCourseId" name="course_id">
+                            <div class="mb-3">
+                                <label class="form-label">Course Title</label>
+                                <input type="text" class="form-control" id="editCourseTitle" name="course_title" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Description</label>
+                                <textarea class="form-control" id="editCourseDescription" name="course_description" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-success">Update Course</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Role Modal -->
+        <div class="modal fade" id="addRoleModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add Role</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="addRoleForm">
+                            <div class="mb-3">
+                                <label class="form-label">Role Title</label>
+                                <input type="text" class="form-control" id="roleTitle" name="role_title" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Description</label>
+                                <textarea class="form-control" id="roleDescription" name="role_description" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-success">Add Role</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Role Modal -->
+        <div class="modal fade" id="editRoleModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Role</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editRoleForm">
+                            <input type="hidden" id="editRoleId" name="id">
+                            <div class="mb-3">
+                                <label class="form-label">Role Title</label>
+                                <input type="text" class="form-control" id="editRoleTitle" name="role_title" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Description</label>
+                                <textarea class="form-control" id="editRoleDescription" name="role_description" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-success">Update Role</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </main>
-
-    <!-- Add Job Type Modal -->
-<div class="modal fade" id="addJobTypeModal" tabindex="-1" aria-labelledby="addJobTypeModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Add Job Type</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="addJobTypeForm">
-                    <div class="mb-3">
-                        <label for="jobTypeTitle" class="form-label">Job Type Title</label>
-                        <input type="text" class="form-control" id="jobTypeTitle" name="title" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="jobTypeDescription" class="form-label">Description</label>
-                        <textarea class="form-control" id="jobTypeDescription" name="description"></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Save</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Edit Job Type Modal -->
-<div class="modal fade" id="editJobTypeModal" tabindex="-1" aria-labelledby="editJobTypeModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Edit Job Type</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="editJobTypeForm">
-                    <input type="hidden" id="editJobTypeId" name="id">
-                    <div class="mb-3">
-                        <label for="editJobTypeTitle" class="form-label">Job Type Title</label>
-                        <input type="text" class="form-control" id="editJobTypeTitle" name="title" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="editJobTypeDescription" class="form-label">Description</label>
-                        <textarea class="form-control" id="editJobTypeDescription" name="description"></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Update</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-
-
-
-<!-- Add Skill Modal -->
-<div class="modal fade" id="addSkillModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Add Skill</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="addSkillForm">
-                    <div class="mb-3">
-                        <label class="form-label">Skill Name</label>
-                        <input type="text" class="form-control" id="skillName" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Category</label>
-                        <input type="text" class="form-control" id="skillCategory" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Save Skill</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Edit Skill Modal -->
-<div class="modal fade" id="editSkillModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Edit Skill</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-            <form id="editSkillForm">
-                <input type="hidden" id="editSkillId" name="id"> 
-                <div class="mb-3">
-                    <label class="form-label">Skill Name</label>
-                    <input type="text" class="form-control" id="editSkillName" name="skill_name" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Category</label>
-                    <input type="text" class="form-control" id="editSkillCategory" name="category" required> 
-                </div>
-                <button type="submit" class="btn btn-success">Update Skill</button>
-            </form>
-
-            </div>
-        </div>
-    </div>
-</div>
-
-
-
-
-
-<!-- Add Course Modal -->
-<div class="modal fade" id="addCourseModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Add Course</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="addCourseForm">
-                    <div class="mb-3">
-                        <label class="form-label">Course Title</label>
-                        <input type="text" class="form-control" id="courseTitle" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Description</label>
-                        <textarea class="form-control" id="courseDescription" required></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-success">Add Course</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Edit Course Modal -->
-<div class="modal fade" id="editCourseModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Edit Course</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="editCourseForm">
-                    <input type="hidden" id="editCourseId">
-                    <div class="mb-3">
-                        <label class="form-label">Course Title</label>
-                        <input type="text" class="form-control" id="editCourseTitle" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Description</label>
-                        <textarea class="form-control" id="editCourseDescription" required></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-success">Update Course</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-
-
-
-<!-- Add Role Modal -->
-<div class="modal fade" id="addRoleModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Add Role</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="addRoleForm">
-                    <div class="mb-3">
-                        <label class="form-label">Role Title</label>
-                        <input type="text" class="form-control" id="roleTitle" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Description</label>
-                        <textarea class="form-control" id="roleDescription" required></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-success">Add Role</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Edit Role Modal -->
-<div class="modal fade" id="editRoleModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Edit Role</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="editRoleForm">
-                    <input type="hidden" id="editRoleId">
-                    <div class="mb-3">
-                        <label class="form-label">Role Title</label>
-                        <input type="text" class="form-control" id="editRoleTitle" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Description</label>
-                        <textarea class="form-control" id="editRoleDescription" required></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-success">Update Role</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-    <!-- Loading Spinner -->
-    <div class="loading-spinner">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-    </div>  
 
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -780,7 +739,10 @@ try {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Custom Scripts -->
     <script src="../assests/sidebar_toggle.js" defer></script>
-    <script src="../assests/datamanagement.js"></script>
+    <script src="../assests/jobtypemanagement.js"></script>
+    <script src="../assests/skillsmanagement.js"></script>
+    <script src="../assests/coursemanagement.js"></script>
+    <script src="../assests/rolemanagement.js"></script>
     <script src="../assests/logout.js"></script>
 
     <script>
@@ -814,17 +776,6 @@ try {
             card.style.setProperty('--y', `${y}px`);
         });
     });
-</script>
-<script>
-    $(document).ready(function () {
-    $('#skillFilter').on('keyup', function () {
-        var value = $(this).val().toLowerCase();
-        $('#skillList tr').filter(function () {
-            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
-        });
-    });
-});
-
 </script>
 </body>
 </html>

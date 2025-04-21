@@ -1,6 +1,7 @@
 <?php
 require "../config/dbcon.php";
 require "../auth/auth_check.php"; 
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -22,26 +23,14 @@ if (isset($_POST['action']) && $_POST['action'] == 'add') {
     exit;
 }
 
-// Handle Fetch Roles with Pagination
+// Handle Fetch All Roles (No Pagination)
 if (isset($_POST['action']) && $_POST['action'] == 'fetch') {
-    $limit = isset($_POST['limit']) ? intval($_POST['limit']) : 5;
-    $page = isset($_POST['page']) ? intval($_POST['page']) : 1;
-    $start = ($page - 1) * $limit;
-
-    $totalStmt = $conn->query("SELECT COUNT(*) FROM role WHERE deleted_at IS NULL");
-    $totalRecords = $totalStmt->fetchColumn();
-    $totalPages = ceil($totalRecords / $limit);
-
-    $stmt = $conn->prepare("SELECT * FROM role WHERE deleted_at IS NULL ORDER BY role_id DESC LIMIT :start, :limit");
-    $stmt->bindParam(':start', $start, PDO::PARAM_INT);
-    $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+    $stmt = $conn->prepare("SELECT * FROM role WHERE deleted_at IS NULL ORDER BY role_id DESC");
     $stmt->execute();
     $roles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     echo json_encode([
-        'roles' => $roles,
-        'totalPages' => $totalPages,
-        'currentPage' => $page
+        'roles' => $roles
     ]);
     exit;
 }

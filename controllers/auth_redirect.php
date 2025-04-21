@@ -84,7 +84,7 @@ try {
             'Admin' => '../dashboard/admin.php',
             'Employer' => '../dashboard/employer.php',
             'Professional' => '../dashboard/professional.php',
-            'Moderator' => '../dashboard/moderator.php',
+            'Moderator' => '../dashboard/admin.php',
         ];
 
         if (isset($allowed_redirects[$role_name])) {

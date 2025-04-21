@@ -58,14 +58,29 @@ $roles = $role_stmt->fetchAll(PDO::FETCH_KEY_PAIR); // Fetch as [role_title => r
 
 // Define page permissions dynamically
 $page_permissions = [
-    'admin.php' => [$roles['Admin'] ?? 0],  // Uses role ID from DB
-    'admin_user_management.php' => [$roles['Admin'] ?? 0],
-    'admin_data_management.php' => [$roles['Admin'] ?? 0],
-    'admin_job_management.php' => [$roles['Admin'] ?? 0],
-    'employer.php' => [$roles['Employer'] ?? 0],
-    'employer_notifications.php' => [$roles['Employer'] ?? 0],
-    'professional.php' => [$roles['Professional'] ?? 0],
-    'moderator.php' => [$roles['Moderator'] ?? 0],
+    'admin.php' => [
+        $roles['Admin'] ?? 0,
+        $roles['Moderator'] ?? 0
+    ],
+    'admin_user_management.php' => [
+        $roles['Admin'] ?? 0
+    ],
+    'admin_data_management.php' => [
+        $roles['Admin'] ?? 0
+    ],
+    'admin_job_management.php' => [
+        $roles['Admin'] ?? 0,
+        $roles['Moderator'] ?? 0
+    ],
+    'employer.php' => [
+        $roles['Employer'] ?? 0
+    ],
+    'employer_notifications.php' => [
+        $roles['Employer'] ?? 0
+    ],
+    'professional.php' => [
+        $roles['Professional'] ?? 0
+    ]
 ];
 
 // Get current page safely

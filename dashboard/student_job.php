@@ -1126,10 +1126,9 @@ function renderJobDetails(job, jobDetails) {
                           `<button class="btn btn-apply" data-job-id="${job.job_id}" onclick="confirmApply(${job.job_id})">
                                 <i class="bi bi-send-check"></i> Apply Now
                             </button>
-
-                          <button class="btn btn-save" onclick="saveJob(${job.job_id})">
-                              <i class="bi bi-bookmark${isJobSaved(job.job_id) ? '-fill' : ''}"></i> ${isJobSaved(job.job_id) ? 'Saved' : 'Save Job'}
-                          </button>`
+                            <button class="btn btn-save" onclick="${job.is_saved ? 'unsaveJob' : 'saveJob'}(${job.job_id})">
+                                <i class="bi bi-bookmark${job.is_saved ? '-fill' : ''}"></i> ${job.is_saved ? 'Saved' : 'Save Job'}
+                            </button>`
                         }
                     </div>
                 </div>
@@ -1205,10 +1204,6 @@ function getStatusClass(status) {
     }
 }
 
-function isJobSaved(jobId) {
-    // This would need to be implemented with actual saved jobs data
-    return false;
-}
 
 function filterJobs() {
     const search = document.getElementById("search").value.toLowerCase();
@@ -1304,6 +1299,7 @@ function saveJob(jobId) {
     .then(data => {
         if (data.success) {
             btn.innerHTML = `<i class="bi bi-bookmark-fill"></i> Saved`;
+            btn.setAttribute('onclick', `unsaveJob(${jobId})`);
             showToast('Job saved successfully!', 'success');
         } else {
             btn.innerHTML = `<i class="bi bi-bookmark"></i> Save Job`;
@@ -1316,6 +1312,38 @@ function saveJob(jobId) {
         btn.innerHTML = `<i class="bi bi-bookmark"></i> Save Job`;
         btn.disabled = false;
         showToast('Error saving job. Please try again.', 'danger');
+    });
+}
+
+function unsaveJob(jobId) {
+    const btn = document.querySelector(`button[onclick="unsaveJob(${jobId})"]`);
+    btn.innerHTML = `<i class="bi bi-bookmark"></i> Unsaving...`;
+    btn.disabled = true;
+    
+    fetch("../controllers/student_job.php?action=unsave_job", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ job_id: jobId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            btn.innerHTML = `<i class="bi bi-bookmark"></i> Save Job`;
+            btn.setAttribute('onclick', `saveJob(${jobId})`);
+            showToast('Job unsaved successfully!', 'success');
+        } else {
+            btn.innerHTML = `<i class="bi bi-bookmark-fill"></i> Saved`;
+            btn.disabled = false;
+            showToast('Error unsaving job: ' + (data.message || "Unknown error"), 'danger');
+        }
+    })
+    .catch(error => {
+        console.error("Error unsaving job:", error);
+        btn.innerHTML = `<i class="bi bi-bookmark-fill"></i> Saved`;
+        btn.disabled = false;
+        showToast('Error unsaving job. Please try again.', 'danger');
     });
 }
 
