@@ -1,53 +1,101 @@
 <?php
-// Start session and include necessary files
 session_start();
-include_once '../config/dbcon.php';  // Your PDO connection file
+require '../config/dbcon.php';
+require '../auth/auth_check_student.php';
 
-// Check for CSRF token validity
+// CSRF token check
 if ($_POST['csrf_token'] !== $_SESSION['csrf_token']) {
     die('Invalid CSRF token');
 }
 
-// Get application ID from POST request
 $application_id = (int)$_POST['application_id'];
 
-// Check if application exists and is still pending
-$query = "SELECT * FROM application_tracking WHERE application_id = :application_id AND application_status = 'Pending' AND deleted_at IS NULL";
-$stmt = $conn->prepare($query);
-$stmt->bindParam(':application_id', $application_id, PDO::PARAM_INT);
-$stmt->execute();
+try {
+    // Check if application exists and is pending
+    $stmt = $conn->prepare("SELECT * FROM application_tracking WHERE application_id = :application_id AND application_status = 'Pending' AND deleted_at IS NULL");
+    $stmt->execute([':application_id' => $application_id]);
 
-if ($stmt->rowCount() === 0) {
-    die('Application not found or already processed');
-}
+    if ($stmt->rowCount() === 0) {
+        die('Application not found or already processed');
+    }
 
-// Application found, proceed to withdraw it
-$query = "UPDATE application_tracking SET application_status = 'Withdrawn', deleted_at = NOW() WHERE application_id = :application_id";
-$stmt = $conn->prepare($query);
-$stmt->bindParam(':application_id', $application_id, PDO::PARAM_INT);
+    // Withdraw application
+    $stmt = $conn->prepare("UPDATE application_tracking SET application_status = 'Withdrawn', deleted_at = NOW() WHERE application_id = :application_id");
+    $stmt->execute([':application_id' => $application_id]);
 
-if ($stmt->execute()) {
-    // Optionally, you can notify the employer about the withdrawal
-    $query = "SELECT job_id, stud_id FROM application_tracking WHERE application_id = :application_id";
-    $stmt = $conn->prepare($query);
-    $stmt->bindParam(':application_id', $application_id, PDO::PARAM_INT);
-    $stmt->execute();
-    $application = $stmt->fetch(PDO::FETCH_ASSOC);
+    // Get job, student, and employer info
+    $stmt = $conn->prepare("
+        SELECT 
+            at.job_id, at.stud_id,
+            jp.title AS job_title, jp.employer_id,
+            e.user_id AS employer_user_id,
+            s.stud_first_name, s.stud_last_name
+        FROM application_tracking at
+        JOIN job_posting jp ON at.job_id = jp.job_id
+        JOIN employer e ON jp.employer_id = e.employer_id
+        JOIN student s ON at.stud_id = s.stud_id
+        WHERE at.application_id = :application_id
+    ");
+    $stmt->execute([':application_id' => $application_id]);
+    $data = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // Send notification to employer (optional)
-    $notification_message = "The application for job ID " . $application['job_id'] . " by student ID " . $application['stud_id'] . " has been withdrawn.";
-    $query = "INSERT INTO notification (actor_id, message, notification_type, reference_type, reference_id) VALUES (:actor_id, :message, 'Application Withdrawal', 'Job', :reference_id)";
-    $stmt = $conn->prepare($query);
-    $stmt->bindParam(':actor_id', $application['stud_id'], PDO::PARAM_INT);
-    $stmt->bindParam(':message', $notification_message, PDO::PARAM_STR);
-    $stmt->bindParam(':reference_id', $application['job_id'], PDO::PARAM_INT);
-    $stmt->execute();
+    // Get or create actor IDs
+    // Student actor
+    $stmt = $conn->prepare("SELECT actor_id FROM actor WHERE entity_type = 'student' AND entity_id = :stud_id");
+    $stmt->execute([':stud_id' => $data['stud_id']]);
+    $student_actor = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // Redirect back or show a success message
+    if (!$student_actor) {
+        $stmt = $conn->prepare("INSERT INTO actor (entity_type, entity_id) VALUES ('student', :stud_id)");
+        $stmt->execute([':stud_id' => $data['stud_id']]);
+        $student_actor_id = $conn->lastInsertId();
+    } else {
+        $student_actor_id = $student_actor['actor_id'];
+    }
+
+    // Employer actor
+    $stmt = $conn->prepare("SELECT actor_id FROM actor WHERE entity_type = 'user' AND entity_id = :user_id");
+    $stmt->execute([':user_id' => $data['employer_user_id']]);
+    $employer_actor = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$employer_actor) {
+        $stmt = $conn->prepare("INSERT INTO actor (entity_type, entity_id) VALUES ('user', :user_id)");
+        $stmt->execute([':user_id' => $data['employer_user_id']]);
+        $employer_actor_id = $conn->lastInsertId();
+    } else {
+        $employer_actor_id = $employer_actor['actor_id'];
+    }
+
+    // Compose messages
+    $student_name = $data['stud_first_name'] . ' ' . $data['stud_last_name'];
+    $job_title = $data['job_title'];
+
+    // Notify employer (student withdrew application)
+    $stmt = $conn->prepare("INSERT INTO notification 
+        (actor_id, message, notification_type, action_url, reference_type, reference_id)
+        VALUES (:actor_id, :message, 'application_withdrawal', :url, 'student', :reference_actor_id)");
+    $stmt->execute([
+        ':actor_id' => $employer_actor_id,
+        ':message' => "$student_name has withdrawn their application for: $job_title.",
+        ':url' => "/skillmatch/dashboard/employer_applications.php?job_id=" . $data['job_id'],
+        ':reference_actor_id' => $student_actor_id
+    ]);
+
+    // Notify student (confirmation)
+    $stmt = $conn->prepare("INSERT INTO notification 
+        (actor_id, message, notification_type, action_url, reference_type, reference_id)
+        VALUES (:actor_id, :message, 'application_withdrawal', :url, 'user', :reference_actor_id)");
+    $stmt->execute([
+        ':actor_id' => $student_actor_id,
+        ':message' => "You have withdrawn your application for: $job_title.",
+        ':url' => "/skillmatch/dashboard/student_applications.php?job_id=" . $data['job_id'],
+        ':reference_actor_id' => $employer_actor_id
+    ]);
+
     $_SESSION['message'] = 'Application withdrawn successfully';
     header("Location: ../dashboard/student_applications.php");
     exit;
-} else {
-    die('Error occurred while withdrawing application');
+
+} catch (PDOException $e) {
+    die("Database error: " . $e->getMessage());
 }
-?>

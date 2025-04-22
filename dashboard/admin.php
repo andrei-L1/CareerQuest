@@ -285,7 +285,7 @@ require "../auth/auth_check.php";
         }
 
         .sidebar.collapsed + .main-content {
-            margin-left: 200px; /
+            margin-left: 200px; 
         }
 
         /* Card Styles */

@@ -77,7 +77,9 @@ class StudentJobController {
             JOIN job_type jt ON jp.job_type_id = jt.job_type_id
             LEFT JOIN job_skill js ON jp.job_id = js.job_id
             LEFT JOIN skill_masterlist sm ON js.skill_id = sm.skill_id
-            WHERE jp.deleted_at IS NULL AND jp.moderation_status = 'Approved'
+            WHERE jp.deleted_at IS NULL 
+              AND jp.moderation_status = 'Approved'
+              AND (jp.expires_at >= CURDATE() OR jp.expires_at IS NULL)  -- Include jobs with no expiration date
             GROUP BY jp.job_id
             ORDER BY jp.posted_at DESC
         ");
@@ -85,7 +87,7 @@ class StudentJobController {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-    
+        
     private function getRecommendedJobs($category = "") {
         // Start with the basic query
         $query = "SELECT jp.job_id, jp.title, e.company_name as company, 

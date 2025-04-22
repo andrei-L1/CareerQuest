@@ -53,7 +53,16 @@ try {
     <!-- SweetAlert2 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <style>
-        :root {
+       :root {
+            --primary-color: #0A2647; /* Navy Blue */
+            --secondary-color: #2C7865; /* Teal */
+            --accent-color: #FFD700; /* Gold */
+            --background-light: #F5F5F5; /* Light Gray */
+            --text-dark: #333333; /* Dark Gray */
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --font-family: 'Poppins', sans-serif;
+
+
             --sidebar-width: 280px;
             --sidebar-collapsed-width: 80px;
             --sidebar-bg: #2c3e50;
@@ -66,7 +75,12 @@ try {
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-light);
+            color: var(--text-dark);
+            /* font-family: var(--font-family);*/
+            transition: background-color 0.3s ease, color 0.3s ease;
+
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             overflow-x: hidden;
             transition: var(--sidebar-transition);
         }
@@ -192,14 +206,14 @@ try {
 
         /* Main Content */
         .main-content {
-            margin-left: var(--sidebar-width);
-            padding: var(--main-content-padding);
-            transition: var(--sidebar-transition);
-            min-height: 100vh;
+            margin-left: 350px;
+            margin-right: 150px;
+            padding: 20px;
+            transition: margin-left 0.3s ease;
         }
 
         .sidebar.collapsed + .main-content {
-            margin-left: var(--sidebar-collapsed-width);
+            margin-left: 200px;
         }
 
         /* Dark Mode Toggle */
@@ -315,13 +329,6 @@ try {
                 <div class="col-12">
                     <h1 class="display-4">Welcome, <?php echo $full_name; ?>!</h1>
                     <p class="lead">Your Role: <span class="badge bg-primary"><?php echo $role_title; ?></span></p>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-12">
-                    <a href="../auth/logout.php" class="logout-link" onclick="confirmLogout(event)">
-                        <i class="fas fa-sign-out-alt me-2"></i>Logout
-                    </a>
                 </div>
             </div>
         </div>
