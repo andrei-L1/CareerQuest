@@ -1,7 +1,6 @@
 <?php
 require_once '../config/dbcon.php';
 
-
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -25,14 +24,19 @@ if (isset($_SESSION['user_id'])) {
         'entity_type' => 'user',
         'entity_id' => $_SESSION['user_id'],
         'name' => $_SESSION['user_first_name'] ?? 'User',
-        'role' => $_SESSION['user_type'] ?? 'Unknown',
+        'role' => 'Unknown',
         'email' => $_SESSION['user_email'] ?? '',
         'picture' => $_SESSION['picture_file'] ?? ''
     ];
 
-    // Fetch additional details from the user table
+    // Fetch additional details from the user table, including the role title
     $user_id = $currentUser['entity_id'];
-    $query = "SELECT * FROM user WHERE user_id = ?";
+    $query = "
+        SELECT u.*, r.role_title 
+        FROM user u
+        LEFT JOIN role r ON u.role_id = r.role_id
+        WHERE u.user_id = ?
+    ";
     $stmt = $conn->prepare($query);
     $stmt->execute([$user_id]);
     $userDetails = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -43,6 +47,7 @@ if (isset($_SESSION['user_id'])) {
         $currentUser['email'] = $userDetails['user_email'];
         $currentUser['picture'] = $userDetails['picture_file'];
         $currentUser['status'] = $userDetails['status'];
+        $currentUser['role'] = $userDetails['role_title'];
     }
 } else {
     // Student is logged in
@@ -71,6 +76,7 @@ if (isset($_SESSION['user_id'])) {
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>

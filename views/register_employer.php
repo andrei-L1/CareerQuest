@@ -484,7 +484,7 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
         </form>
         
         <div class="signup-footer">
-            <p>Already have an account? <a href="../auth/login_user.php">Login here</a></p>
+            <p>Already have an account? <a href="../auth/login_employer.php">Login here</a></p>
             <p><a href="../index.php">Back to Home</a></p>
             <p class="switch-user-type">
                 Not an Employer? 

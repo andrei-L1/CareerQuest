@@ -680,11 +680,8 @@ $totalExpiringJobs = $stats['total_expiring_jobs'];
                 
                 <!-- Job Expiry & Renewal -->
                 <div class="tab-pane fade" id="expiry" role="tabpanel">
-                    <ul class="list-group">
-                        <li class="list-group-item d-flex justify-content-between align-items-center animate__animated animate__fadeIn">
-                            Job: UX Designer - Expires soon
-                            <button class="btn btn-success">Extend</button>
-                        </li>
+                    <ul class="list-group" id="expiring-jobs-list">
+                        <!-- Jobs will be appended here dynamically -->
                     </ul>
                 </div>
             </div>
@@ -846,6 +843,80 @@ $totalExpiringJobs = $stats['total_expiring_jobs'];
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         
         <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                fetchExpiringJobs();
+
+                function fetchExpiringJobs() {
+                    fetch('../controllers/fetch_expiredJobs.php')
+                        .then(response => response.json())
+                        .then(data => { 
+                            const list = document.getElementById('expiring-jobs-list');
+                            list.innerHTML = '';
+
+                            if (data.jobs && data.jobs.length > 0) {
+                                data.jobs.forEach(job => {
+                                    const li = document.createElement('li');
+                                    li.className = 'list-group-item d-flex justify-content-between align-items-center animate__animated animate__fadeIn';
+                                    li.innerHTML = `
+                                        Job: ${job.title} - Expires soon
+                                        <input type="date" class="form-control" id="expiry-date-${job.job_id}" value="${getFormattedDate(job.expires_at)}">
+                                        <button class="btn btn-success btn-extend" data-id="${job.job_id}">Extend</button>
+                                    `;
+                                    list.appendChild(li);
+                                });
+
+                                // Add click event for each extend button
+                                document.querySelectorAll('.btn-extend').forEach(button => {
+                                    button.addEventListener('click', function () {
+                                        const jobId = this.getAttribute('data-id');
+                                        const newExpiryDate = document.getElementById(`expiry-date-${jobId}`).value;
+                                        if (newExpiryDate) {
+                                            // Append default time '00:00:00' to the selected date
+                                            const formattedExpiryDate = newExpiryDate + " 00:00:00";
+                                            extendJob(jobId, formattedExpiryDate, this);
+                                        } else {
+                                            alert('Please select a new expiry date.');
+                                        }
+                                    });
+                                });
+                            } else {
+                                list.innerHTML = '<li class="list-group-item">No expiring jobs found.</li>';
+                            }
+                        });
+                }
+
+                function getFormattedDate(dateString) {
+                    const date = new Date(dateString);
+                    return date.toISOString().split('T')[0]; // Returns date in YYYY-MM-DD format
+                }
+
+                function extendJob(jobId, newExpiryDate, button) {
+                    const formData = new FormData();
+                    formData.append('action', 'extend_job');
+                    formData.append('job_id', jobId);
+                    formData.append('new_expiry', newExpiryDate);
+
+                    fetch('../controllers/job_extend.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(res => res.json())
+                    .then(response => {
+                        if (response.success) {
+                            button.classList.remove('btn-success');
+                            button.classList.add('btn-secondary');
+                            button.disabled = true;
+                            button.textContent = 'Extended to ' + newExpiryDate;
+                        } else {
+                            alert(response.error || 'Error extending job.');
+                        }
+                    })
+                    .catch(err => {
+                        alert('Request failed.');
+                        console.error(err);
+                    });
+                }
+            });
 
         </script>
     </body>

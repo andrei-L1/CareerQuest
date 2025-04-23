@@ -14,11 +14,13 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 
 try {
-    // Fetch employer details with company information
+    // Fetch employer details with company information - updated query for new schema
     $stmt = $conn->prepare("
-        SELECT u.user_first_name, u.user_middle_name, u.user_last_name,
+        SELECT 
+            u.user_first_name, u.user_middle_name, u.user_last_name,
             u.user_email, u.picture_file, u.status as user_status,
-            e.company_name, e.job_title, e.employer_id
+            e.company_name, e.job_title, e.employer_id, e.company_logo,
+            e.company_website, e.contact_number, e.company_description
         FROM user u
         JOIN employer e ON u.user_id = e.user_id
         WHERE u.user_id = :user_id AND u.deleted_at IS NULL
@@ -77,7 +79,14 @@ try {
     $email = htmlspecialchars($employer['user_email']);
     $company_name = htmlspecialchars($employer['company_name'] ?? 'No company specified');
     $job_title = htmlspecialchars($employer['job_title'] ?? 'No job title specified');
-    $profile_picture = !empty($employer['picture_file']) ? htmlspecialchars($employer['picture_file']) : 'default.png';
+    $company_website = htmlspecialchars($employer['company_website'] ?? '');
+    $contact_number = htmlspecialchars($employer['contact_number'] ?? '');
+    $company_description = htmlspecialchars($employer['company_description'] ?? '');
+    
+    // Use company logo if available, otherwise fall back to user profile picture
+    $profile_picture = !empty($employer['company_logo']) ? htmlspecialchars($employer['company_logo']) 
+                     : (!empty($employer['picture_file']) ? htmlspecialchars($employer['picture_file']) 
+                     : 'default.png');
 
 } catch (Exception $e) {
     error_log("Employer Dashboard Error: " . $e->getMessage());
@@ -85,7 +94,7 @@ try {
     exit();
 }
 
-// Fetch job postings statistics
+// Fetch job postings statistics (unchanged)
 try {
     // Get total jobs posted
     $jobs_stmt = $conn->prepare("
@@ -160,7 +169,7 @@ try {
     $recent_jobs = [];
 }
 
-// Fetch recent applicants
+// Fetch recent applicants (unchanged)
 try {
     $recent_applicants_stmt = $conn->prepare("
         SELECT 
@@ -194,7 +203,7 @@ try {
     $recent_applicants = [];
 }
 
-// Fetch forum activity
+// Fetch forum activity (unchanged)
 try {
     $forum_stmt = $conn->prepare("
         SELECT 
@@ -246,15 +255,18 @@ try {
     $recent_forum_activity = [];
 }
 
-// Profile completion calculation
+// Profile completion calculation - updated for new fields
 try {
     // Define profile fields to check and their weights
     $profile_fields = [
         'user_first_name' => 10,
         'user_last_name' => 10,
-        'company_name' => 30,
-        'job_title' => 25,
-        'picture_file' => 25
+        'company_name' => 20,
+        'job_title' => 15,
+        'company_logo' => 15,
+        'company_website' => 10,
+        'contact_number' => 10,
+        'company_description' => 10
     ];
 
     // Get employer profile details from both user and employer tables
@@ -264,7 +276,11 @@ try {
             u.user_last_name, 
             u.picture_file, 
             e.company_name, 
-            e.job_title
+            e.job_title,
+            e.company_logo,
+            e.company_website,
+            e.contact_number,
+            e.company_description
         FROM user u
         LEFT JOIN employer e ON u.user_id = e.user_id
         WHERE u.user_id = :user_id
@@ -278,11 +294,11 @@ try {
     $missing_fields = [];
 
     foreach ($profile_fields as $field => $weight) {
-        if ($field === 'picture_file') {
-            if (!empty($profile[$field]) && $profile[$field] !== 'default.png') {
+        if ($field === 'company_logo' || $field === 'picture_file') {
+            if (!empty($profile[$field])) {
                 $completed_weight += $weight;
             } else {
-                $missing_fields[] = 'Profile Picture';
+                $missing_fields[] = ($field === 'company_logo') ? 'Company Logo' : 'Profile Picture';
             }
         } elseif (!empty($profile[$field])) {
             $completed_weight += $weight;
@@ -292,6 +308,9 @@ try {
                 case 'user_last_name': $missing_fields[] = 'Last Name'; break;
                 case 'company_name': $missing_fields[] = 'Company Name'; break;
                 case 'job_title': $missing_fields[] = 'Job Title'; break;
+                case 'company_website': $missing_fields[] = 'Company Website'; break;
+                case 'contact_number': $missing_fields[] = 'Contact Number'; break;
+                case 'company_description': $missing_fields[] = 'Company Description'; break;
             }
         }
     }
@@ -310,8 +329,6 @@ try {
     $progress_class = 'bg-danger';
     $missing_fields = ['All profile fields'];
 }
-
-
 
 function getTimeAgo($timestamp, $referenceTime = null) {
     $timezone = new DateTimeZone('Asia/Manila');

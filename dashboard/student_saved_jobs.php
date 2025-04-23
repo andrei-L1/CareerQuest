@@ -232,7 +232,7 @@
             <div class="alert alert-info text-center">
                 <i class="fas fa-info-circle me-2"></i>You haven't saved any jobs yet. Start browsing jobs to save them for later.
                 <div class="mt-3">
-                    <a href="job_listings.php" class="btn btn-primary">Browse Jobs</a>
+                    <a href="../dashboard/student_job.php" class="btn btn-primary">Browse Jobs</a>
                 </div>
             </div>
         </div>

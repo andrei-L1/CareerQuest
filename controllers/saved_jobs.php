@@ -36,8 +36,11 @@ function getSavedJobs($studentId, $page = 1, $perPage = 10, $sort = 'saved_at', 
         // Calculate offset for pagination
         $offset = ($page - 1) * $perPage;
         
-        // Base WHERE conditions
-        $whereConditions = "WHERE sj.stud_id = :stud_id AND sj.deleted_at IS NULL AND jp.deleted_at IS NULL";
+        // Base WHERE conditions - added check for active employer
+        $whereConditions = "WHERE sj.stud_id = :stud_id 
+                            AND sj.deleted_at IS NULL 
+                            AND jp.deleted_at IS NULL
+                            AND e.status = 'Active'";
         
         // Add search condition if search term exists
         $searchCondition = '';

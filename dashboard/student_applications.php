@@ -54,6 +54,7 @@ $sql = "SELECT
             GROUP BY js.job_id
         ) sm ON j.job_id = sm.job_id
         WHERE a.stud_id = ? AND a.deleted_at IS NULL
+          AND e.status = 'Active' 
         ORDER BY a.applied_at DESC";
 
 $stmt = $conn->prepare($sql);

@@ -20,6 +20,8 @@ if ($completion_percentage < 100 && !isset($_SESSION['profile_modal_shown'])) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+
     <style>
         :root {
             --primary-color: #1A4D8F;
@@ -456,38 +458,70 @@ if ($completion_percentage < 100 && !isset($_SESSION['profile_modal_shown'])) {
                     <div>
                         <h5 class="profile-name"><?= $full_name; ?></h5>
                         <p class="profile-institution"><?= $company_name; ?></p>
+                        <?php if (!empty($job_title)): ?>
+                            <span class="badge bg-primary mt-1"><?= $job_title ?></span>
+                        <?php endif; ?>
                     </div>
                 </div>
                 
                 <div class="profile-meta mt-4">
-                    <span class="profile-meta-item">
+                    <div class="profile-meta-item mb-2">
                         <i class="bi bi-envelope-fill"></i> <?= $email; ?>
-                    </span>
-                    <span class="profile-meta-item">
-                        <i class="bi bi-briefcase-fill"></i> <?= $job_title ?? 'Not specified'; ?>
-                    </span>
+                    </div>
+                    <?php if (!empty($contact_number)): ?>
+                        <div class="profile-meta-item mb-2">
+                            <i class="bi bi-telephone-fill"></i> <?= $contact_number; ?>
+                        </div>
+                    <?php endif; ?>
+                    <?php if (!empty($company_website)): ?>
+                        <div class="profile-meta-item mb-2">
+                            <i class="bi bi-globe"></i> 
+                            <a href="<?= (strpos($company_website, 'http') === 0 ? $company_website : 'https://' . $company_website) ?>" 
+                            target="_blank" class="text-decoration-none">
+                                <?= parse_url($company_website, PHP_URL_HOST) ?? $company_website ?>
+                            </a>
+                        </div>
+                    <?php endif; ?>
                 </div>
                 
+                <?php if (!empty($company_description)): ?>
+                    <div class="company-description mt-3">
+                        <h6 class="fw-bold">About Company</h6>
+                        <p class="text-muted small"><?= nl2br($company_description) ?></p>
+                    </div>
+                <?php endif; ?>
+                
                 <div class="progress-container mt-4">
-                    <div class="progress-label">
+                    <div class="progress-label d-flex justify-content-between">
                         <span>Profile Completion</span>
-                        <span><?php echo $completion_percentage; ?>%</span>
+                        <span><?= $completion_percentage ?>%</span>
                     </div>
                     
-                    <div class="progress">
-                        <div class="progress-bar" 
-                            style="width: <?php echo $completion_percentage; ?>%"
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar <?= $progress_class ?>" 
+                            style="width: <?= $completion_percentage ?>%"
                             role="progressbar" 
-                            aria-valuenow="<?php echo $completion_percentage; ?>" 
+                            aria-valuenow="<?= $completion_percentage ?>" 
                             aria-valuemin="0" 
                             aria-valuemax="100">
                         </div>
                     </div>
+                    
+                    <?php if ($completion_percentage < 100): ?>
+                        <div class="mt-2">
+                            <small class="text-muted">Missing: <?= implode(', ', $missing_fields) ?></small>
+                        </div>
+                    <?php endif; ?>
                 </div>
                 
-                <a href="employer_account_settings.php" class="btn btn-outline-primary w-100 mt-3 py-2">
-                    <i class="bi bi-pencil-fill me-2"></i> Edit Profile
-                </a>
+                <div class="d-grid gap-2 mt-3">
+                    <a href="employer_account_settings.php" class="btn btn-outline-primary py-2">
+                        <i class="bi bi-pencil-fill me-2"></i> Edit Profile
+                    </a>
+                    <a href="employer_company_profile.php" class="btn btn-outline-secondary py-2">
+                        <i class="bi bi-building me-2"></i> Company Profile
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -549,7 +583,7 @@ if ($completion_percentage < 100 && !isset($_SESSION['profile_modal_shown'])) {
 
                 </div>
                 <div class="card-footer bg-transparent border-top">
-                    <a href="employer_job_postings.php" class="view-all-link">
+                    <a href="employer_jobs.php" class="view-all-link">
                         View all jobs <i class="bi bi-arrow-right"></i>
                     </a>
                 </div>
@@ -568,8 +602,12 @@ if ($completion_percentage < 100 && !isset($_SESSION['profile_modal_shown'])) {
                             <?php foreach ($recent_applicants as $applicant): ?>
                                 <a href="employer_applicant_details.php?id=<?= $applicant['application_id'] ?>" class="list-group-item list-item">
                                     <div class="d-flex align-items-center" style="width: 100%;"> 
-                                        <div class="profile-img-container me-3" style="width: 50px; height: 50px;">
-                                            <img src="../uploads/<?= $applicant['profile_picture'] ?>" alt="Applicant" class="profile-img">
+                                        <div class="profile-img-container me-3" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; background-color: #e0e0e0; border-radius: 50%;">
+                                            <?php if (!empty($applicant['profile_picture'])): ?>
+                                                <img src="../uploads/<?= $applicant['profile_picture'] ?>" alt="" class="profile-img" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                                            <?php else: ?>
+                                                <i class="fas fa-user" style="font-size: 24px; color: #777;"></i>
+                                            <?php endif; ?>
                                         </div>
                                         <div class="flex-grow-1"> 
                                             <div class="list-item-primary"><?= $applicant['full_name'] ?></div>
@@ -595,7 +633,7 @@ if ($completion_percentage < 100 && !isset($_SESSION['profile_modal_shown'])) {
                     </div>
                 </div>
                 <div class="card-footer bg-transparent border-top">
-                    <a href="employer_applicants.php" class="view-all-link">
+                    <a href="employer_applications.php" class="view-all-link">
                         View all applicants <i class="bi bi-arrow-right"></i>
                     </a>
                 </div>

@@ -79,6 +79,7 @@ class StudentJobController {
             LEFT JOIN skill_masterlist sm ON js.skill_id = sm.skill_id
             WHERE jp.deleted_at IS NULL 
               AND jp.moderation_status = 'Approved'
+              AND e.status = 'Active'  -- Only include job postings from active employers
               AND (jp.expires_at >= CURDATE() OR jp.expires_at IS NULL)  -- Include jobs with no expiration date
             GROUP BY jp.job_id
             ORDER BY jp.posted_at DESC
@@ -86,7 +87,7 @@ class StudentJobController {
         $stmt->bindParam(':stud_id', $this->studentId);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
+    }    
         
     private function getRecommendedJobs($category = "") {
         // Start with the basic query
