@@ -57,7 +57,7 @@
             <i class="bi bi-envelope-fill me-2 mt-1" style="color: #1a4d8f;"></i>
             <div>
               <span class="small d-block" style="color: #6c757d;">Email</span>
-              <a href="mailto:support@careerconnect.edu" class="small" style="color: #1a4d8f;">support@careerconnect.edu</a>
+              <a href="mailto:support@careerquest.edu" class="small" style="color: #1a4d8f;">support@careerquest.edu</a>
             </div>
           </li>
           <li class="mb-3 d-flex align-items-start">

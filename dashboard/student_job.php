@@ -647,6 +647,14 @@ require '../auth/auth_check_student.php';
 
     </style>
 
+    <style>
+        .text-truncate {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+
 </head>
 <body>
 
@@ -1019,7 +1027,7 @@ function renderJobListings(jobs) {
                 <span class="job-type-badge">${sanitize(job.job_type_title || job.job_type)}</span>
             </div>
             
-            ${job.salary ? `<div class="salary"><i class="bi bi-cash"></i> $${sanitize(job.salary.toLocaleString())}/year</div>` : ''}
+            ${job.salary ? `<div class="salary"><i class="bi bi-cash"></i> ₱${sanitize(job.salary.toLocaleString())}/month</div>` : ''}
             
             <div class="d-flex justify-content-between mt-2">
                 ${isJobExpiringSoon(job.expires_at) ? 
@@ -1093,47 +1101,48 @@ function renderJobDetails(job, jobDetails) {
     
     // Basic job info with improved layout
     let html = `
-        <div class="detail-header">
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="job-info">
-                    <h2 class="detail-title">${sanitize(job.title)}</h2>
-                    <h4 class="detail-company">${sanitize(job.company_name || job.company)}</h4>
-                    <div class="detail-meta">
-                        <span class="detail-meta-item"><i class="bi bi-geo-alt"></i> ${sanitize(job.location)}</span>
-                        <span class="detail-meta-item" data-bs-toggle="tooltip" title="Job Type"><i class="bi bi-briefcase"></i> ${sanitize(job.job_type_title || job.job_type)}</span>
-                        ${job.salary ? `<span class="detail-meta-item" data-bs-toggle="tooltip" title="Annual Salary"><i class="bi bi-cash"></i> $${sanitize(job.salary.toLocaleString())}/year</span>` : ''}
-                    </div>
-                    <div class="d-flex flex-wrap gap-3">
-                        <span class="detail-meta-item"><i class="bi bi-calendar"></i> Posted: ${formatDate(job.posted_at)}</span>
-                        ${isJobExpiringSoon(job.expires_at) ? 
-                          `<span class="detail-meta-item expires-soon"><i class="bi bi-clock"></i> Expires soon: ${formatDate(job.expires_at)}</span>` : 
-                          `<span class="detail-meta-item"><i class="bi bi-clock"></i> Expires: ${formatDate(job.expires_at)}</span>`}
-                    </div>
+       <div class="detail-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <!-- Job Info Section - Add max-width and text-truncate classes -->
+            <div class="job-info flex-grow-1 pe-3" style="max-width: 70%;">
+                <h2 class="detail-title text-truncate">${sanitize(job.title)}</h2>
+                <h4 class="detail-company text-truncate">${sanitize(job.company_name || job.company)}</h4>
+                <div class="detail-meta">
+                    <span class="detail-meta-item"><i class="bi bi-geo-alt"></i> ${sanitize(job.location)}</span>
+                    <span class="detail-meta-item" data-bs-toggle="tooltip" title="Job Type"><i class="bi bi-briefcase"></i> ${sanitize(job.job_type_title || job.job_type)}</span>
+                    ${job.salary ? `<span class="detail-meta-item" data-bs-toggle="tooltip" title="Salary"><i class="bi bi-cash"></i> ₱${sanitize(job.salary.toLocaleString())}/month</span>` : ''}
                 </div>
-                
-                <!-- Action Buttons and Saved/Apply with hover effect -->
-                <div class="action-buttons d-flex flex-column align-items-end">
-                    <div class="d-flex gap-2">
-                        ${job.application_status ? 
-                          `<div class="alert alert-info mt-2">
-                              <i class="bi bi-info-circle-fill me-2"></i> 
-                              You've already applied to this position. 
-                              Current status: <strong class="${getStatusClass(job.application_status)}">${job.application_status}</strong>
-                          </div>
-                          <a href="job_details.php?id=${sanitize(job.job_id)}" class="btn btn-outline-primary mt-2">
-                              <i class="bi bi-eye"></i> View Application
-                          </a>` : 
-                          `<button class="btn btn-apply" data-job-id="${job.job_id}" onclick="confirmApply(${job.job_id})">
-                                <i class="bi bi-send-check"></i> Apply Now
-                            </button>
-                            <button class="btn btn-save" onclick="${job.is_saved ? 'unsaveJob' : 'saveJob'}(${job.job_id})">
-                                <i class="bi bi-bookmark${job.is_saved ? '-fill' : ''}"></i> ${job.is_saved ? 'Saved' : 'Save Job'}
-                            </button>`
-                        }
+                <div class="d-flex flex-wrap gap-3">
+                    <span class="detail-meta-item"><i class="bi bi-calendar"></i> Posted: ${formatDate(job.posted_at)}</span>
+                    ${isJobExpiringSoon(job.expires_at) ? 
+                    `<span class="detail-meta-item expires-soon"><i class="bi bi-clock"></i> Expires soon: ${formatDate(job.expires_at)}</span>` : 
+                    `<span class="detail-meta-item"><i class="bi bi-clock"></i> Expires: ${formatDate(job.expires_at)}</span>`}
+                </div>
+            </div>
+            
+            <!-- Action Buttons - Ensure this stays on the right -->
+            <div class="action-buttons flex-shrink-0">
+                <div class="d-flex flex-column gap-2">
+                    ${job.application_status ? 
+                    `<div class="alert alert-info mt-2">
+                        <i class="bi bi-info-circle-fill me-2"></i> 
+                        You've already applied to this position. 
+                        Current status: <strong class="${getStatusClass(job.application_status)}">${job.application_status}</strong>
                     </div>
+                    <a href="job_details.php?id=${sanitize(job.job_id)}" class="btn btn-outline-primary mt-2">
+                        <i class="bi bi-eye"></i> View Application
+                    </a>` : 
+                    `<button class="btn btn-apply" data-job-id="${job.job_id}" onclick="confirmApply(${job.job_id})">
+                            <i class="bi bi-send-check"></i> Apply Now
+                        </button>
+                        <button class="btn btn-save" onclick="${job.is_saved ? 'unsaveJob' : 'saveJob'}(${job.job_id})">
+                            <i class="bi bi-bookmark${job.is_saved ? '-fill' : ''}"></i> ${job.is_saved ? 'Saved' : 'Save Job'}
+                        </button>`
+                    }
                 </div>
             </div>
         </div>
+    </div>
     `;
 
     // Add skills section with improved layout

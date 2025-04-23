@@ -261,7 +261,7 @@ include '../includes/employer_navbar.php';
         }
         
         .empty-state i {
-            font-size: 3rem;
+            font-size: 1.5rem;
             margin-bottom: 15px;
             color: #e9ecef;
         }
@@ -521,7 +521,7 @@ include '../includes/employer_navbar.php';
                                         </span>
                                         <span class="job-meta-item">
                                             <i class="bi bi-cash"></i> 
-                                            <?= $job['salary'] ? '$' . number_format($job['salary'], 2) : 'Not Specified' ?>
+                                            <?= $job['salary'] ? '₱' . number_format($job['salary'], 2) : 'Not Specified' ?>
                                         </span>
                                         <span class="job-meta-item">
                                             <i class="bi bi-clock"></i> Posted <?= getTimeAgo($job['posted_at']) ?>
@@ -665,7 +665,7 @@ include '../includes/employer_navbar.php';
                                         </td>
                                         <td><?= htmlspecialchars($job['job_type_title']) ?></td>
                                         <td><?= htmlspecialchars($job['location']) ?></td>
-                                        <td><?= $job['salary'] ? '$' . number_format($job['salary'], 2) : 'N/A' ?></td>
+                                        <td><?= $job['salary'] ? '₱' . number_format($job['salary'], 2) : 'N/A' ?></td>
                                         <td>
                                             <span class="fw-bold"><?= $job['applicant_count'] ?></span>
                                             <?php if ($job['new_applicants'] > 0): ?>

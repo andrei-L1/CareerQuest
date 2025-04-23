@@ -31,6 +31,10 @@ include '../includes/stud_navbar.php';
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/@yaireo/tagify@4.9.5/dist/tagify.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify@4.9.5/dist/tagify.min.js"></script>
+
+
       <style>
         :root {
             --primary-color: #1A4D8F;;
@@ -402,6 +406,44 @@ include '../includes/stud_navbar.php';
             to { opacity: 1; transform: translateY(0); }
         }
     </style>
+
+    <style>
+        .tagify {
+        --tags-disabled-bg: #f8f9fa;
+        --tags-border-color: #ced4da;
+        --tags-hover-border-color: #86b7fe;
+        --tags-focus-border-color: #86b7fe;
+        --tag-bg: #e9ecef;
+        --tag-hover: #d1e7ff;
+        --tag-text-color: #212529;
+        --tag-remove-btn-color: #6c757d;
+        --tag-remove-btn-bg--hover: #dc3545;
+        --tag-remove-btn-color--hover: white;
+        --tag-invalid-color: #dc3545;
+        --tag-invalid-bg: rgba(220, 53, 69, 0.1);
+        --input-color: #212529;
+        --placeholder-color: #6c757d;
+        --placeholder-color-focus: #6c757d;
+        --dropdown-bg: white;
+        --dropdown-item--bg: white;
+        --dropdown-item--bg-hover: #f8f9fa;
+        --dropdown-item--text-color: #212529;
+        --dropdown-item--text-color-hover: #212529;
+    }
+
+    .tagify__dropdown__item {
+        padding: 8px 12px;
+    }
+
+    .selected-skill {
+        background-color: #f8f9fa;
+        transition: all 0.2s;
+    }
+
+    .selected-skill:hover {
+        background-color: #e9ecef;
+    }
+    </style>
 </head>
 <body>
     <div class="container py-3 animate__animated animate__fadeIn">
@@ -518,18 +560,16 @@ include '../includes/stud_navbar.php';
                             
                             <div class="section-divider"></div>
                             <div class="form-section animate__animated animate__fadeIn">
-                                <h5><i class="fas fa-tools me-2"></i> Skills</h5>
-                                <div class="row g-3 mt-3">
-                                    <div class="col-12">
-                                        <div id="skillsContainer">
-                                            <!-- Skills will be added here dynamically -->
-                                        </div>
-                                        <button type="button" class="btn btn-outline-primary mt-2" id="addSkillBtn">
-                                            <i class="fas fa-plus me-1"></i> Add Skill
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
+    <h5><i class="fas fa-tools me-2"></i> Skills</h5>
+    <div class="row g-3 mt-3">
+        <div class="col-12">
+            <input type="text" id="skillsInput" name="skillsInput" class="form-control" placeholder="Type to search skills...">
+            <div id="selectedSkillsContainer" class="mt-3">
+                <!-- Selected skills will be displayed here -->
+            </div>
+        </div>
+    </div>
+</div>
                                                                                     
                             <!-- Contact Information Section -->
                             <div class="form-section animate__animated animate__fadeIn">
@@ -874,119 +914,146 @@ include '../includes/stud_navbar.php';
 
     
 
-// Skills Management
-$(document).ready(function() {
-    // Fetch available skills from the database
-    function fetchAvailableSkills() {
-        return $.ajax({
-            url: '../controllers/fetch_skills.php',
-            method: 'GET',
-            dataType: 'json'
-        });
-    }
+        // Skills Management
+        $(document).ready(function() {
+            // Initialize Tagify
+            const skillsInput = document.getElementById('skillsInput');
+            let tagify = null;
 
-    // Track existing skills for deletion
-    const existingSkills = new Set();
+            // Fetch available skills and initialize Tagify
+            $.ajax({
+                url: '../controllers/fetch_skills.php',
+                method: 'GET',
+                dataType: 'json',
+                success: function(skills) {
+                    const skillData = skills.map(skill => ({
+                        id: skill.skill_id,
+                        value: skill.skill_name
+                    }));
 
-    // Add skill row
-    async function addSkillRow(skill = null) {
-        const skills = await fetchAvailableSkills();
-        const skillId = skill ? skill.skill_id : '';
-        const proficiency = skill ? skill.proficiency : 'Beginner';
-        
-        if (skillId) {
-            existingSkills.add(skillId);
-        }
-        
-        const rowId = 'skill_' + (skill ? skill.skill_id : Date.now());
-        const skillOptions = skills.map(s => 
-            `<option value="${s.skill_id}" ${skillId == s.skill_id ? 'selected' : ''}>${s.skill_name}</option>`
-        ).join('');
-        
-        const row = `
-            <div class="skill-row mb-3 p-3 border rounded" id="${rowId}" data-skill-id="${skillId || ''}">
-                <div class="row g-2">
-                    <div class="col-md-6">
-                        <select class="form-select skill-select" name="skills[${rowId}][skill_id]" required
-                            ${skillId ? 'disabled' : ''}>
-                            <option value="">Select a skill</option>
-                            ${skillOptions}
-                        </select>
-                    </div>
-                    <div class="col-md-5">
-                        <select class="form-select" name="skills[${rowId}][proficiency]" required>
-                            <option value="Beginner" ${proficiency == 'Beginner' ? 'selected' : ''}>Beginner</option>
-                            <option value="Intermediate" ${proficiency == 'Intermediate' ? 'selected' : ''}>Intermediate</option>
-                            <option value="Advanced" ${proficiency == 'Advanced' ? 'selected' : ''}>Advanced</option>
-                        </select>
-                    </div>
-                    <div class="col-md-1">
-                        <button type="button" class="btn btn-outline-danger w-100 remove-skill">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    <input type="hidden" name="skills[${rowId}][group_no]" value="<?= $stud_id ?>">
-                    ${skillId ? `<input type="hidden" name="skills[${rowId}][skill_id]" value="${skillId}">` : ''}
-                </div>
-            </div>
-        `;
-        
-        $('#skillsContainer').append(row);
-    }
+                    tagify = new Tagify(skillsInput, {
+                        whitelist: skillData,
+                        enforceWhitelist: true,
+                        dropdown: {
+                            enabled: 1,           // Make sure the dropdown is enabled
+                            maxItems: 10,         // Limit the number of items shown in the dropdown
+                            highlightFirst: true, // Highlight the first item in the dropdown
+                            searchBy: ['value'],  // Ensure search matches skill name
+                            searchFlags: 'matchStart', // Match partial words starting from the beginning
+                            closeOnSelect: true,   // Close the dropdown when a skill is selected
+                            // Ensures the dropdown listens for click events
+                            onSelect: function(e) {
+                                const selectedSkill = e.detail.data; // The selected item
+                                console.log('Selected skill:', selectedSkill);
+                                // No need to add tags manually, let Tagify handle it
+                            }
+                        },
+                        templates: {
+                            dropdownItem: function(item) {
+                                return `<div class="tagify__dropdown__item">${item.value}</div>`;
+                            }
+                        }
+                    });
 
-    // Add skill button click handler
-    $('#addSkillBtn').click(function() {
-        addSkillRow();
-    });
+                    // Load existing skills
+                    loadExistingSkills(tagify);
 
-    // Remove skill button click handler
-    $(document).on('click', '.remove-skill', function() {
-        const row = $(this).closest('.skill-row');
-        const skillId = row.data('skill-id');
-        
-        if (skillId) {
-            Swal.fire({
-                title: 'Remove Skill?',
-                text: "This will permanently remove this skill from your profile.",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, remove it!'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    existingSkills.delete(skillId);
-                    row.remove();
+                    // Handle skill addition
+                    tagify.on('add', function(e) {
+                        updateSelectedSkillsDisplay(tagify);
+                        updateExistingSkillsProficiency(); // Ensure proficiency is set correctly
+                    });
+
+                    // Handle skill removal
+                    tagify.on('remove', function(e) {
+                        updateSelectedSkillsDisplay(tagify);
+                    });
+                },
+                error: function() {
+                    console.error('Failed to load skills');
                 }
             });
-        } else {
-            row.remove();
-        }
-    });
 
-    // Load existing skills when page loads
-    function loadExistingSkills() {
-        $.ajax({
-            url: '../controllers/fetch_student_skills.php?stud_id=<?= $stud_id ?>',
-            method: 'GET',
-            dataType: 'json',
-            success: function(skills) {
-                if (skills.length > 0) {
-                    skills.forEach(skill => {
-                        addSkillRow(skill);
-                    });
-                }
-            },
-            error: function() {
-                // No empty row is added if there's an error
+            // Function to update the selected skills display
+            function updateSelectedSkillsDisplay(tagify) {
+                const container = $('#selectedSkillsContainer');
+                container.empty();
+
+                tagify.value.forEach(tag => {
+                    const skillId = tag.id || tag.data.id;
+                    const skillName = tag.value || tag.data.value;
+
+                    const skillElement = `
+                        <div class="selected-skill mb-2 p-2 border rounded" data-skill-id="${skillId}">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div style=" margin-left:50px;">
+                                    <strong>${skillName}</strong>
+                                    <input type="hidden" name="skills[${skillId}][skill_id]" value="${skillId}">
+                                    <input type="hidden" name="skills[${skillId}][group_no]" value="<?= $stud_id ?>">
+                                </div>
+                                <select class="form-select form-select-sm ms-2" name="skills[${skillId}][proficiency]" style="width: 150px; margin-right:50px;">
+                                    <option value="Beginner">Beginner</option>
+                                    <option value="Intermediate">Intermediate</option>
+                                    <option value="Advanced">Advanced</option>
+                                </select>
+                            </div>
+                        </div>
+                    `;
+
+                    container.append(skillElement);
+                });
+            }
+
+            // Load existing skills
+            function loadExistingSkills(tagify) {
+                $.ajax({
+                    url: '../controllers/fetch_student_skills.php?stud_id=<?= $stud_id ?>',
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(skills) {
+                        if (skills.length > 0) {
+                            const tagifyData = skills.map(skill => ({
+                                id: skill.skill_id,
+                                value: skill.skill_name
+                            }));
+
+                            tagify.addTags(tagifyData);
+
+                            // Set proficiency levels for existing skills
+                            skills.forEach(skill => {
+                                $(`select[name="skills[${skill.skill_id}][proficiency]"]`).val(skill.proficiency);
+                            });
+                        }
+                    }
+                });
+            }
+
+
+
+            // Fix for potential "Cannot read properties of null" error
+            const someElement = document.getElementById('some-element-id');
+            if (someElement) {
+                someElement.style.display = 'none'; // Or any other style modification
+            }
+
+            // After adding new skills, make sure to keep proficiency levels for existing skills
+            function updateExistingSkillsProficiency() {
+                $.ajax({
+                    url: '../controllers/fetch_student_skills.php?stud_id=<?= $stud_id ?>',
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(skills) {
+                        if (skills.length > 0) {
+                            skills.forEach(skill => {
+                                // Set proficiency levels for existing skills
+                                $(`select[name="skills[${skill.skill_id}][proficiency]"]`).val(skill.proficiency);
+                            });
+                        }
+                    }
+                });
             }
         });
-    }
 
-
-    // Initialize skills on page load
-    loadExistingSkills();
-});
     </script>
 </body>
 </html>
