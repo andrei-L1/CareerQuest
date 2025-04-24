@@ -10,24 +10,33 @@ include '../includes/employer_navbar.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Job Applications - Employer Dashboard</title>
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     
     <style>
         :root {
             --primary: #4361ee;
+            --primary-light: #e0e7ff;
             --secondary: #3f37c9;
             --success: #4cc9f0;
+            --success-light: #e0f7fe;
             --warning: #f8961e;
+            --warning-light: #fff4e6;
             --danger: #f94144;
+            --danger-light: #ffebec;
             --light: #f8f9fa;
             --dark: #212529;
+            --gray: #6c757d;
+            --light-gray: #f1f3f5;
         }
         
         body {
             background-color: #f5f7fa;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            color: var(--dark);
         }
         
         .container-fluid {
@@ -35,54 +44,74 @@ include '../includes/employer_navbar.php';
             max-width: 1450px;
         }
         
-        /* Compact header */
+        /* Header Styles */
         .dashboard-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .dashboard-title {
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.25rem;
+        }
+        
+        .dashboard-subtitle {
+            color: var(--gray);
+            font-size: 0.9rem;
         }
         
         /* Stats cards */
         .stat-card {
-            padding: 0.75rem;
-            border-radius: 0.5rem;
+            padding: 1rem;
+            border-radius: 0.75rem;
             color: white;
             text-align: center;
-            transition: transform 0.2s;
+            transition: all 0.2s ease;
             cursor: pointer;
             height: 100%;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         
         .stat-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
         }
         
         .stat-card h5 {
             font-size: 0.85rem;
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.5rem;
             opacity: 0.9;
+            font-weight: 500;
         }
         
         .stat-card h2 {
-            font-size: 1.5rem;
+            font-size: 1.75rem;
             margin-bottom: 0;
-            font-weight: 600;
+            font-weight: 700;
         }
         
         /* Application cards */
         .application-card {
             background: white;
-            border-radius: 0.5rem;
+            border-radius: 0.75rem;
             border-left: 4px solid transparent;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
             margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid #eee;
+            position: relative;
+            overflow: hidden;
         }
         
         .application-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
         }
         
         .application-card.pending {
@@ -97,35 +126,78 @@ include '../includes/employer_navbar.php';
             border-left-color: var(--danger);
         }
         
+        .application-card.interviewed {
+            border-left-color: var(--primary);
+        }
+        
+        .application-card.offered {
+            border-left-color: #9c36b5;
+        }
+        
+        .applicant-avatar-wrapper {
+            position: relative;
+            width: 48px;
+            height: 48px;
+            flex-shrink: 0;
+        }
+        
         .applicant-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
+            width: 100%;
+            height: 100%;
             object-fit: cover;
+            border-radius: 50%;
+        }
+        
+        .applicant-default-icon {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: var(--light-gray);
+            color: var(--gray);
+            font-size: 1.25rem;
         }
         
         .applicant-name {
             font-weight: 600;
             color: var(--dark);
+            margin-bottom: 0.15rem;
+        }
+        
+        .applicant-title {
+            font-size: 0.85rem;
+            color: var(--gray);
+            margin-bottom: 0.25rem;
         }
         
         .applicant-email {
             font-size: 0.8rem;
-            color: #6c757d;
+            color: var(--gray);
         }
         
         .skill-badge {
-            background-color: #e9ecef;
-            color: #495057;
+            background-color: var(--light-gray);
+            color: var(--dark);
             margin-right: 0.3rem;
             margin-bottom: 0.3rem;
             font-size: 0.75rem;
             font-weight: 500;
             padding: 0.35em 0.65em;
+            border-radius: 50px;
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .skill-badge i {
+            margin-right: 0.25rem;
+            font-size: 0.65rem;
         }
         
         .match-score {
             font-weight: 700;
+            font-size: 1.1rem;
         }
         
         .high-match { color: #2a9d8f; }
@@ -133,26 +205,36 @@ include '../includes/employer_navbar.php';
         .low-match { color: #e76f51; }
         
         .status-badge {
-            padding: 0.35em 0.65em;
+            padding: 0.35em 0.85em;
             font-size: 0.75rem;
             font-weight: 600;
+            border-radius: 50px;
+            display: inline-flex;
+            align-items: center;
         }
         
-        .badge-pending { background-color: rgba(248, 150, 30, 0.1); color: var(--warning); }
-        .badge-accepted { background-color: rgba(76, 201, 240, 0.1); color: var(--success); }
-        .badge-rejected { background-color: rgba(249, 65, 68, 0.1); color: var(--danger); }
+        .badge-pending { background-color: var(--warning-light); color: var(--warning); }
+        .badge-review {
+        background-color: #fff3cd; 
+        color: #856404;           
+        }
+        .badge-accepted { background-color: var(--success-light); color: var(--success); }
+        .badge-rejected { background-color: var(--danger-light); color: var(--danger); }
+        .badge-interviewed { background-color: var(--primary-light); color: var(--primary); }
+        .badge-offered { background-color: #f3e8ff; color: #9c36b5; }
         
         /* Job card */
         .job-card {
             background: white;
-            border-radius: 0.5rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            margin-bottom: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
             overflow: hidden;
+            border: 1px solid #eee;
         }
         
         .job-header {
-            padding: 1rem 1.5rem;
+            padding: 1.25rem 1.5rem;
             border-bottom: 1px solid #eee;
             display: flex;
             justify-content: space-between;
@@ -161,39 +243,258 @@ include '../includes/employer_navbar.php';
         }
         
         .job-title {
+            font-weight: 700;
+            margin-bottom: 0;
+            font-size: 1.25rem;
+        }
+        
+        .job-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.85rem;
+            color: var(--gray);
+        }
+        
+        .job-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        /* Application pipeline */
+        .pipeline-container {
+            display: flex;
+            overflow-x: auto;
+            padding-bottom: 1rem;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .pipeline-stage {
+            min-width: 280px;
+            background: var(--light-gray);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            height: fit-content;
+        }
+        
+        .pipeline-stage-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .pipeline-stage-title {
             font-weight: 600;
             margin-bottom: 0;
+        }
+        
+        .pipeline-stage-count {
+            background: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        /* Quick actions */
+        .quick-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .btn-action {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            color: var(--gray);
+            transition: all 0.2s;
+        }
+        
+        .btn-action:hover {
+            background: rgba(0,0,0,0.05);
+        }
+        
+        .btn-action.accept:hover {
+            color: var(--success);
+            background: var(--success-light);
+        }
+        
+        .btn-action.reject:hover {
+            color: var(--danger);
+            background: var(--danger-light);
         }
         
         /* Custom dropdown */
         .dropdown-actions .dropdown-menu {
             border: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            border-radius: 0.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+            border-radius: 0.75rem;
             padding: 0.5rem;
         }
         
         .dropdown-actions .dropdown-item {
-            border-radius: 0.25rem;
+            border-radius: 0.5rem;
             padding: 0.5rem 1rem;
             font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
         
         .dropdown-actions .dropdown-item i {
-            width: 20px;
+            width: 18px;
             text-align: center;
-            margin-right: 0.5rem;
+        }
+        
+        /* Progress bar */
+        .progress-container {
+            margin-bottom: 1rem;
+        }
+        
+        .progress-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--gray);
+        }
+        
+        .progress {
+            height: 6px;
+            border-radius: 3px;
+            background: var(--light-gray);
+        }
+        
+        .progress-bar {
+            border-radius: 3px;
         }
         
         /* Responsive adjustments */
+        @media (max-width: 992px) {
+            .pipeline-container {
+                flex-direction: column;
+                overflow-x: visible;
+            }
+            
+            .pipeline-stage {
+                min-width: 100%;
+            }
+        }
+        
         @media (max-width: 768px) {
             .application-card {
-                padding: 1rem;
+                padding: 1.25rem;
             }
             
             .applicant-info {
                 margin-bottom: 1rem;
             }
+            
+            .dashboard-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+        
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .empty-state-icon {
+            font-size: 3rem;
+            color: var(--gray);
+            margin-bottom: 1.5rem;
+            opacity: 0.5;
+        }
+        
+        /* Tabs */
+        .nav-tabs {
+            border-bottom: 2px solid #eee;
+        }
+        
+        .nav-tabs .nav-link {
+            border: none;
+            color: var(--gray);
+            font-weight: 500;
+            padding: 0.75rem 1.25rem;
+            position: relative;
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: var(--primary);
+            background: transparent;
+        }
+        
+        .nav-tabs .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--primary);
+        }
+        
+        /* Search and filter */
+        .search-filter-container {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .search-input {
+            position: relative;
+        }
+        
+        .search-input i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+        
+        .search-input input {
+            padding-left: 2.5rem;
+            border-radius: 50px;
+        }
+        
+        /* Tags */
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            background: var(--light-gray);
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .tag-remove {
+            margin-left: 0.5rem;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+        
+        .tag-remove:hover {
+            opacity: 1;
         }
         
         /* Animation */
@@ -205,6 +506,39 @@ include '../includes/employer_navbar.php';
         .fade-in {
             animation: fadeIn 0.3s ease-out forwards;
         }
+        
+        /* Loading skeleton */
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 0.25rem;
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            height: 8px;
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #aaa;
+        }
     </style>
 </head>
 <body>
@@ -212,62 +546,84 @@ include '../includes/employer_navbar.php';
         <!-- Header Section -->
         <div class="dashboard-header">
             <div>
-                <h1 class="h3 mb-0">Job Applications</h1>
-                <p class="text-muted mb-0">Review and manage candidate applications</p>
+                <h1 class="dashboard-title">Job Applications</h1>
+                <p class="dashboard-subtitle">Review and manage candidate applications</p>
             </div>
-            <div>
-                <button class="btn btn-sm btn-outline-primary me-2" data-bs-toggle="collapse" data-bs-target="#filterCollapse">
-                    <i class="fas fa-filter me-1"></i> Filters
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary" id="exportBtn">
+                    <i class="fas fa-download me-1"></i> Export
                 </button>
-                <div class="btn-group">
-                    <button class="btn btn-sm btn-outline-secondary">
-                        <i class="fas fa-download me-1"></i> Export
+                <div class="dropdown">
+                    <button class="btn btn-primary dropdown-toggle" type="button" id="addDropdown" data-bs-toggle="dropdown">
+                        <i class="fas fa-plus me-1"></i> Add
                     </button>
-                    <button class="btn btn-sm btn-outline-secondary">
-                        <i class="fas fa-print me-1"></i> Print
-                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-user-plus me-2"></i> Manual Applicant</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-bullhorn me-2"></i> New Job Posting</a></li>
+                    </ul>
                 </div>
             </div>
         </div>
 
-        <!-- Filters Section -->
-        <div class="collapse mb-4" id="filterCollapse">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <form class="row g-3">
-                        <div class="col-md-4">
-                            <label for="jobSelect" class="form-label">Job Position</label>
-                            <select class="form-select" id="jobSelect">
-                                <option selected>All Positions</option>
-                                <option>Frontend Developer</option>
-                                <option>Backend Engineer</option>
-                                <option>UX Designer</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="statusSelect" class="form-label">Status</label>
-                            <select class="form-select" id="statusSelect">
-                                <option selected>All Statuses</option>
-                                <option>Pending</option>
-                                <option>Accepted</option>
-                                <option>Rejected</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="dateSelect" class="form-label">Date Range</label>
-                            <select class="form-select" id="dateSelect">
-                                <option selected>Any Time</option>
-                                <option>Last 7 Days</option>
-                                <option>Last 30 Days</option>
-                                <option>Last 90 Days</option>
-                            </select>
-                        </div>
-                        <div class="col-md-2 d-flex align-items-end">
-                            <button type="button" class="btn btn-primary w-100">
-                                <i class="fas fa-search me-1"></i> Search
+        <!-- Search and Filter Section -->
+        <div class="search-filter-container mb-4">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="search-input">
+                        <i class="fas fa-search"></i>
+                        <input type="text" class="form-control" placeholder="Search applicants..." id="searchInput">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="statusFilter" data-bs-toggle="dropdown">
+                                <i class="fas fa-filter me-1"></i> Status
                             </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#" data-status="all">All Statuses</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="#" data-status="pending"><span class="badge-pending status-badge me-2">Pending</span></a></li>
+                                <li><a class="dropdown-item" href="#" data-status="interviewed"><span class="badge-interviewed status-badge me-2">Interviewed</span></a></li>
+                                <li><a class="dropdown-item" href="#" data-status="offered"><span class="badge-offered status-badge me-2">Offered</span></a></li>
+                                <li><a class="dropdown-item" href="#" data-status="accepted"><span class="badge-accepted status-badge me-2">Accepted</span></a></li>
+                                <li><a class="dropdown-item" href="#" data-status="rejected"><span class="badge-rejected status-badge me-2">Rejected</span></a></li>
+                            </ul>
                         </div>
-                    </form>
+                        
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="jobFilter" data-bs-toggle="dropdown">
+                                <i class="fas fa-briefcase me-1"></i> Job
+                            </button>
+                            <ul class="dropdown-menu" id="jobFilterMenu">
+                                <li><a class="dropdown-item" href="#" data-job="all">All Jobs</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <!-- Dynamically populated -->
+                            </ul>
+                        </div>
+                        
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="dateFilter" data-bs-toggle="dropdown">
+                                <i class="fas fa-calendar me-1"></i> Date
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#" data-date="all">All Time</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="#" data-date="today">Today</a></li>
+                                <li><a class="dropdown-item" href="#" data-date="week">This Week</a></li>
+                                <li><a class="dropdown-item" href="#" data-date="month">This Month</a></li>
+                                <li><a class="dropdown-item" href="#" data-date="custom">Custom Range</a></li>
+                            </ul>
+                        </div>
+                        
+                        <button class="btn btn-outline-danger" id="clearFilters">
+                            <i class="fas fa-times me-1"></i> Clear
+                        </button>
+                    </div>
+                    
+                    <div class="mt-3" id="activeFilters">
+                        <!-- Active filters will appear here -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -287,21 +643,21 @@ include '../includes/employer_navbar.php';
                 </div>
             </div>
             <div class="col-6 col-md-4 col-lg-2">
-                <div class="stat-card bg-success" onclick="filterApplications('accepted')">
-                    <h5>Accepted</h5>
-                    <h2 id="hiredApps">0</h2>
-                </div>
-            </div>
-            <div class="col-6 col-md-4 col-lg-2">
                 <div class="stat-card bg-info" onclick="filterApplications('interviewed')">
                     <h5>Interviewed</h5>
                     <h2 id="interviewedApps">0</h2>
                 </div>
             </div>
             <div class="col-6 col-md-4 col-lg-2">
-                <div class="stat-card bg-secondary" onclick="filterApplications('offered')">
+                <div class="stat-card bg-purple" style="background-color: #9c36b5;" onclick="filterApplications('offered')">
                     <h5>Offered</h5>
                     <h2 id="offeredApps">0</h2>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="stat-card bg-success" onclick="filterApplications('accepted')">
+                    <h5>Accepted</h5>
+                    <h2 id="hiredApps">0</h2>
                 </div>
             </div>
             <div class="col-6 col-md-4 col-lg-2">
@@ -312,14 +668,87 @@ include '../includes/employer_navbar.php';
             </div>
         </div>
 
-        <!-- Applications Container -->
-        <div id="jobs-container" class="fade-in"></div>
+        <!-- View Toggle -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">Current Applications</h5>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-secondary active" id="listViewBtn">
+                    <i class="fas fa-list"></i> List
+                </button>
+                <button type="button" class="btn btn-outline-secondary" id="pipelineViewBtn">
+                    <i class="fas fa-project-diagram"></i> Pipeline
+                </button>
+            </div>
+        </div>
+
+        <!-- Pipeline View (Hidden by default) -->
+        <div id="pipelineView" style="display: none;">
+            <div class="pipeline-container" id="pipelineStages">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+
+        <!-- List View -->
+        <div id="listView">
+            <div id="jobs-container" class="fade-in"></div>
+        </div>
+
+        <!-- Empty State (Hidden by default) -->
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <div class="empty-state-icon">
+                <i class="fas fa-user-tie"></i>
+            </div>
+            <h4 class="mb-3">No applications found</h4>
+            <p class="text-muted mb-4">You currently don't have any job applications matching your criteria</p>
+            <button class="btn btn-primary" onclick="loadJobApplications()">
+                <i class="fas fa-sync-alt me-2"></i> Refresh
+            </button>
+            <button class="btn btn-outline-primary ms-2" id="clearFiltersEmpty">
+                <i class="fas fa-times me-2"></i> Clear filters
+            </button>
+        </div>
+    </div>
+
+    <!-- Application Details Modal -->
+    <div class="modal fade" id="applicantModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Applicant Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="applicantModalContent">
+                    <!-- Dynamically populated -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Save changes</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Bootstrap Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- AOS Animation -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     
     <script>
+        // Initialize AOS animation
+        AOS.init({
+            duration: 600,
+            easing: 'ease-out-quad',
+            once: true
+        });
+
+        // Current filters state
+        const filters = {
+            status: 'all',
+            job: 'all',
+            date: 'all',
+            search: ''
+        };
+
         // Load application stats
         function loadApplicationStats() {
             fetch('../controllers/employer_applications.php')
@@ -344,15 +773,33 @@ include '../includes/employer_navbar.php';
 
         // Load job applications
         function loadJobApplications() {
-            fetch('../controllers/employer_job_applicants.php')
+            // Show loading state
+            document.getElementById('jobs-container').innerHTML = `
+                <div class="card skeleton" style="height: 150px; margin-bottom: 1rem;"></div>
+                <div class="card skeleton" style="height: 150px; margin-bottom: 1rem;"></div>
+                <div class="card skeleton" style="height: 150px; margin-bottom: 1rem;"></div>
+            `;
+            
+            // Build query string from filters
+            const query = new URLSearchParams();
+            if (filters.status !== 'all') query.append('status', filters.status);
+            if (filters.job !== 'all') query.append('job', filters.job);
+            if (filters.date !== 'all') query.append('date', filters.date);
+            if (filters.search) query.append('search', filters.search);
+
+            fetch(`../controllers/employer_job_applicants.php?${query.toString()}`)
                 .then(response => response.json())
                 .then(data => {
-                    if (Array.isArray(data)) {
+                    if (Array.isArray(data) && data.length > 0) {
                         renderJobApplications(data);
+                        document.getElementById('emptyState').style.display = 'none';
+                        document.getElementById('listView').style.display = 'block';
                     } else {
-                        console.error("Unexpected response:", data);
                         showEmptyState();
                     }
+                    
+                    // Also populate pipeline view
+                    renderPipelineView(data);
                 })
                 .catch(error => {
                     console.error('Error fetching applications:', error);
@@ -377,8 +824,15 @@ include '../includes/employer_navbar.php';
                 
                 jobCard.innerHTML = `
                     <div class="job-header">
-                        <h3 class="job-title">${job.title}</h3>
-                        <span class="badge bg-light text-dark">${job.applicants.length} applicants</span>
+                        <div>
+                            <h3 class="job-title">${job.title}</h3>
+                            <div class="job-meta">
+                                <span><i class="fas fa-map-marker-alt"></i> ${job.location || 'Remote'}</span>
+                                <span><i class="fas fa-clock"></i> ${job.type || 'Full-time'}</span>
+                                <span><i class="fas fa-user-friends"></i> ${job.applicants.length} applicants</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-primary">View Job</button>
                     </div>
                     <div class="p-3">
                         ${renderApplicants(job.applicants)}
@@ -388,6 +842,276 @@ include '../includes/employer_navbar.php';
                 container.appendChild(jobCard);
             });
         }
+
+        // Render pipeline view
+        function renderPipelineView(jobs) {
+            const pipelineContainer = document.getElementById('pipelineStages');
+            if (!pipelineContainer) return;
+            
+            // Group all applicants by status
+            const allApplicants = jobs.flatMap(job => job.applicants.map(app => ({ ...app, jobTitle: job.title })));
+            const groupedByStatus = groupByStatus(allApplicants);
+            
+            pipelineContainer.innerHTML = `
+                <div class="pipeline-stage" data-status="Pending">
+                    <div class="pipeline-stage-header">
+                        <h6 class="pipeline-stage-title">New Applications</h6>
+                        <span class="pipeline-stage-count">${groupedByStatus.pending.length}</span>
+                    </div>
+                    ${renderPipelineApplicants(groupedByStatus.pending)}
+                </div>
+                
+                <div class="pipeline-stage" data-status="Under Review">
+                    <div class="pipeline-stage-header">
+                        <h6 class="pipeline-stage-title">Under Review</h6>
+                        <span class="pipeline-stage-count">${groupedByStatus.review.length}</span>
+                    </div>
+                    ${renderPipelineApplicants(groupedByStatus.review)}
+                </div>
+
+                <div class="pipeline-stage" data-status="Interview Scheduled">
+                    <div class="pipeline-stage-header">
+                        <h6 class="pipeline-stage-title">Interview Scheduled</h6>
+                        <span class="pipeline-stage-count">${groupedByStatus.interviewscheduled.length}</span>
+                    </div>
+                    ${renderPipelineApplicants(groupedByStatus.interviewscheduled)}
+                </div>
+                
+                <div class="pipeline-stage" data-status="Interviewed">
+                    <div class="pipeline-stage-header">
+                        <h6 class="pipeline-stage-title">Interview</h6>
+                        <span class="pipeline-stage-count">${groupedByStatus.interviewed.length}</span>
+                    </div>
+                    ${renderPipelineApplicants(groupedByStatus.interviewed)}
+                </div>
+                
+                <div class="pipeline-stage" data-status="Offered">
+                    <div class="pipeline-stage-header">
+                        <h6 class="pipeline-stage-title">Offer</h6>
+                        <span class="pipeline-stage-count">${groupedByStatus.offered.length}</span>
+                    </div>
+                    ${renderPipelineApplicants(groupedByStatus.offered)}
+                </div>
+                
+                <div class="pipeline-stage" data-status="Accepted">
+                    <div class="pipeline-stage-header">
+                        <h6 class="pipeline-stage-title">Hired</h6>
+                        <span class="pipeline-stage-count">${groupedByStatus.accepted.length}</span>
+                    </div>
+                    ${renderPipelineApplicants(groupedByStatus.accepted)}
+                </div>
+            `;
+
+            
+            // Make pipeline cards draggable
+            initDragAndDrop();
+        }
+        
+        // Group applicants by status
+        function groupByStatus(applicants) {
+            return applicants.reduce((acc, applicant) => {
+                const status = applicant.application_status.toLowerCase();
+                if (status === 'pending') {
+                    acc.pending.push(applicant);
+                } else if (status === 'under review') {
+                    acc.review.push(applicant);
+                } else if (status === 'interview scheduled') {
+                    acc.interviewscheduled.push(applicant);
+                } else if (status === 'interviewed') {
+                    acc.interviewed.push(applicant);
+                }else if (status === 'offered') {
+                    acc.offered.push(applicant);
+                } else if (status === 'accepted') {
+                    acc.accepted.push(applicant);
+                } else if (status === 'rejected' || status === 'withdrawn') {
+                    acc.rejected.push(applicant);
+                }
+                return acc;
+            }, {
+                pending: [],
+                review: [],
+                interviewscheduled: [],
+                interviewed: [],
+                offered: [],
+                accepted: [],
+                rejected: []
+            });
+        }
+
+        
+        // Render applicants for pipeline view
+        function renderPipelineApplicants(applicants) {
+            if (applicants.length === 0) {
+                return `
+                    <div class="text-center py-3 text-muted">
+                        <i class="fas fa-user-slash mb-2"></i>
+                        <div class="small">No applicants</div>
+                    </div>
+                `;
+            }
+            
+            return applicants.map(applicant => `
+            <div class="application-card p-3 mb-2 ${applicant.application_status.toLowerCase()}" 
+                draggable="true" 
+                data-applicant-id="${applicant.application_id || applicant.id}">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="d-flex align-items-center">
+                            <div class="applicant-avatar-wrapper me-2">
+                                ${applicant.profile_picture ? `
+                                    <img src="../uploads/${applicant.profile_picture}"
+                                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                                        alt="Profile"
+                                        class="applicant-avatar">
+                                ` : ''}
+                                <div class="applicant-default-icon" style="${applicant.profile_picture ? 'display:none;' : ''}">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="applicant-name">${applicant.name}</div>
+                                <div class="applicant-title small text-muted">${applicant.jobTitle}</div>
+                            </div>
+                        </div>
+                        <div class="dropdown dropdown-actions">
+                            <button class="btn-action" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#" onclick="viewApplicantDetails(${applicant.id})"><i class="fas fa-eye me-2"></i>View</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-file-pdf me-2"></i>Resume</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-trash me-2"></i>Remove</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="match-score ${getMatchScoreClass(applicant.match_score)} small">
+                            ${applicant.match_score || 'N/A'}% match
+                        </span>
+                        <span class="text-muted small">${formatDate(applicant.applied_at)}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Initialize drag and drop for pipeline
+        function initDragAndDrop() {
+            const cards = document.querySelectorAll('.application-card[draggable="true"]');
+            const stages = document.querySelectorAll('.pipeline-stage');
+            
+            cards.forEach(card => {
+                card.addEventListener('dragstart', () => {
+                    card.classList.add('dragging');
+                });
+                
+                card.addEventListener('dragend', () => {
+                    card.classList.remove('dragging');
+                });
+            });
+            
+            stages.forEach(stage => {
+                stage.addEventListener('dragover', e => {
+                    e.preventDefault();
+                    const draggingCard = document.querySelector('.dragging');
+                    if (draggingCard) {
+                        const afterElement = getDragAfterElement(stage, e.clientY);
+                        if (afterElement) {
+                            stage.insertBefore(draggingCard, afterElement);
+                        } else {
+                            stage.appendChild(draggingCard);
+                        }
+                    }
+                });
+                
+                stage.addEventListener('drop', e => {
+                    e.preventDefault();
+                    const draggingCard = document.querySelector('.dragging');
+                    if (draggingCard) {
+                        const applicantId = draggingCard.getAttribute('data-applicant-id'); // Use getAttribute
+                        const newStatus = stage.dataset.status;
+
+                        if (!applicantId) {
+                            console.error('No applicant ID found');
+                            return;
+                        }
+
+                        fetch('../controllers/employer_job_applicants.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                action: 'update_status',
+                                application_id: applicantId,
+                                new_status: newStatus
+                            })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                updateApplicantStatus(applicantId, newStatus);
+                                showToast('Status updated successfully', 'success');
+                                loadApplicationStats();
+                            } else {
+                                showToast(data.error || 'Failed to update status', 'error');
+                            }
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            showToast('Server error', 'error');
+                        });
+                    }
+                });
+            });
+        }
+        
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.application-card:not(.dragging)')];
+            
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+        
+        // Update applicant status
+        function toClassName(status) {
+            return (status || '').toLowerCase().replace(/\s+/g, '-'); // "Interview Scheduled" → "interview-scheduled"
+        }
+
+        function updateApplicantStatus(applicantId, newStatus) {
+            console.log(`Updating applicant ${applicantId} to ${newStatus}`);
+            
+            const card = document.querySelector(`.application-card[data-applicant-id="${applicantId}"]`);
+            if (card) {
+                // Remove all possible status classes
+                const allStatusClasses = [
+                    'pending', 'under-review', 'interview-scheduled', 'interviewed',
+                    'offered', 'accepted', 'rejected', 'withdrawn'
+                ];
+                card.classList.remove(...allStatusClasses);
+
+                // Add the new normalized status class
+                card.classList.add(toClassName(newStatus));
+
+                // Update the status badge if it exists
+                const statusBadge = card.querySelector('.status-badge');
+                if (statusBadge) {
+                    statusBadge.className = `status-badge ${getStatusBadgeClass(newStatus)}`;
+                    statusBadge.textContent = newStatus;
+                }
+            }
+
+            showToast('Status updated successfully', 'success');
+        }
+
 
         // Render applicants list
         function renderApplicants(applicants) {
@@ -404,12 +1128,21 @@ include '../includes/employer_navbar.php';
                 <div class="row g-3">
                     ${applicants.map(applicant => `
                         <div class="col-md-6 col-lg-4 col-xl-3">
-                            <div class="application-card p-3 ${applicant.application_status.toLowerCase()}">
+                            <div class="application-card p-3 ${applicant.application_status.toLowerCase()}" 
+                                 data-applicant-id="${applicant.id}">
                                 <div class="d-flex justify-content-between mb-3">
                                     <div class="d-flex align-items-center">
-                                        <img src="../uploads/${applicant.profile_picture || 'default.jpg'}"
-                                            onerror="this.onerror=null;this.src='../assets/default-profile.png'"
-                                            alt="Profile" class="applicant-avatar me-3">
+                                        <div class="applicant-avatar-wrapper me-3">
+                                            ${applicant.profile_picture ? `
+                                                <img src="../uploads/${applicant.profile_picture}"
+                                                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                                                    alt="Profile"
+                                                    class="applicant-avatar">
+                                            ` : ''}
+                                            <div class="applicant-default-icon" style="${applicant.profile_picture ? 'display:none;' : ''}">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                        </div>
                                         <div>
                                             <div class="applicant-name">${applicant.name}</div>
                                             <div class="applicant-email">${applicant.email}</div>
@@ -423,13 +1156,13 @@ include '../includes/employer_navbar.php';
                                             <i class="fas fa-ellipsis-v"></i>
                                         </button>
                                         <ul class="dropdown-menu">
-                                            <li><a class="dropdown-item" href="#"><i class="fas fa-eye"></i> View Profile</a></li>
-                                            <li><a class="dropdown-item" href="#"><i class="fas fa-file-pdf"></i> View Resume</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="viewApplicantDetails(${applicant.id})"><i class="fas fa-eye me-2"></i> View Profile</a></li>
+                                            <li><a class="dropdown-item" href="#"><i class="fas fa-file-pdf me-2"></i> View Resume</a></li>
                                             <li><hr class="dropdown-divider"></li>
-                                            <li><a class="dropdown-item text-success" href="#"><i class="fas fa-check"></i> Accept</a></li>
-                                            <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-times"></i> Reject</a></li>
+                                            <li><a class="dropdown-item text-success" href="#" onclick="updateStatus(${applicant.id}, 'accepted')"><i class="fas fa-check me-2"></i> Accept</a></li>
+                                            <li><a class="dropdown-item text-danger" href="#" onclick="updateStatus(${applicant.id}, 'rejected')"><i class="fas fa-times me-2"></i> Reject</a></li>
                                             <li><hr class="dropdown-divider"></li>
-                                            <li><a class="dropdown-item" href="#"><i class="fas fa-envelope"></i> Message</a></li>
+                                            <li><a class="dropdown-item" href="#"><i class="fas fa-envelope me-2"></i> Message</a></li>
                                         </ul>
                                     </div>
                                 </div>
@@ -463,7 +1196,7 @@ include '../includes/employer_navbar.php';
                                     <div class="text-muted small mb-1">Skills</div>
                                     <div class="d-flex flex-wrap">
                                         ${(applicant.skills || []).slice(0, 5).map(skill => `
-                                            <span class="skill-badge">${skill}</span>
+                                            <span class="skill-badge"><i class="fas fa-check-circle"></i> ${skill}</span>
                                         `).join('')}
                                         ${applicant.skills && applicant.skills.length > 5 ? `
                                             <span class="skill-badge">+${applicant.skills.length - 5}</span>
@@ -479,26 +1212,271 @@ include '../includes/employer_navbar.php';
 
         // Show empty state
         function showEmptyState() {
-            const container = document.getElementById('jobs-container');
-            container.innerHTML = `
-                <div class="text-center py-5">
-                    <i class="fas fa-file-alt fa-4x text-muted mb-4"></i>
-                    <h3 class="text-muted mb-3">No applications found</h3>
-                    <p class="text-muted mb-4">You currently don't have any job applications matching your criteria</p>
-                    <button class="btn btn-primary" onclick="loadJobApplications()">
-                        <i class="fas fa-sync-alt me-2"></i> Refresh
-                    </button>
-                </div>
-            `;
+            document.getElementById('jobs-container').innerHTML = '';
+            document.getElementById('listView').style.display = 'none';
+            document.getElementById('pipelineView').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'block';
         }
 
         // Filter applications
         function filterApplications(status) {
-            // Implement your filtering logic here
-            console.log(`Filtering by: ${status}`);
-            // You would typically make an API call with the filter parameter
-            // For now, we'll just reload all applications
+            filters.status = status;
+            updateActiveFilters();
             loadJobApplications();
+        }
+        
+        // Update status
+        function toClassName(status) {
+            return (status || '').toLowerCase().replace(/\s+/g, '-');
+        }
+
+        function formatStatusLabel(status) {
+            return (status || '').split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                .join(' ');
+        }
+
+        function updateStatus(applicantId, newStatus) {
+            console.log(`Updating applicant ${applicantId} to ${newStatus}`);
+            
+            const card = document.querySelector(`.application-card[data-applicant-id="${applicantId}"]`);
+            if (card) {
+                // Remove all known status classes
+                const allStatusClasses = [
+                    'pending', 'under-review', 'interview-scheduled', 'interviewed',
+                    'offered', 'accepted', 'rejected', 'withdrawn'
+                ];
+                card.classList.remove(...allStatusClasses);
+
+                // Add new normalized class
+                card.classList.add(toClassName(newStatus));
+
+                // Update the status badge
+                const statusBadge = card.querySelector('.status-badge');
+                if (statusBadge) {
+                    statusBadge.className = `status-badge ${getStatusBadgeClass(newStatus)}`;
+                    statusBadge.textContent = formatStatusLabel(newStatus);
+                }
+            }
+
+            showToast('Status updated successfully', 'success');
+
+            loadApplicationStats();
+        }
+
+        
+        // View applicant details
+        function viewApplicantDetails(applicantId) {
+            // In a real app, you would fetch applicant details from the server
+            console.log(`Viewing details for applicant ${applicantId}`);
+            
+            // For demo purposes, we'll just show a modal with placeholder content
+            const modalContent = document.getElementById('applicantModalContent');
+            modalContent.innerHTML = `
+                <div class="row">
+                    <div class="col-md-4 text-center">
+                        <div class="applicant-avatar-wrapper mx-auto mb-3" style="width: 120px; height: 120px;">
+                            <div class="applicant-default-icon" style="font-size: 3rem;">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        </div>
+                        <h4>Applicant Name</h4>
+                        <p class="text-muted">Software Developer</p>
+                        
+                        <div class="d-flex justify-content-center gap-2 mb-4">
+                            <button class="btn btn-success btn-sm">
+                                <i class="fas fa-check me-1"></i> Accept
+                            </button>
+                            <button class="btn btn-danger btn-sm">
+                                <i class="fas fa-times me-1"></i> Reject
+                            </button>
+                        </div>
+                        
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h6 class="card-title">Contact Info</h6>
+                                <p class="mb-1"><i class="fas fa-envelope me-2"></i> applicant@example.com</p>
+                                <p class="mb-1"><i class="fas fa-phone me-2"></i> (123) 456-7890</p>
+                                <p class="mb-0"><i class="fas fa-map-marker-alt me-2"></i> San Francisco, CA</p>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">Match Score</h6>
+                                <div class="progress mb-2" style="height: 10px;">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: 85%"></div>
+                                </div>
+                                <p class="small text-muted mb-0">85% match with job requirements</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-8">
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">Professional Summary</h5>
+                                <p>Experienced software developer with 5+ years of experience in web development. Strong skills in JavaScript, React, Node.js, and database design. Passionate about creating efficient, scalable applications with clean code.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">Work Experience</h5>
+                                <div class="mb-3">
+                                    <h6 class="mb-1">Senior Developer at Tech Corp</h6>
+                                    <p class="text-muted small mb-1">Jan 2020 - Present</p>
+                                    <ul class="small">
+                                        <li>Led a team of 5 developers to build a SaaS platform</li>
+                                        <li>Improved application performance by 40%</li>
+                                        <li>Implemented CI/CD pipeline reducing deployment time</li>
+                                    </ul>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <h6 class="mb-1">Developer at Web Solutions</h6>
+                                    <p class="text-muted small mb-1">Mar 2018 - Dec 2019</p>
+                                    <ul class="small">
+                                        <li>Developed custom WordPress themes and plugins</li>
+                                        <li>Worked with clients to implement requirements</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Education</h5>
+                                <div class="mb-3">
+                                    <h6 class="mb-1">BS in Computer Science</h6>
+                                    <p class="text-muted small mb-1">University of California, 2017</p>
+                                </div>
+                                
+                                <h5 class="card-title mt-4">Skills</h5>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <span class="badge bg-light text-dark">JavaScript</span>
+                                    <span class="badge bg-light text-dark">React</span>
+                                    <span class="badge bg-light text-dark">Node.js</span>
+                                    <span class="badge bg-light text-dark">HTML/CSS</span>
+                                    <span class="badge bg-light text-dark">SQL</span>
+                                    <span class="badge bg-light text-dark">Git</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Show the modal
+            const modal = new bootstrap.Modal(document.getElementById('applicantModal'));
+            modal.show();
+        }
+        
+        // Show toast notification
+        function showToast(message, type = 'success') {
+            const toastContainer = document.createElement('div');
+            toastContainer.className = `toast align-items-center text-white bg-${type} border-0`;
+            toastContainer.setAttribute('role', 'alert');
+            toastContainer.setAttribute('aria-live', 'assertive');
+            toastContainer.setAttribute('aria-atomic', 'true');
+            
+            toastContainer.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            `;
+            
+            document.body.appendChild(toastContainer);
+            const toast = new bootstrap.Toast(toastContainer);
+            toast.show();
+            
+            // Remove toast after it's hidden
+            toastContainer.addEventListener('hidden.bs.toast', () => {
+                document.body.removeChild(toastContainer);
+            });
+        }
+        
+        // Update active filters display
+        function updateActiveFilters() {
+            const activeFiltersContainer = document.getElementById('activeFilters');
+            activeFiltersContainer.innerHTML = '';
+            
+            const activeFilters = [];
+            
+            if (filters.status !== 'all') {
+                activeFilters.push({
+                    key: 'status',
+                    value: filters.status,
+                    label: `Status: ${filters.status.charAt(0).toUpperCase() + filters.status.slice(1)}`
+                });
+            }
+            
+            if (filters.job !== 'all') {
+                activeFilters.push({
+                    key: 'job',
+                    value: filters.job,
+                    label: `Job: ${filters.job}`
+                });
+            }
+            
+            if (filters.date !== 'all') {
+                activeFilters.push({
+                    key: 'date',
+                    value: filters.date,
+                    label: `Date: ${filters.date === 'custom' ? 'Custom Range' : filters.date.charAt(0).toUpperCase() + filters.date.slice(1)}`
+                });
+            }
+            
+            if (filters.search) {
+                activeFilters.push({
+                    key: 'search',
+                    value: filters.search,
+                    label: `Search: "${filters.search}"`
+                });
+            }
+            
+            if (activeFilters.length > 0) {
+                const filterTags = document.createElement('div');
+                filterTags.className = 'd-flex flex-wrap align-items-center gap-2';
+                
+                activeFilters.forEach(filter => {
+                    const tag = document.createElement('span');
+                    tag.className = 'tag';
+                    tag.innerHTML = `
+                        ${filter.label}
+                        <span class="tag-remove" onclick="removeFilter('${filter.key}')">
+                            <i class="fas fa-times"></i>
+                        </span>
+                    `;
+                    filterTags.appendChild(tag);
+                });
+                
+                activeFiltersContainer.appendChild(filterTags);
+            }
+        }
+        
+        // Remove filter
+        function removeFilter(key) {
+            filters[key] = key === 'status' ? 'all' : 
+                          key === 'job' ? 'all' : 
+                          key === 'date' ? 'all' : '';
+            
+            updateActiveFilters();
+            loadJobApplications();
+            
+            // Reset dropdowns if needed
+            if (key === 'status') {
+                document.querySelector('#statusFilter').textContent = 'Status';
+            } else if (key === 'job') {
+                document.querySelector('#jobFilter').textContent = 'Job';
+            } else if (key === 'date') {
+                document.querySelector('#dateFilter').textContent = 'Date';
+            } else if (key === 'search') {
+                document.getElementById('searchInput').value = '';
+            }
         }
 
         // Helper functions
@@ -511,7 +1489,7 @@ include '../includes/employer_navbar.php';
             if (diff === 0) return 'today';
             if (diff === 1) return 'yesterday';
             if (diff < 7) return `${diff} days ago`;
-            if (diff < 30) return `${Math.floor(diff/7)} weeks ago`;
+            if (diff < 30) return `${Math.floor(diff/7)} week${Math.floor(diff/7) === 1 ? '' : 's'} ago`;
             return date.toLocaleDateString();
         }
 
@@ -525,21 +1503,112 @@ include '../includes/employer_navbar.php';
         function getStatusBadgeClass(status) {
             switch((status || '').toLowerCase()) {
                 case 'pending': return 'badge-pending';
+                case 'under review': return 'badge-review';
+                case 'interview scheduled':
+                case 'interviewed': return 'badge-interviewed';
+                case 'offered': return 'badge-offered';
                 case 'accepted': return 'badge-accepted';
-                case 'rejected': return 'badge-rejected';
+                case 'rejected':
+                case 'withdrawn': return 'badge-rejected';
                 default: return 'badge-secondary';
             }
         }
+        
+        function toClassName(status) {
+            return (status || '').toLowerCase().replace(/\s+/g, '-'); // e.g., "Interview Scheduled" → "interview-scheduled"
+        }
+
 
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
             loadApplicationStats();
             loadJobApplications();
             
-            // Initialize tooltips
-            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
+            // Initialize view toggle buttons
+            document.getElementById('listViewBtn').addEventListener('click', function() {
+                this.classList.add('active');
+                document.getElementById('pipelineViewBtn').classList.remove('active');
+                document.getElementById('listView').style.display = 'block';
+                document.getElementById('pipelineView').style.display = 'none';
+            });
+            
+            document.getElementById('pipelineViewBtn').addEventListener('click', function() {
+                this.classList.add('active');
+                document.getElementById('listViewBtn').classList.remove('active');
+                document.getElementById('listView').style.display = 'none';
+                document.getElementById('pipelineView').style.display = 'block';
+            });
+            
+            // Initialize status filter dropdown items
+            document.querySelectorAll('#statusFilterMenu .dropdown-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    filters.status = this.dataset.status;
+                    document.getElementById('statusFilter').textContent = this.textContent.trim();
+                    updateActiveFilters();
+                    loadJobApplications();
+                });
+            });
+            
+            // Initialize job filter dropdown items
+            document.querySelectorAll('#jobFilterMenu .dropdown-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    filters.job = this.dataset.job;
+                    document.getElementById('jobFilter').textContent = this.textContent.trim();
+                    updateActiveFilters();
+                    loadJobApplications();
+                });
+            });
+            
+            // Initialize date filter dropdown items
+            document.querySelectorAll('#dateFilterMenu .dropdown-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    filters.date = this.dataset.date;
+                    document.getElementById('dateFilter').textContent = this.textContent.trim();
+                    updateActiveFilters();
+                    loadJobApplications();
+                });
+            });
+            
+            // Initialize search input
+            const searchInput = document.getElementById('searchInput');
+            let searchTimeout;
+            
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    filters.search = this.value.trim();
+                    updateActiveFilters();
+                    loadJobApplications();
+                }, 500);
+            });
+            
+            // Clear filters button
+            document.getElementById('clearFilters').addEventListener('click', function() {
+                filters.status = 'all';
+                filters.job = 'all';
+                filters.date = 'all';
+                filters.search = '';
+                searchInput.value = '';
+                
+                document.getElementById('statusFilter').textContent = 'Status';
+                document.getElementById('jobFilter').textContent = 'Job';
+                document.getElementById('dateFilter').textContent = 'Date';
+                
+                updateActiveFilters();
+                loadJobApplications();
+            });
+            
+            document.getElementById('clearFiltersEmpty').addEventListener('click', function() {
+                document.getElementById('clearFilters').click();
+            });
+            
+            // Export button
+            document.getElementById('exportBtn').addEventListener('click', function() {
+                // In a real app, this would generate a CSV/PDF
+                showToast('Export started. You will receive an email when ready.', 'info');
             });
         });
     </script>

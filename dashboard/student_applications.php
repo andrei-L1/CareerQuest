@@ -67,6 +67,10 @@ $stats = [
     'pending' => 0,
     'accepted' => 0,
     'rejected' => 0,
+    'under review' => 0,
+    'interview scheduled' => 0,
+    'interviewed' => 0,
+    'withdrawn' => 0,
     'match_avg' => 0
 ];
 
@@ -244,25 +248,69 @@ function getApplicationTimeline($conn, $application_id) {
             min-width: 80px;
             text-align: center;
         }
-        
+    
+
+        /* Pending - Warm yellow/orange */
         .status-pending {
-            background-color: #fff3cd;
-            color: #856404;
+            background-color: #FFF9E6;
+            color: #E6A000;
+            border-color: #FFE699;
         }
-        
+
+        /* Under Review - Soft blue */
+        .status-underreview {
+            background-color: #E6F2FF;
+            color: #0066CC;
+            border-color: #B3D7FF;
+        }
+
+        /* Interview Scheduled - Vibrant purple */
+        .status-interviewscheduled {
+            background-color: #F0E6FF;
+            color: #7F00CC;
+            border-color: #D1B3FF;
+        }
+
+        /* Interviewed - Deep blue */
+        .status-interviewed {
+            background-color: #E6F0FF;
+            color: #0047B3;
+            border-color: #B3C6FF;
+        }
+
+        /* Offered - Gold */
+        .status-offered {
+            background-color: #FFF2CC;
+            color: #B38600;
+            border-color: #FFD966;
+        }
+
+        /* Accepted - Green (success) */
         .status-accepted {
-            background-color: #d4edda;
-            color: #155724;
+            background-color: #E6FFE6;
+            color: #008000;
+            border-color: #99CC99;
         }
-        
+
+        /* Rejected - Red (error) */
         .status-rejected {
-            background-color: #f8d7da;
-            color: #721c24;
+            background-color: #FFE6E6;
+            color: #CC0000;
+            border-color: #FF9999;
         }
-        
+
+        /* Withdrawn - Neutral gray */
+        .status-withdrawn {
+            background-color: #F2F2F2;
+            color: #666666;
+            border-color: #D9D9D9;
+        }
+
+        /* Job Closed - Dark gray */
         .status-closed {
-            background-color: #e2e3e5;
-            color: #383d41;
+            background-color: #E6E6E6;
+            color: #4D4D4D;
+            border-color: #B3B3B3;
         }
         
         /* Skill Match Meter */
@@ -597,23 +645,32 @@ function getApplicationTimeline($conn, $application_id) {
     <div class="filter-controls fade-in">
         <div class="d-flex flex-wrap align-items-center">
             <span class="fw-semibold">Filter by:</span>
-            <a href="?status=all" class="btn btn-sm btn-outline-primary filter-btn <?= (!isset($_GET['status']) || $_GET['status'] == 'all') ? 'active' : '' ?>">All</a>
+            <a href="?status=all" class="btn btn-sm btn-outline-secondary filter-btn <?= (!isset($_GET['status']) || $_GET['status'] == 'all') ? 'active' : '' ?>">All</a>
             <a href="?status=pending" class="btn btn-sm btn-outline-warning filter-btn <?= (isset($_GET['status']) && $_GET['status'] == 'pending') ? 'active' : '' ?>">Pending</a>
             <a href="?status=accepted" class="btn btn-sm btn-outline-success filter-btn <?= (isset($_GET['status']) && $_GET['status'] == 'accepted') ? 'active' : '' ?>">Accepted</a>
             <a href="?status=rejected" class="btn btn-sm btn-outline-danger filter-btn <?= (isset($_GET['status']) && $_GET['status'] == 'rejected') ? 'active' : '' ?>">Rejected</a>
+            <a href="?status=under review" class="btn btn-sm btn-outline-info filter-btn <?= (isset($_GET['status']) && $_GET['status'] == 'under review') ? 'active' : '' ?>">Under Review</a>
+            <a href="?status=interview scheduled" class="btn btn-sm btn-outline-primary filter-btn <?= (isset($_GET['status']) && $_GET['status'] == 'interview scheduled') ? 'active' : '' ?>">Interview Scheduled</a>
+            <a href="?status=interviewed" class="btn btn-sm btn-outline-dark filter-btn <?= (isset($_GET['status']) && $_GET['status'] == 'interviewed') ? 'active' : '' ?>">Interviewed</a>
+            <a href="?status=withdrawn" class="btn btn-sm btn-outline-light filter-btn <?= (isset($_GET['status']) && $_GET['status'] == 'withdrawn') ? 'active' : '' ?>">Withdrawn</a>
         </div>
     </div>
-
     <!-- Applications List -->
     <?php if (!empty($applications)): ?>
         <?php foreach ($applications as $application): 
             // Skip if filtered and doesn't match
-            if (isset($_GET['status']) && $_GET['status'] != 'all' && strtolower($application['application_status']) != $_GET['status']) {
-                continue;
+
+            if (isset($_GET['status']) && $_GET['status'] != 'all') {
+                $filterStatus = strtolower(str_replace(' ', '', $_GET['status']));
+                $appStatus = strtolower(str_replace(' ', '', $application['application_status']));
+                
+                if ($filterStatus != $appStatus) {
+                    continue;
+                }
             }
             
             // Determine status class
-            $statusClass = 'status-' . strtolower($application['application_status']);
+            $statusClass = 'status-' . strtolower(str_replace(' ', '', $application['application_status']));
             if ($application['job_status'] == 'Rejected') {
                 $statusClass = 'status-closed';
                 $application['application_status'] = 'Job Closed';
