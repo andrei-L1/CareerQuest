@@ -30,7 +30,7 @@ try {
     $employer_id = $employer_row['employer_id'];
 
     // Application counts by status
-    $statuses = ['Pending', 'Accepted', 'Interviewed', 'Offered', 'Rejected'];
+    $statuses = ['Pending', 'Accepted', 'Interview', 'Offered', 'Rejected'];
     $results = [];
 
     // Total applications

@@ -69,7 +69,7 @@ $stats = [
     'rejected' => 0,
     'under review' => 0,
     'interview scheduled' => 0,
-    'interviewed' => 0,
+    'interview' => 0,
     'withdrawn' => 0,
     'match_avg' => 0
 ];
@@ -239,7 +239,7 @@ function getApplicationTimeline($conn, $application_id) {
             padding: 1.5rem;
         }
         
-        /* Status Badges */
+        /* Core Badge Styles */
         .status-badge {
             font-size: 0.75rem;
             padding: 5px 10px;
@@ -247,71 +247,72 @@ function getApplicationTimeline($conn, $application_id) {
             font-weight: 500;
             min-width: 80px;
             text-align: center;
+            border: 1px solid transparent;
         }
-    
 
-        /* Pending - Warm yellow/orange */
+        /* Pending - Muted steel blue (cooler than amber but still neutral-warning) */
         .status-pending {
-            background-color: #FFF9E6;
-            color: #E6A000;
-            border-color: #FFE699;
+            background-color: #F1F5FB;
+            color: #6A7BA2;
+            border-color: #DDE6F4;
         }
 
-        /* Under Review - Soft blue */
+        /* Under Review - Light blue (harmonizes with #1A4D8F) */
         .status-underreview {
-            background-color: #E6F2FF;
-            color: #0066CC;
-            border-color: #B3D7FF;
+            background-color: #EAF2FB;
+            color: #1A4D8F;
+            border-color: #C3D9F4;
         }
 
-        /* Interview Scheduled - Vibrant purple */
+        /* Interview Scheduled - Blue-violet */
         .status-interviewscheduled {
-            background-color: #F0E6FF;
-            color: #7F00CC;
-            border-color: #D1B3FF;
+            background-color: #F0F2FF;
+            color: #5A40B3;
+            border-color: #D4D3FF;
         }
 
-        /* Interviewed - Deep blue */
-        .status-interviewed {
-            background-color: #E6F0FF;
-            color: #0047B3;
-            border-color: #B3C6FF;
+        /* Interviewed - Slightly darker than base blue */
+        .status-interview {
+            background-color: #E1ECFB;
+            color: #133B80;
+            border-color: #A9C3F1;
         }
 
-        /* Offered - Gold */
+        /* Offered - Soft pale blue-gold hybrid (keeps importance but cools the warmth) */
         .status-offered {
-            background-color: #FFF2CC;
-            color: #B38600;
-            border-color: #FFD966;
+            background-color: #F9F8F1;
+            color: #7D6B3C;
+            border-color: #E5DFC8;
         }
 
-        /* Accepted - Green (success) */
+        /* Accepted - Teal (cool success) */
         .status-accepted {
-            background-color: #E6FFE6;
-            color: #008000;
-            border-color: #99CC99;
+            background-color: #E5F9F4;
+            color: #1F8A70;
+            border-color: #B4E5D7;
         }
 
-        /* Rejected - Red (error) */
+        /* Rejected - Muted cool red (leaning into magenta/berry tone to soften) */
         .status-rejected {
-            background-color: #FFE6E6;
-            color: #CC0000;
-            border-color: #FF9999;
+            background-color: #FDEDEE;
+            color: #B1384E;
+            border-color: #F7C6C8;
         }
 
-        /* Withdrawn - Neutral gray */
+        /* Withdrawn - Blue-gray neutral */
         .status-withdrawn {
-            background-color: #F2F2F2;
-            color: #666666;
-            border-color: #D9D9D9;
+            background-color: #F4F7FA;
+            color: #6C7A87;
+            border-color: #D8DEE4;
         }
 
-        /* Job Closed - Dark gray */
+        /* Job Closed - Graphite gray with a blue undertone */
         .status-closed {
-            background-color: #E6E6E6;
-            color: #4D4D4D;
-            border-color: #B3B3B3;
+            background-color: #ECEFF1;
+            color: #4A5563;
+            border-color: #C5CBD1;
         }
+
         
         /* Skill Match Meter */
         .match-meter {
@@ -324,8 +325,15 @@ function getApplicationTimeline($conn, $application_id) {
         
         .match-progress {
             height: 100%;
-            background: linear-gradient(90deg, var(--danger-color), var(--warning-color), var(--success-color));
+            background: linear-gradient(
+                90deg,
+                #153766,   /* Dark Navy Blue */
+                #1A4D8F,   /* Your Base Blue */
+                #2C72C2,   /* Bright Blue */
+                #73A4D4    /* Soft Sky Blue */
+            );
         }
+
         
         /* Timeline */
         .timeline {
@@ -599,6 +607,22 @@ function getApplicationTimeline($conn, $application_id) {
             margin: 0;
             padding: 0;
         }
+
+
+
+
+        .text-blue-primary {
+            color: #1A4D8F; /* your base */
+        }
+
+        .text-blue-pending {
+            color: #5A77B5; /* lighter blue hinting at waiting */
+        }
+
+        .text-blue-accepted {
+            color: #2C72C2; /* success shade from your palette */
+        }
+
     </style>
 </head>
 <body>
@@ -615,44 +639,45 @@ function getApplicationTimeline($conn, $application_id) {
     <div class="row mb-4 fade-in">
         <div class="col-md-3">
             <div class="stat-card">
-                <div class="stat-value text-primary"><?= $stats['total'] ?></div>
+                <div class="stat-value text-blue-primary"><?= $stats['total'] ?></div>
                 <div class="stat-label">Total Applications</div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="stat-card">
-                <div class="stat-value text-warning"><?= $stats['pending'] ?></div>
+                <div class="stat-value text-blue-pending"><?= $stats['pending'] ?></div>
                 <div class="stat-label">Pending</div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="stat-card">
-                <div class="stat-value text-success"><?= $stats['accepted'] ?></div>
+                <div class="stat-value text-blue-accepted"><?= $stats['accepted'] ?></div>
                 <div class="stat-label">Accepted</div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="stat-card">
-                <div class="stat-value" style="color: <?= $stats['match_avg'] > 70 ? 'var(--success-color)' : ($stats['match_avg'] > 40 ? 'var(--warning-color)' : 'var(--danger-color)') ?>">
+                <div class="stat-value" style="color: <?= $stats['match_avg'] > 70 ? '#1F8A70' : ($stats['match_avg'] > 40 ? '#D49400' : '#C0392B') ?>">
                     <?= $stats['match_avg'] ?>%
                 </div>
                 <div class="stat-label">Avg. Skill Match</div>
             </div>
         </div>
     </div>
+
     
     <!-- Filter Controls -->
     <div class="filter-controls fade-in">
         <div class="d-flex flex-wrap align-items-center">
             <span class="fw-semibold">Filter by:</span>
             <a href="?status=all" class="btn btn-sm btn-outline-secondary filter-btn <?= (!isset($_GET['status']) || $_GET['status'] == 'all') ? 'active' : '' ?>">All</a>
-            <a href="?status=pending" class="btn btn-sm btn-outline-warning filter-btn <?= (isset($_GET['status']) && $_GET['status'] == 'pending') ? 'active' : '' ?>">Pending</a>
-            <a href="?status=accepted" class="btn btn-sm btn-outline-success filter-btn <?= (isset($_GET['status']) && $_GET['status'] == 'accepted') ? 'active' : '' ?>">Accepted</a>
-            <a href="?status=rejected" class="btn btn-sm btn-outline-danger filter-btn <?= (isset($_GET['status']) && $_GET['status'] == 'rejected') ? 'active' : '' ?>">Rejected</a>
-            <a href="?status=under review" class="btn btn-sm btn-outline-info filter-btn <?= (isset($_GET['status']) && $_GET['status'] == 'under review') ? 'active' : '' ?>">Under Review</a>
-            <a href="?status=interview scheduled" class="btn btn-sm btn-outline-primary filter-btn <?= (isset($_GET['status']) && $_GET['status'] == 'interview scheduled') ? 'active' : '' ?>">Interview Scheduled</a>
-            <a href="?status=interviewed" class="btn btn-sm btn-outline-dark filter-btn <?= (isset($_GET['status']) && $_GET['status'] == 'interviewed') ? 'active' : '' ?>">Interviewed</a>
-            <a href="?status=withdrawn" class="btn btn-sm btn-outline-light filter-btn <?= (isset($_GET['status']) && $_GET['status'] == 'withdrawn') ? 'active' : '' ?>">Withdrawn</a>
+            <a href="?status=pending" class="btn btn-sm btn-outline-secondary filter-btn <?= (isset($_GET['status']) && $_GET['status'] == 'pending') ? 'active' : '' ?>">Pending</a>
+            <a href="?status=accepted" class="btn btn-sm btn-outline-secondary filter-btn <?= (isset($_GET['status']) && $_GET['status'] == 'accepted') ? 'active' : '' ?>">Accepted</a>
+            <a href="?status=rejected" class="btn btn-sm btn-outline-secondary filter-btn <?= (isset($_GET['status']) && $_GET['status'] == 'rejected') ? 'active' : '' ?>">Rejected</a>
+            <a href="?status=under review" class="btn btn-sm btn-outline-secondary filter-btn <?= (isset($_GET['status']) && $_GET['status'] == 'under review') ? 'active' : '' ?>">Under Review</a>
+            <a href="?status=interview scheduled" class="btn btn-sm btn-outline-secondary filter-btn <?= (isset($_GET['status']) && $_GET['status'] == 'interview scheduled') ? 'active' : '' ?>">Interview Scheduled</a>
+            <a href="?status=interview" class="btn btn-sm btn-outline-secondary filter-btn <?= (isset($_GET['status']) && $_GET['status'] == 'interview') ? 'active' : '' ?>">Interview</a>
+            <a href="?status=withdrawn" class="btn btn-sm btn-outline-secondary filter-btn <?= (isset($_GET['status']) && $_GET['status'] == 'withdrawn') ? 'active' : '' ?>">Withdrawn</a>
         </div>
     </div>
     <!-- Applications List -->

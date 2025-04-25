@@ -212,7 +212,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $redirect_page = "../auth/login_user.php";
                 break;
             case 'employer': 
-                $redirect_page = "../auth/login_user.php";
+                $redirect_page = "../auth/login_employer.php";
                 break;
             default:
                 $redirect_page = "../index.php"; // Fallback case

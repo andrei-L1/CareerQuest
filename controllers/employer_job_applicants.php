@@ -194,7 +194,7 @@ function formatPipelineData(array $rows): array {
         'New Applications' => ['Pending'],
         'Under Review' => ['Under Review'],
         'Interview Scheduled' => ['Interview Scheduled'],
-        'Interview' => ['Interviewed'],
+        'Interview' => ['Interview'],
         'Offer' => ['Offered'],
         'Hired' => ['Accepted'],
         'Rejected' => ['Rejected', 'Withdrawn']
