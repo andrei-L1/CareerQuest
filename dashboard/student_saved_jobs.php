@@ -470,6 +470,8 @@
             }
             
             jobs.forEach(job => {
+                console.log('Job data:', job); // Debugging line
+                
                 const postedAgo = formatTimeDiff(new Date(job.posted_at));
                 const savedAgo = formatTimeDiff(new Date(job.saved_at));
                 const salaryDisplay = job.salary ? '$' + Number(job.salary).toLocaleString() : 'Not specified';
@@ -498,7 +500,7 @@
                                         <span>${salaryDisplay}</span>
                                     </div>
                                 </div>
-                                <p class="job-description">${escapeHtml(job.description.substring(0, 200))}...</p>
+                                <p class="job-description">${escapeHtml(job.description ? job.description.substring(0, 200) : '')}...</p>
                             </div>
                             <div class="card-footer bg-transparent">
                                 <div class="d-flex justify-content-between align-items-center">
@@ -629,6 +631,9 @@
 
         // Helper function to escape HTML
         function escapeHtml(unsafe) {
+            if (unsafe === null || unsafe === undefined) {
+                return '';
+            }
             return unsafe
                 .toString()
                 .replace(/&/g, "&amp;")

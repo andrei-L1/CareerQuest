@@ -13,6 +13,8 @@ include '../includes/employer_navbar.php';
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- AOS Animation -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     
@@ -31,17 +33,23 @@ include '../includes/employer_navbar.php';
             --dark: #212529;
             --gray: #6c757d;
             --light-gray: #f1f3f5;
+            --dark-blue: #1A4D8F;
+            --medium-blue: #4B7DA3;
+            --light-blue: #5C84A1;
+            --lighter-blue: #82AAC7;
+            --green: #56A47B;
+            --red: #7B2E2A;
         }
         
         body {
-            background-color: #f5f7fa;
+            background-color: #f8fafc;
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             color: var(--dark);
         }
         
         .container-fluid {
-            padding: 1.5rem;
-            max-width: 1450px;
+            padding: 2rem;
+            max-width: 1550px;
         }
         
         /* Header Styles */
@@ -49,69 +57,85 @@ include '../includes/employer_navbar.php';
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
             flex-wrap: wrap;
-            gap: 1rem;
+            gap: 1.5rem;
         }
         
         .dashboard-title {
             font-weight: 700;
             color: var(--dark);
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.5rem;
+            font-size: 1.75rem;
         }
         
         .dashboard-subtitle {
             color: var(--gray);
-            font-size: 0.9rem;
+            font-size: 0.95rem;
         }
         
         /* Stats cards */
         .stat-card {
-            padding: 1rem;
-            border-radius: 0.75rem;
+            padding: 1.25rem;
+            border-radius: 12px;
             color: white;
             text-align: center;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             cursor: pointer;
             height: 100%;
             border: none;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
         }
         
         .stat-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
         
         .stat-card h5 {
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             margin-bottom: 0.5rem;
             opacity: 0.9;
             font-weight: 500;
+            position: relative;
         }
         
         .stat-card h2 {
-            font-size: 1.75rem;
+            font-size: 2rem;
             margin-bottom: 0;
             font-weight: 700;
+            position: relative;
         }
         
         /* Application cards */
         .application-card {
             background: white;
-            border-radius: 0.75rem;
+            border-radius: 12px;
             border-left: 4px solid transparent;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             margin-bottom: 1rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            border: 1px solid #eee;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
             position: relative;
             overflow: hidden;
         }
         
         .application-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-color: var(--primary-light);
         }
         
         .application-card.pending {
@@ -126,12 +150,20 @@ include '../includes/employer_navbar.php';
             border-left-color: var(--danger);
         }
         
-        .application-card.interviewed {
+        .application-card.interview {
             border-left-color: var(--primary);
         }
         
         .application-card.offered {
             border-left-color: #9c36b5;
+        }
+        
+        .application-card.under-review {
+            border-left-color: #f59f00;
+        }
+        
+        .application-card.interview-scheduled {
+            border-left-color: #9775fa;
         }
         
         .applicant-avatar-wrapper {
@@ -164,6 +196,7 @@ include '../includes/employer_navbar.php';
             font-weight: 600;
             color: var(--dark);
             margin-bottom: 0.15rem;
+            font-size: 1rem;
         }
         
         .applicant-title {
@@ -188,11 +221,18 @@ include '../includes/employer_navbar.php';
             border-radius: 50px;
             display: inline-flex;
             align-items: center;
+            transition: all 0.2s;
+        }
+        
+        .skill-badge:hover {
+            background-color: #e2e8f0;
+            transform: translateY(-1px);
         }
         
         .skill-badge i {
             margin-right: 0.25rem;
             font-size: 0.65rem;
+            color: var(--primary);
         }
         
         .match-score {
@@ -211,30 +251,34 @@ include '../includes/employer_navbar.php';
             border-radius: 50px;
             display: inline-flex;
             align-items: center;
+            white-space: nowrap;
         }
         
         .badge-pending { background-color: var(--warning-light); color: var(--warning); }
-        .badge-review {
-        background-color: #fff3cd; 
-        color: #856404;           
-        }
+        .badge-review { background-color: #fff3cd; color: #856404; }
         .badge-accepted { background-color: var(--success-light); color: var(--success); }
         .badge-rejected { background-color: var(--danger-light); color: var(--danger); }
-        .badge-interviewed { background-color: var(--primary-light); color: var(--primary); }
+        .badge-interview { background-color: var(--primary-light); color: var(--primary); }
         .badge-offered { background-color: #f3e8ff; color: #9c36b5; }
+        .badge-interview-scheduled { background-color: #e5dbff; color: #7048e8; }
         
         /* Job card */
         .job-card {
             background: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             margin-bottom: 2rem;
             overflow: hidden;
-            border: 1px solid #eee;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        
+        .job-card:hover {
+            box-shadow: 0 10px 25px rgba(0,0,0,0.12);
         }
         
         .job-header {
-            padding: 1.25rem 1.5rem;
+            padding: 1.5rem;
             border-bottom: 1px solid #eee;
             display: flex;
             justify-content: space-between;
@@ -244,21 +288,22 @@ include '../includes/employer_navbar.php';
         
         .job-title {
             font-weight: 700;
-            margin-bottom: 0;
-            font-size: 1.25rem;
+            margin-bottom: 0.25rem;
+            font-size: 1.35rem;
+            color: var(--dark);
         }
         
         .job-meta {
             display: flex;
-            gap: 1rem;
-            font-size: 0.85rem;
+            gap: 1.25rem;
+            font-size: 0.9rem;
             color: var(--gray);
         }
         
         .job-meta span {
             display: flex;
             align-items: center;
-            gap: 0.25rem;
+            gap: 0.35rem;
         }
         
         /* Application pipeline */
@@ -266,38 +311,44 @@ include '../includes/employer_navbar.php';
             display: flex;
             overflow-x: auto;
             padding-bottom: 1rem;
-            gap: 1rem;
+            gap: 1.25rem;
             margin-bottom: 2rem;
+            scrollbar-width: thin;
         }
         
         .pipeline-stage {
-            min-width: 280px;
-            background: var(--light-gray);
-            border-radius: 0.75rem;
-            padding: 1rem;
+            min-width: 300px;
+            background: white;
+            border-radius: 12px;
+            padding: 1.25rem;
             height: fit-content;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
         }
         
         .pipeline-stage-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid #ddd;
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #e2e8f0;
         }
         
         .pipeline-stage-title {
             font-weight: 600;
             margin-bottom: 0;
+            font-size: 0.95rem;
+            color: var(--dark);
         }
         
         .pipeline-stage-count {
-            background: white;
-            padding: 0.25rem 0.5rem;
+            background: #f1f3f5;
+            padding: 0.25rem 0.75rem;
             border-radius: 50px;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             font-weight: 600;
+            color: var(--dark);
         }
         
         /* Quick actions */
@@ -321,6 +372,7 @@ include '../includes/employer_navbar.php';
         
         .btn-action:hover {
             background: rgba(0,0,0,0.05);
+            transform: scale(1.1);
         }
         
         .btn-action.accept:hover {
@@ -337,17 +389,24 @@ include '../includes/employer_navbar.php';
         .dropdown-actions .dropdown-menu {
             border: none;
             box-shadow: 0 4px 20px rgba(0,0,0,0.12);
-            border-radius: 0.75rem;
+            border-radius: 12px;
             padding: 0.5rem;
+            min-width: 200px;
         }
         
         .dropdown-actions .dropdown-item {
-            border-radius: 0.5rem;
+            border-radius: 8px;
             padding: 0.5rem 1rem;
             font-size: 0.85rem;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.75rem;
+            transition: all 0.2s;
+        }
+        
+        .dropdown-actions .dropdown-item:hover {
+            background-color: #f8f9fa;
+            transform: translateX(3px);
         }
         
         .dropdown-actions .dropdown-item i {
@@ -369,16 +428,22 @@ include '../includes/employer_navbar.php';
         }
         
         .progress {
-            height: 6px;
-            border-radius: 3px;
+            height: 8px;
+            border-radius: 4px;
             background: var(--light-gray);
         }
         
         .progress-bar {
-            border-radius: 3px;
+            border-radius: 4px;
         }
         
         /* Responsive adjustments */
+        @media (max-width: 1200px) {
+            .stat-card h2 {
+                font-size: 1.5rem;
+            }
+        }
+        
         @media (max-width: 992px) {
             .pipeline-container {
                 flex-direction: column;
@@ -388,11 +453,15 @@ include '../includes/employer_navbar.php';
             .pipeline-stage {
                 min-width: 100%;
             }
+            
+            .container-fluid {
+                padding: 1.5rem;
+            }
         }
         
         @media (max-width: 768px) {
             .application-card {
-                padding: 1.25rem;
+                padding: 1.5rem;
             }
             
             .applicant-info {
@@ -403,19 +472,32 @@ include '../includes/employer_navbar.php';
                 flex-direction: column;
                 align-items: flex-start;
             }
+            
+            .job-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .job-meta {
+                flex-wrap: wrap;
+                gap: 0.75rem;
+            }
         }
         
         /* Empty state */
         .empty-state {
             text-align: center;
-            padding: 3rem 1rem;
+            padding: 4rem 1rem;
             background: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px dashed #e2e8f0;
+            margin: 2rem 0;
         }
         
         .empty-state-icon {
-            font-size: 3rem;
+            font-size: 3.5rem;
             color: var(--gray);
             margin-bottom: 1.5rem;
             opacity: 0.5;
@@ -430,13 +512,19 @@ include '../includes/employer_navbar.php';
             border: none;
             color: var(--gray);
             font-weight: 500;
-            padding: 0.75rem 1.25rem;
+            padding: 0.75rem 1.5rem;
             position: relative;
+            transition: all 0.2s;
+        }
+        
+        .nav-tabs .nav-link:hover {
+            color: var(--primary);
         }
         
         .nav-tabs .nav-link.active {
             color: var(--primary);
             background: transparent;
+            font-weight: 600;
         }
         
         .nav-tabs .nav-link.active::after {
@@ -445,17 +533,19 @@ include '../includes/employer_navbar.php';
             bottom: -2px;
             left: 0;
             width: 100%;
-            height: 2px;
+            height: 3px;
             background: var(--primary);
+            border-radius: 3px 3px 0 0;
         }
         
         /* Search and filter */
         .search-filter-container {
             background: white;
-            border-radius: 0.75rem;
-            padding: 1.25rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
         }
         
         .search-input {
@@ -468,33 +558,48 @@ include '../includes/employer_navbar.php';
             top: 50%;
             transform: translateY(-50%);
             color: var(--gray);
+            z-index: 10;
         }
         
         .search-input input {
-            padding-left: 2.5rem;
+            padding-left: 2.75rem;
             border-radius: 50px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s;
+        }
+        
+        .search-input input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.1);
         }
         
         /* Tags */
         .tag {
             display: inline-flex;
             align-items: center;
-            background: var(--light-gray);
-            padding: 0.25rem 0.75rem;
+            background: #f1f3f5;
+            padding: 0.35rem 0.85rem;
             border-radius: 50px;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             margin-right: 0.5rem;
             margin-bottom: 0.5rem;
+            transition: all 0.2s;
+        }
+        
+        .tag:hover {
+            background: #e2e8f0;
         }
         
         .tag-remove {
             margin-left: 0.5rem;
             cursor: pointer;
             opacity: 0.7;
+            transition: all 0.2s;
         }
         
         .tag-remove:hover {
             opacity: 1;
+            transform: scale(1.1);
         }
         
         /* Animation */
@@ -504,7 +609,7 @@ include '../includes/employer_navbar.php';
         }
         
         .fade-in {
-            animation: fadeIn 0.3s ease-out forwards;
+            animation: fadeIn 0.4s ease-out forwards;
         }
         
         /* Loading skeleton */
@@ -512,7 +617,7 @@ include '../includes/employer_navbar.php';
             background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
             background-size: 200% 100%;
             animation: shimmer 1.5s infinite;
-            border-radius: 0.25rem;
+            border-radius: 8px;
         }
         
         @keyframes shimmer {
@@ -539,6 +644,133 @@ include '../includes/employer_navbar.php';
         ::-webkit-scrollbar-thumb:hover {
             background: #aaa;
         }
+        
+        /* Buttons */
+        .btn {
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+        
+        .btn-primary:hover {
+            background-color: #3a56d4;
+            border-color: #3a56d4;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
+        }
+        
+        .btn-outline-primary {
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
+        }
+        
+        /* View toggle buttons */
+        .btn-group .btn {
+            border-radius: 8px !important;
+        }
+        
+        .btn-group .btn.active {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
+        }
+        
+        /* Modal */
+        .modal-content {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        
+        .modal-header {
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1.5rem;
+        }
+        
+        .modal-title {
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
+        .modal-footer {
+            border-top: 1px solid #e2e8f0;
+            padding: 1.25rem 1.5rem;
+        }
+        
+        /* Tooltip */
+        .tooltip {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8rem;
+        }
+        
+        /* Badges */
+        .badge {
+            font-weight: 500;
+            padding: 0.35em 0.65em;
+            border-radius: 50px;
+        }
+        
+        /* Card hover effect */
+        .card {
+            transition: all 0.3s ease;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+        }
+        
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+        }
+        
+        /* Dropdown toggle */
+        .dropdown-toggle::after {
+            margin-left: 0.5em;
+            vertical-align: 0.15em;
+        }
+        
+        /* Form controls */
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            padding: 0.5rem 1rem;
+            transition: all 0.2s;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.1);
+        }
+        
+        /* Draggable item */
+        .dragging {
+            opacity: 0.8;
+            transform: scale(1.02);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+            z-index: 1000;
+        }
+        
+        /* Drop zone highlight */
+        .drop-highlight {
+            background-color: rgba(67, 97, 238, 0.05);
+            border: 2px dashed var(--primary);
+        }
     </style>
 </head>
 <body>
@@ -547,15 +779,15 @@ include '../includes/employer_navbar.php';
         <div class="dashboard-header">
             <div>
                 <h1 class="dashboard-title">Job Applications</h1>
-                <p class="dashboard-subtitle">Review and manage candidate applications</p>
+                <p class="dashboard-subtitle">Review and manage candidate applications for your open positions</p>
             </div>
             <div class="d-flex gap-2">
                 <button class="btn btn-outline-primary" id="exportBtn">
-                    <i class="fas fa-download me-1"></i> Export
+                    <i class="fas fa-download me-2"></i> Export
                 </button>
                 <div class="dropdown">
-                    <button class="btn btn-primary dropdown-toggle" type="button" id="addDropdown" data-bs-toggle="dropdown">
-                        <i class="fas fa-plus me-1"></i> Add
+                    <button class="btn btn-primary dropdown-toggle" type="button" id="addDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-plus me-2"></i> Add New
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><a class="dropdown-item" href="#"><i class="fas fa-user-plus me-2"></i> Manual Applicant</a></li>
@@ -566,25 +798,27 @@ include '../includes/employer_navbar.php';
         </div>
 
         <!-- Search and Filter Section -->
-        <div class="search-filter-container mb-4">
+        <div class="search-filter-container mb-4" style="display: none;">
             <div class="row g-3">
                 <div class="col-md-6">
                     <div class="search-input">
                         <i class="fas fa-search"></i>
-                        <input type="text" class="form-control" placeholder="Search applicants..." id="searchInput">
+                        <input type="text" class="form-control ps-4" placeholder="Search applicants by name, skills..." id="searchInput">
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="d-flex flex-wrap align-items-center gap-2">
                         <div class="dropdown">
-                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="statusFilter" data-bs-toggle="dropdown">
-                                <i class="fas fa-filter me-1"></i> Status
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="statusFilter" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-filter me-2"></i> Status
                             </button>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="#" data-status="all">All Statuses</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="#" data-status="pending"><span class="badge-pending status-badge me-2">Pending</span></a></li>
-                                <li><a class="dropdown-item" href="#" data-status="interviewed"><span class="badge-interviewed status-badge me-2">Interviewed</span></a></li>
+                                <li><a class="dropdown-item" href="#" data-status="under review"><span class="badge-review status-badge me-2">Under Review</span></a></li>
+                                <li><a class="dropdown-item" href="#" data-status="interview scheduled"><span class="badge-interview-scheduled status-badge me-2">Interview Scheduled</span></a></li>
+                                <li><a class="dropdown-item" href="#" data-status="interview"><span class="badge-interview status-badge me-2">Interview</span></a></li>
                                 <li><a class="dropdown-item" href="#" data-status="offered"><span class="badge-offered status-badge me-2">Offered</span></a></li>
                                 <li><a class="dropdown-item" href="#" data-status="accepted"><span class="badge-accepted status-badge me-2">Accepted</span></a></li>
                                 <li><a class="dropdown-item" href="#" data-status="rejected"><span class="badge-rejected status-badge me-2">Rejected</span></a></li>
@@ -592,19 +826,19 @@ include '../includes/employer_navbar.php';
                         </div>
                         
                         <div class="dropdown">
-                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="jobFilter" data-bs-toggle="dropdown">
-                                <i class="fas fa-briefcase me-1"></i> Job
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="jobFilter" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-briefcase me-2"></i> Job
                             </button>
                             <ul class="dropdown-menu" id="jobFilterMenu">
                                 <li><a class="dropdown-item" href="#" data-job="all">All Jobs</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <!-- Dynamically populated -->
+                             
                             </ul>
                         </div>
                         
                         <div class="dropdown">
-                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="dateFilter" data-bs-toggle="dropdown">
-                                <i class="fas fa-calendar me-1"></i> Date
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="dateFilter" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-calendar me-2"></i> Date
                             </button>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="#" data-date="all">All Time</a></li>
@@ -617,51 +851,51 @@ include '../includes/employer_navbar.php';
                         </div>
                         
                         <button class="btn btn-outline-danger" id="clearFilters">
-                            <i class="fas fa-times me-1"></i> Clear
+                            <i class="fas fa-times me-2"></i> Clear
                         </button>
                     </div>
                     
                     <div class="mt-3" id="activeFilters">
-                        <!-- Active filters will appear here -->
+                       
                     </div>
                 </div>
             </div>
         </div>
-
+     
         <!-- Stats Overview -->
         <div class="row g-3 mb-4">
             <div class="col-6 col-md-4 col-lg-2">
-                <div class="stat-card bg-primary" onclick="filterApplications('all')">
+                <div class="stat-card" style="background-color: var(--dark-blue);" onclick="filterApplications('all')">
                     <h5>Total Applications</h5>
                     <h2 id="totalApps">0</h2>
                 </div>
             </div>
             <div class="col-6 col-md-4 col-lg-2">
-                <div class="stat-card bg-warning" onclick="filterApplications('pending')">
+                <div class="stat-card" style="background-color: var(--medium-blue);" onclick="filterApplications('pending')">
                     <h5>Pending</h5>
                     <h2 id="pendingApps">0</h2>
                 </div>
             </div>
             <div class="col-6 col-md-4 col-lg-2">
-                <div class="stat-card bg-info" onclick="filterApplications('interviewed')">
-                    <h5>Interviewed</h5>
-                    <h2 id="interviewedApps">0</h2>
+                <div class="stat-card" style="background-color: var(--light-blue);" onclick="filterApplications('interview')">
+                    <h5>Interview</h5>
+                    <h2 id="interviewApps">0</h2>
                 </div>
             </div>
             <div class="col-6 col-md-4 col-lg-2">
-                <div class="stat-card bg-purple" style="background-color: #9c36b5;" onclick="filterApplications('offered')">
+                <div class="stat-card" style="background-color: var(--lighter-blue);" onclick="filterApplications('offered')">
                     <h5>Offered</h5>
                     <h2 id="offeredApps">0</h2>
                 </div>
             </div>
             <div class="col-6 col-md-4 col-lg-2">
-                <div class="stat-card bg-success" onclick="filterApplications('accepted')">
+                <div class="stat-card" style="background-color: var(--green);" onclick="filterApplications('accepted')">
                     <h5>Accepted</h5>
                     <h2 id="hiredApps">0</h2>
                 </div>
             </div>
             <div class="col-6 col-md-4 col-lg-2">
-                <div class="stat-card bg-danger" onclick="filterApplications('rejected')">
+                <div class="stat-card" style="background-color: var(--red);" onclick="filterApplications('rejected')">
                     <h5>Rejected</h5>
                     <h2 id="rejectedApps">0</h2>
                 </div>
@@ -669,14 +903,14 @@ include '../includes/employer_navbar.php';
         </div>
 
         <!-- View Toggle -->
-        <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-4">
             <h5 class="mb-0">Current Applications</h5>
-            <div class="btn-group" role="group">
+            <div class="btn-group" role="group" aria-label="View toggle">
                 <button type="button" class="btn btn-outline-secondary active" id="listViewBtn">
-                    <i class="fas fa-list"></i> List
+                    <i class="fas fa-list me-2"></i> List View
                 </button>
                 <button type="button" class="btn btn-outline-secondary" id="pipelineViewBtn">
-                    <i class="fas fa-project-diagram"></i> Pipeline
+                    <i class="fas fa-project-diagram me-2"></i> Pipeline
                 </button>
             </div>
         </div>
@@ -760,13 +994,13 @@ include '../includes/employer_navbar.php';
                     document.getElementById('totalApps').textContent = data.total_applications || 0;
                     document.getElementById('pendingApps').textContent = data.pending || 0;
                     document.getElementById('hiredApps').textContent = data.accepted || 0;
-                    document.getElementById('interviewedApps').textContent = data.interviewed || 0;
+                    document.getElementById('interviewApps').textContent = data.interview || 0;
                     document.getElementById('offeredApps').textContent = data.offered || 0;
                     document.getElementById('rejectedApps').textContent = data.rejected || 0;
                 })
                 .catch(error => {
                     console.error("Failed to load application stats:", error);
-                    const placeholders = ['totalApps', 'pendingApps', 'hiredApps', 'interviewedApps', 'offeredApps', 'rejectedApps'];
+                    const placeholders = ['totalApps', 'pendingApps', 'hiredApps', 'interviewApps', 'offeredApps', 'rejectedApps'];
                     placeholders.forEach(id => document.getElementById(id).textContent = '—');
                 });
         }
@@ -877,12 +1111,12 @@ include '../includes/employer_navbar.php';
                     ${renderPipelineApplicants(groupedByStatus.interviewscheduled)}
                 </div>
                 
-                <div class="pipeline-stage" data-status="Interviewed">
+                <div class="pipeline-stage" data-status="Interview">
                     <div class="pipeline-stage-header">
                         <h6 class="pipeline-stage-title">Interview</h6>
-                        <span class="pipeline-stage-count">${groupedByStatus.interviewed.length}</span>
+                        <span class="pipeline-stage-count">${groupedByStatus.interview.length}</span>
                     </div>
-                    ${renderPipelineApplicants(groupedByStatus.interviewed)}
+                    ${renderPipelineApplicants(groupedByStatus.interview)}
                 </div>
                 
                 <div class="pipeline-stage" data-status="Offered">
@@ -901,7 +1135,6 @@ include '../includes/employer_navbar.php';
                     ${renderPipelineApplicants(groupedByStatus.accepted)}
                 </div>
             `;
-
             
             // Make pipeline cards draggable
             initDragAndDrop();
@@ -917,8 +1150,8 @@ include '../includes/employer_navbar.php';
                     acc.review.push(applicant);
                 } else if (status === 'interview scheduled') {
                     acc.interviewscheduled.push(applicant);
-                } else if (status === 'interviewed') {
-                    acc.interviewed.push(applicant);
+                } else if (status === 'interview') {
+                    acc.interview.push(applicant);
                 }else if (status === 'offered') {
                     acc.offered.push(applicant);
                 } else if (status === 'accepted') {
@@ -931,7 +1164,7 @@ include '../includes/employer_navbar.php';
                 pending: [],
                 review: [],
                 interviewscheduled: [],
-                interviewed: [],
+                interview: [],
                 offered: [],
                 accepted: [],
                 rejected: []
@@ -951,7 +1184,7 @@ include '../includes/employer_navbar.php';
             }
             
             return applicants.map(applicant => `
-            <div class="application-card p-3 mb-2 ${applicant.application_status.toLowerCase()}" 
+            <div class="application-card p-3 mb-2 ${toClassName(applicant.application_status)}" 
                 draggable="true" 
                 data-applicant-id="${applicant.application_id || applicant.id}">
                     <div class="d-flex justify-content-between align-items-start mb-2">
@@ -1086,33 +1319,41 @@ include '../includes/employer_navbar.php';
             return (status || '').toLowerCase().replace(/\s+/g, '-'); // "Interview Scheduled" → "interview-scheduled"
         }
 
+        function formatStatusLabel(status) {
+            return (status || '').split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                .join(' ');
+        }
+
         function updateApplicantStatus(applicantId, newStatus) {
             console.log(`Updating applicant ${applicantId} to ${newStatus}`);
             
             const card = document.querySelector(`.application-card[data-applicant-id="${applicantId}"]`);
             if (card) {
-                // Remove all possible status classes
+                // Remove all known status classes
                 const allStatusClasses = [
-                    'pending', 'under-review', 'interview-scheduled', 'interviewed',
+                    'pending', 'under-review', 'interview-scheduled', 'interview',
                     'offered', 'accepted', 'rejected', 'withdrawn'
                 ];
                 card.classList.remove(...allStatusClasses);
 
-                // Add the new normalized status class
+                // Add new normalized class
                 card.classList.add(toClassName(newStatus));
 
-                // Update the status badge if it exists
+                // Update the status badge
                 const statusBadge = card.querySelector('.status-badge');
                 if (statusBadge) {
                     statusBadge.className = `status-badge ${getStatusBadgeClass(newStatus)}`;
-                    statusBadge.textContent = newStatus;
+                    statusBadge.textContent = formatStatusLabel(newStatus);
                 }
             }
 
             showToast('Status updated successfully', 'success');
+
+            loadApplicationStats();
         }
 
-
+        
         // Render applicants list
         function renderApplicants(applicants) {
             if (applicants.length === 0) {
@@ -1128,7 +1369,7 @@ include '../includes/employer_navbar.php';
                 <div class="row g-3">
                     ${applicants.map(applicant => `
                         <div class="col-md-6 col-lg-4 col-xl-3">
-                            <div class="application-card p-3 ${applicant.application_status.toLowerCase()}" 
+                            <div class="application-card p-3 ${toClassName(applicant.application_status)}" 
                                  data-applicant-id="${applicant.id}">
                                 <div class="d-flex justify-content-between mb-3">
                                     <div class="d-flex align-items-center">
@@ -1174,7 +1415,7 @@ include '../includes/employer_navbar.php';
                                             ${applicant.match_score || 'N/A'}%
                                         </span>
                                     </div>
-                                    <div class="progress" style="height: 6px;">
+                                    <div class="progress" style="height: 8px;">
                                         <div class="progress-bar ${getMatchScoreClass(applicant.match_score)}" 
                                              role="progressbar" 
                                              style="width: ${applicant.match_score || 0}%">
@@ -1226,36 +1467,26 @@ include '../includes/employer_navbar.php';
         }
         
         // Update status
-        function toClassName(status) {
-            return (status || '').toLowerCase().replace(/\s+/g, '-');
-        }
-
-        function formatStatusLabel(status) {
-            return (status || '').split(' ')
-                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                .join(' ');
-        }
-
         function updateStatus(applicantId, newStatus) {
             console.log(`Updating applicant ${applicantId} to ${newStatus}`);
             
             const card = document.querySelector(`.application-card[data-applicant-id="${applicantId}"]`);
             if (card) {
-                // Remove all known status classes
+                // Remove all possible status classes
                 const allStatusClasses = [
-                    'pending', 'under-review', 'interview-scheduled', 'interviewed',
+                    'pending', 'under-review', 'interview-scheduled', 'interview',
                     'offered', 'accepted', 'rejected', 'withdrawn'
                 ];
                 card.classList.remove(...allStatusClasses);
 
-                // Add new normalized class
+                // Add the new normalized status class
                 card.classList.add(toClassName(newStatus));
 
-                // Update the status badge
+                // Update the status badge if it exists
                 const statusBadge = card.querySelector('.status-badge');
                 if (statusBadge) {
                     statusBadge.className = `status-badge ${getStatusBadgeClass(newStatus)}`;
-                    statusBadge.textContent = formatStatusLabel(newStatus);
+                    statusBadge.textContent = newStatus;
                 }
             }
 
@@ -1504,8 +1735,8 @@ include '../includes/employer_navbar.php';
             switch((status || '').toLowerCase()) {
                 case 'pending': return 'badge-pending';
                 case 'under review': return 'badge-review';
-                case 'interview scheduled':
-                case 'interviewed': return 'badge-interviewed';
+                case 'interview scheduled': return 'badge-interview-scheduled';
+                case 'interview': return 'badge-interview';
                 case 'offered': return 'badge-offered';
                 case 'accepted': return 'badge-accepted';
                 case 'rejected':

@@ -119,7 +119,7 @@ class StudentJobController {
     
         // Continue with the rest of the query
         $query .= " GROUP BY jp.job_id
-                    HAVING match_score > 50
+                    HAVING match_score > 30
                     ORDER BY match_score DESC, jp.posted_at DESC
                     LIMIT 20";
     
@@ -158,14 +158,36 @@ class StudentJobController {
             foreach ($skills as $skill) {
                 $matchScore = $this->calculateMatchScore($skill['proficiency'], $skill['importance']);
                 
-                // Insert into skill_matching table
-                $insertQuery = "INSERT INTO skill_matching (user_skills_id, job_skills_id, match_score)
-                                VALUES (:user_skills_id, :job_skills_id, :match_score)";
-                $insertStmt = $this->db->prepare($insertQuery);
-                $insertStmt->bindParam(':user_skills_id', $skill['user_skills_id']);
-                $insertStmt->bindParam(':job_skills_id', $skill['job_skills_id']);
-                $insertStmt->bindParam(':match_score', $matchScore);
-                $insertStmt->execute();
+                // Check if the record already exists in the skill_matching table
+                $checkQuery = "SELECT COUNT(*) FROM skill_matching
+                               WHERE user_skills_id = :user_skills_id AND job_skills_id = :job_skills_id";
+                $checkStmt = $this->db->prepare($checkQuery);
+                $checkStmt->bindParam(':user_skills_id', $skill['user_skills_id']);
+                $checkStmt->bindParam(':job_skills_id', $skill['job_skills_id']);
+                $checkStmt->execute();
+                
+                $exists = $checkStmt->fetchColumn() > 0;
+        
+                if ($exists) {
+                    // Update the match score if the record exists
+                    $updateQuery = "UPDATE skill_matching
+                                    SET match_score = :match_score
+                                    WHERE user_skills_id = :user_skills_id AND job_skills_id = :job_skills_id";
+                    $updateStmt = $this->db->prepare($updateQuery);
+                    $updateStmt->bindParam(':user_skills_id', $skill['user_skills_id']);
+                    $updateStmt->bindParam(':job_skills_id', $skill['job_skills_id']);
+                    $updateStmt->bindParam(':match_score', $matchScore);
+                    $updateStmt->execute();
+                } else {
+                    // Insert into skill_matching table if it doesn't exist
+                    $insertQuery = "INSERT INTO skill_matching (user_skills_id, job_skills_id, match_score)
+                                    VALUES (:user_skills_id, :job_skills_id, :match_score)";
+                    $insertStmt = $this->db->prepare($insertQuery);
+                    $insertStmt->bindParam(':user_skills_id', $skill['user_skills_id']);
+                    $insertStmt->bindParam(':job_skills_id', $skill['job_skills_id']);
+                    $insertStmt->bindParam(':match_score', $matchScore);
+                    $insertStmt->execute();
+                }
             }
         }
     
@@ -190,6 +212,33 @@ class StudentJobController {
     }
     
 
+/*
+    private function calculateMatchScore($proficiency, $importance) {
+        // Define the proficiency mapping
+        $proficiencyMapping = [
+            'Advanced' => 3,
+            'Intermediate' => 2,
+            'Beginner' => 1
+        ];
+        
+        // Define the importance mapping
+        $importanceMapping = [
+            'High' => 3,
+            'Medium' => 2,
+            'Low' => 1
+        ];
+        
+        // Get numeric values for proficiency and importance
+        $proficiencyValue = isset($proficiencyMapping[$proficiency]) ? $proficiencyMapping[$proficiency] : 0;
+        $importanceValue = isset($importanceMapping[$importance]) ? $importanceMapping[$importance] : 0;
+        
+        // Calculate the match score
+        $matchScore = ($proficiencyValue / 3) * ($importanceValue / 3) * 100;
+        
+        return $matchScore;
+    }
+    */
+    
     private function getJobDetails($jobId) {
         $query = "SELECT jp.*, e.company_name, jt.job_type_title
                  FROM job_posting jp

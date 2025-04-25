@@ -17,26 +17,38 @@ include '../includes/employer_navbar.php';
     <style>
         :root {
             --primary-color: #1A4D8F;
+            --primary-light: #e8f0fe;
+            --primary-lighter: #f5f8ff;
             --secondary-color: #3A7BD5;
-            --primary-light: #e0e7ff;
             --accent-color: #4cc9f0;
-            --success-color: #38b000;
-            --warning-color: #ffaa00;
-            --danger-color: #ef233c;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
             --light-bg: #f8f9fa;
-            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            --card-hover-shadow: 0 8px 16px rgba(67, 97, 238, 0.15);
-            --border-radius: 12px;
+            --dark-text: #2b2d42;
+            --medium-text: #495057;
+            --light-text: #6c757d;
+            --border-color: rgba(0, 0, 0, 0.08);
+            --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            --card-hover-shadow: 0 6px 12px rgba(26, 77, 143, 0.1);
+            --transition-fast: 0.15s ease;
+            --transition-medium: 0.3s ease;
+            --dark-blue: #1A4D8F;
+            --medium-blue: #4B7DA3;
+            --light-blue: #5C84A1;
+            --lighter-blue: #82AAC7;
         }
         
         body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f8f9fa;
+            background-color: #f8fafc;
+            color: var(--dark-text);
+            line-height: 1.6;
         }
         
         .dashboard-container {
+            font-family: 'Poppins', sans-serif;
             padding: 2rem;
-            max-width: 1400px;
+            max-width: 1450px;
             margin: 0 auto;
         }
         
@@ -45,80 +57,96 @@ include '../includes/employer_navbar.php';
             justify-content: space-between;
             align-items: center;
             margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
         
         .page-title {
-            font-weight: 600;
-            color: #2b2d42;
+            font-weight: 700;
+            color: var(--dark-text);
             margin-bottom: 0;
+            font-size: 1.75rem;
         }
         
+        /* Improved Card Design */
         .job-card {
             background: white;
-            border-radius: var(--border-radius);
+            border-radius: 12px;
             box-shadow: var(--card-shadow);
-            transition: all 0.3s ease;
+            transition: all var(--transition-medium);
             margin-bottom: 1.5rem;
             border: none;
             overflow: hidden;
+            position: relative;
         }
         
         .job-card:hover {
-            transform: translateY(-3px);
+            transform: translateY(-2px);
             box-shadow: var(--card-hover-shadow);
         }
         
         .job-card-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding: 1.25rem 1.5rem;
+            align-items: flex-start;
+            padding: 1.5rem;
             background-color: white;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap;
+            gap: 1rem;
         }
         
         .job-title {
             font-weight: 600;
             color: var(--primary-color);
-            margin-bottom: 0.25rem;
-            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+            transition: color var(--transition-fast);
+        }
+        
+        .job-card:hover .job-title {
+            color: var(--secondary-color);
         }
         
         .job-meta {
             display: flex;
-            gap: 15px;
-            color: #6c757d;
-            font-size: 0.85rem;
+            gap: 1rem;
+            color: var(--light-text);
+            font-size: 0.9rem;
+            flex-wrap: wrap;
         }
         
         .job-meta-item {
             display: flex;
             align-items: center;
+            gap: 0.3rem;
         }
         
         .job-meta-item i {
-            margin-right: 5px;
+            font-size: 0.9em;
         }
         
+        /* Enhanced Status Badges */
         .job-status {
             font-size: 0.75rem;
-            padding: 5px 10px;
+            padding: 0.35rem 0.75rem;
             border-radius: 20px;
-            font-weight: 500;
+            font-weight: 600;
             min-width: 80px;
             text-align: center;
+            text-transform: capitalize;
+            letter-spacing: 0.5px;
         }
         
         .status-pending {
             background-color: #fff3cd;
             color: #856404;
         }
-
+        
         .status-paused {
-            background-color: #f0ad4e; 
-            color: #3e2f00;           
+            background-color: #ffe8a1;
+            color: #6c5300;
         }
-
         
         .status-approved {
             background-color: #d4edda;
@@ -140,8 +168,9 @@ include '../includes/employer_navbar.php';
         }
         
         .job-description {
-            color: #495057;
+            color: var(--medium-text);
             margin-bottom: 1.5rem;
+            line-height: 1.7;
         }
         
         .job-skills {
@@ -149,48 +178,69 @@ include '../includes/employer_navbar.php';
         }
         
         .skill-tag {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
             background-color: var(--primary-light);
             color: var(--primary-color);
-            padding: 6px 12px;
+            padding: 0.4rem 0.8rem;
             border-radius: 20px;
-            margin: 0 8px 8px 0;
+            margin: 0 0.5rem 0.5rem 0;
             font-size: 0.8rem;
             font-weight: 500;
+            transition: all var(--transition-fast);
         }
         
+        .skill-tag:hover {
+            background-color: var(--primary-color);
+            color: white;
+            transform: translateY(-1px);
+        }
+        
+        /* Improved Stats Cards */
         .job-stats {
             display: flex;
-            gap: 15px;
+            gap: 1rem;
             margin-top: 1rem;
         }
         
         .job-stat {
             text-align: center;
-            padding: 0.5rem 1rem;
-            background-color: #f8f9fa;
+            padding: 0.75rem;
+            background-color: var(--light-bg);
             border-radius: 8px;
             flex: 1;
+            transition: all var(--transition-fast);
+        }
+        
+        .job-stat:hover {
+            background-color: var(--primary-lighter);
+            transform: translateY(-2px);
         }
         
         .job-stat-value {
-            font-size: 1.2rem;
-            font-weight: 600;
+            font-size: 1.25rem;
+            font-weight: 700;
             color: var(--primary-color);
+            margin-bottom: 0.25rem;
         }
         
         .job-stat-label {
             font-size: 0.75rem;
-            color: #6c757d;
+            color: var(--light-text);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
+        /* Enhanced Footer Actions */
         .job-card-footer {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 1rem 1.5rem;
-            background-color: #f8f9fa;
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            background-color: var(--light-bg);
+            border-top: 1px solid var(--border-color);
+            flex-wrap: wrap;
+            gap: 1rem;
         }
         
         .action-btn {
@@ -200,88 +250,131 @@ include '../includes/employer_navbar.php';
             font-size: 0.85rem;
             display: inline-flex;
             align-items: center;
-            transition: all 0.2s ease;
-        }
-        
-        .action-btn i {
-            margin-right: 5px;
+            transition: all var(--transition-fast);
+            gap: 0.4rem;
+            border: 1px solid transparent;
         }
         
         .btn-edit {
             background-color: var(--primary-light);
             color: var(--primary-color);
-            border: 1px solid var(--primary-light);
+            border-color: var(--primary-light);
         }
         
         .btn-edit:hover {
             background-color: var(--primary-color);
             color: white;
+            transform: translateY(-1px);
         }
         
         .btn-delete {
             background-color: #f8d7da;
             color: var(--danger-color);
-            border: 1px solid #f8d7da;
+            border-color: #f8d7da;
         }
         
         .btn-delete:hover {
             background-color: var(--danger-color);
             color: white;
+            transform: translateY(-1px);
         }
         
         .btn-view-applicants {
             background-color: var(--primary-color);
             color: white;
-            border: 1px solid var(--primary-color);
+            border-color: var(--primary-color);
         }
         
         .btn-view-applicants:hover {
             background-color: #0d3b7a;
             border-color: #0d3b7a;
+            transform: translateY(-1px);
         }
         
         .btn-duplicate {
             background-color: #e2e3e5;
             color: #383d41;
-            border: 1px solid #e2e3e5;
+            border-color: #e2e3e5;
         }
         
         .btn-duplicate:hover {
             background-color: #383d41;
             color: white;
+            transform: translateY(-1px);
         }
         
+        /* Improved Empty State */
         .empty-state {
             text-align: center;
             padding: 3rem 1rem;
-            color: #adb5bd;
+            color: var(--light-text);
             background-color: white;
-            border-radius: var(--border-radius);
+            border-radius: 12px;
             box-shadow: var(--card-shadow);
+            max-width: 500px;
+            margin: 2rem auto;
         }
         
         .empty-state i {
-            font-size: 1.5rem;
-            margin-bottom: 15px;
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
             color: #e9ecef;
+        }
+        
+        .empty-state h4 {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--dark-text);
         }
         
         .empty-state p {
             margin-bottom: 1.5rem;
-            font-weight: 500;
+            font-weight: 400;
         }
         
-        .badge-custom {
-            font-size: 0.75rem;
-            font-weight: 500;
-            padding: 5px 10px;
-            border-radius: 20px;
+        /* Enhanced Stats Overview Cards */
+        .stats-card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            transition: all var(--transition-medium);
+            height: 100%;
+            background-color: white;
         }
         
+        .stats-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--card-hover-shadow);
+        }
+        
+        .stats-card .card-body {
+            padding: 1.5rem;
+            text-align: center;
+        }
+        
+        .stats-card h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+        
+        .stats-card p {
+            color: var(--light-text);
+            margin-bottom: 0;
+            font-size: 0.9rem;
+        }
+        
+        /* Improved Table Styling */
         .table-responsive {
-            border-radius: var(--border-radius);
+            border-radius: 12px;
             overflow: hidden;
             box-shadow: var(--card-shadow);
+            background-color: white;
+        }
+        
+        .table {
+            margin-bottom: 0;
         }
         
         .table thead {
@@ -292,22 +385,26 @@ include '../includes/employer_navbar.php';
         .table th {
             font-weight: 500;
             padding: 1rem;
+            vertical-align: middle;
         }
         
         .table td {
             vertical-align: middle;
             padding: 1rem;
+            border-top: 1px solid var(--border-color);
         }
         
         .table-hover tbody tr:hover {
-            background-color: rgba(26, 77, 143, 0.05);
+            background-color: rgba(26, 77, 143, 0.03);
         }
         
+        /* Improved Dropdown */
         .action-dropdown .dropdown-menu {
             border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             border: none;
             padding: 0.5rem;
+            min-width: 200px;
         }
         
         .action-dropdown .dropdown-item {
@@ -316,12 +413,92 @@ include '../includes/employer_navbar.php';
             font-size: 0.85rem;
             display: flex;
             align-items: center;
+            gap: 0.5rem;
+            transition: all var(--transition-fast);
+        }
+        
+        .action-dropdown .dropdown-item:hover {
+            background-color: var(--primary-lighter);
+            color: var(--primary-color);
         }
         
         .action-dropdown .dropdown-item i {
-            margin-right: 8px;
             width: 18px;
             text-align: center;
+        }
+        
+        /* Improved Pagination */
+        .pagination .page-item .page-link {
+            border-radius: 6px;
+            margin: 0 0.2rem;
+            border: none;
+            color: var(--primary-color);
+            font-weight: 500;
+            min-width: 36px;
+            text-align: center;
+        }
+        
+        .pagination .page-item.active .page-link {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .pagination .page-item:not(.active) .page-link:hover {
+            background-color: var(--primary-light);
+        }
+        
+        /* Improved Filter Section */
+        #filterSection {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+        
+        #filterToggleBtn {
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+            transition: all var(--transition-fast);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 1px solid var(--border-color);
+        }
+        
+        #filterToggleBtn:hover {
+            background-color: var(--primary-light);
+            border-color: var(--primary-color);
+        }
+        
+        #filterToggleBtn i {
+            transition: transform var(--transition-fast);
+        }
+        
+        #filterToggleBtn[aria-expanded="true"] .bi-chevron-down {
+            transform: rotate(180deg);
+        }
+        
+        .filter-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        
+        /* Responsive Improvements */
+        @media (max-width: 992px) {
+            .dashboard-container {
+                padding: 1.5rem;
+            }
+            
+            .job-stats {
+                flex-wrap: wrap;
+            }
+            
+            .job-stat {
+                min-width: calc(50% - 0.5rem);
+            }
         }
         
         @media (max-width: 768px) {
@@ -332,64 +509,227 @@ include '../includes/employer_navbar.php';
             .page-header {
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 1rem;
             }
             
-            .job-meta {
-                flex-wrap: wrap;
-                gap: 8px;
+            .job-card-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .job-status {
+                align-self: flex-start;
             }
             
             .job-card-footer {
                 flex-direction: column;
+                align-items: stretch;
                 gap: 1rem;
-                align-items: flex-start;
+            }
+            
+            .job-card-footer > div:first-child {
+                order: 2;
+                text-align: center;
+            }
+            
+            .job-card-footer .d-flex {
+                order: 1;
+                justify-content: space-between;
+                width: 100%;
             }
         }
-
-    </style>
-
-<style>
-    #filterToggleBtn {
-        border-radius: 8px;
-        padding: 8px 16px;
-        font-weight: 500;
-        transition: all 0.2s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    #filterToggleBtn:hover {
-        background-color: var(--primary-light);
-        border-color: var(--primary-color);
-    }
-
-    #filterToggleBtn i {
-        transition: transform 0.2s ease;
-    }
-
-    #filterToggleBtn[aria-expanded="true"] .bi-chevron-down {
-        transform: rotate(180deg);
-    }
-
-    #filterSection {
-        transition: all 0.3s ease;
-    }
-
-    .filter-actions {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-    }
-
-    @media (max-width: 576px) {
-        .filter-actions {
-            flex-direction: column;
+        
+        @media (max-width: 576px) {
+            .job-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .action-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .dropdown-menu {
+                position: absolute !important;
+            }
         }
         
-        .filter-actions .btn {
-            width: 100%;
+        /* Animation Enhancements */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .job-card {
+            animation: fadeIn 0.3s ease forwards;
+        }
+        
+        /* Delay animations for each card */
+        .job-card:nth-child(1) { animation-delay: 0.1s; }
+        .job-card:nth-child(2) { animation-delay: 0.2s; }
+        .job-card:nth-child(3) { animation-delay: 0.3s; }
+        .job-card:nth-child(4) { animation-delay: 0.4s; }
+        .job-card:nth-child(5) { animation-delay: 0.5s; }
+        
+        /* Loading Skeleton */
+        .skeleton {
+            background-color: #e9ecef;
+            border-radius: 4px;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Tooltip Enhancements */
+        .tooltip-inner {
+            border-radius: 6px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+        
+        /* Focus States for Accessibility */
+        a:focus, button:focus, input:focus, select:focus, textarea:focus {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+        
+        /* Badge Improvements */
+        .badge-custom {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        /* Progress Bar Styling */
+        .progress {
+            height: 8px;
+            border-radius: 4px;
+        }
+        
+        .progress-bar {
+            background-color: var(--primary-color);
+        }
+        
+        /* Custom Toggle Switch */
+        .form-switch .form-check-input {
+            width: 2.5em;
+            height: 1.5em;
+            cursor: pointer;
+        }
+        
+        .form-switch .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+    </style>
+    <style>
+    /* Stats Cards Styling */
+    .stat-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        overflow: hidden;
+        position: relative;
+        color: white;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(26, 77, 143, 0.15);
+    }
+    
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+    }
+    
+    .stat-card-total {
+        background: linear-gradient(135deg, var(--dark-blue) 0%, var(--medium-blue) 100%);
+    }
+    
+    .stat-card-active {
+        background: linear-gradient(135deg, var(--medium-blue) 0%, var(--light-blue) 100%);
+    }
+    
+    .stat-card-pending {
+        background: linear-gradient(135deg, var(--light-blue) 0%, var(--lighter-blue) 100%);
+    }
+    
+    .stat-card-expired {
+        background: linear-gradient(135deg, var(--lighter-blue) 0%, #a8c6df 100%);
+    }
+    
+    .stat-icon {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        opacity: 0.8;
+    }
+    
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+        font-size: 1rem;
+        font-weight: 500;
+        opacity: 0.9;
+        margin-bottom: 0;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 992px) {
+        .stats-row > div {
+            margin-bottom: 1rem;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .stat-card {
+            text-align: center;
+        }
+        
+        .stat-icon {
+            font-size: 1.75rem;
+        }
+        
+        .stat-value {
+            font-size: 1.75rem;
         }
     }
 </style>
@@ -460,36 +800,43 @@ include '../includes/employer_navbar.php';
 
     
     <!-- Stats Overview -->
-    <div class="row mb-4">
+    <div class="row mb-4 stats-row">
+        <!-- Total Jobs Card -->
         <div class="col-md-3">
-            <div class="card h-100">
+            <div class="card stat-card stat-card-total h-100">
                 <div class="card-body text-center">
-                    <h3 class="text-primary"><?= $total_jobs ?></h3>
-                    <p class="text-muted mb-0">Total Jobs</p>
+                    <h3 class="stat-value"><?= $total_jobs ?></h3>
+                    <p class="stat-label">Total Jobs</p>
                 </div>
             </div>
         </div>
+        
+        <!-- Active Jobs Card -->
         <div class="col-md-3">
-            <div class="card h-100">
+            <div class="card stat-card stat-card-active h-100">
                 <div class="card-body text-center">
-                    <h3 class="text-success"><?= $active_jobs ?></h3>
-                    <p class="text-muted mb-0">Active Jobs</p>
+                    <h3 class="stat-value"><?= $active_jobs ?></h3>
+                    <p class="stat-label">Active Jobs</p>
                 </div>
             </div>
         </div>
+        
+        <!-- Pending Approval Card -->
         <div class="col-md-3">
-            <div class="card h-100">
+            <div class="card stat-card stat-card-pending h-100">
                 <div class="card-body text-center">
-                    <h3 class="text-warning"><?= $pending_jobs ?></h3>
-                    <p class="text-muted mb-0">Pending Approval</p>
+                    <h3 class="stat-value"><?= $pending_jobs ?></h3>
+                    <p class="stat-label">Pending Approval</p>
                 </div>
             </div>
         </div>
+        
+        <!-- Expired Jobs Card -->
         <div class="col-md-3">
-            <div class="card h-100">
+            <div class="card stat-card stat-card-expired h-100">
                 <div class="card-body text-center">
-                    <h3 class="text-danger"><?= $expired_jobs ?></h3>
-                    <p class="text-muted mb-0">Expired Jobs</p>
+                    <h3 class="stat-value"><?= $expired_jobs ?></h3>
+                    <p class="stat-label">Expired Jobs</p>
                 </div>
             </div>
         </div>
@@ -669,7 +1016,7 @@ include '../includes/employer_navbar.php';
                                         <td>
                                             <span class="fw-bold"><?= $job['applicant_count'] ?></span>
                                             <?php if ($job['new_applicants'] > 0): ?>
-                                                <span class="badge-custom bg-success">+<?= $job['new_applicants'] ?> new</span>
+                                                <span class="badge-custom">+<?= $job['new_applicants'] ?> new</span>
                                             <?php endif; ?>
                                         </td>
                                         <td>
