@@ -697,25 +697,25 @@ require '../auth/auth_check.php';
                         <!-- Personal Information -->
                         <div class="mb-3">
                             <label for="firstName" class="form-label">First Name</label>
-                            <input type="text" class="form-control bg-secondary text-light border-secondary" id="firstName" name="first_name" required>
+                            <input type="text" class="form-control bg-secondary text-light border-secondary" id="firstName" name="first_name" required autocomplete="given-name">
                         </div>
                         <div class="mb-3">
                             <label for="lastName" class="form-label">Last Name</label>
-                            <input type="text" class="form-control bg-secondary text-light border-secondary" id="lastName" name="last_name" required>
+                            <input type="text" class="form-control bg-secondary text-light border-secondary" id="lastName" name="last_name" required autocomplete="family-name">
                         </div>
                         <div class="mb-3">
                             <label for="userEmail" class="form-label">Email</label>
-                            <input type="email" class="form-control bg-secondary text-light border-secondary" id="userEmail" name="email" required>
+                            <input type="email" class="form-control bg-secondary text-light border-secondary" id="userEmail" name="email" required autocomplete="email">
                         </div>
 
                         <!-- Password Fields -->
                         <div class="mb-3">
                             <label for="userPassword" class="form-label">Password</label>
-                            <input type="password" class="form-control bg-secondary text-light border-secondary" id="userPassword" name="password" required>
+                            <input type="password" class="form-control bg-secondary text-light border-secondary" id="userPassword" name="password" required autocomplete="new-password">
                         </div>
                         <div class="mb-3">
                             <label for="confirmPassword" class="form-label">Confirm Password</label>
-                            <input type="password" class="form-control bg-secondary text-light border-secondary" id="confirmPassword" name="confirm_password" required>
+                            <input type="password" class="form-control bg-secondary text-light border-secondary" id="confirmPassword" name="confirm_password" required autocomplete="new-password">
                             <small id="passwordHelp" class="text-danger d-none">Passwords do not match.</small>
                         </div>
 
@@ -760,19 +760,19 @@ require '../auth/auth_check.php';
 
                         <div class="mb-3">
                             <label for="editUserFirstName" class="form-label">First Name</label>
-                            <input type="text" class="form-control bg-secondary text-light border-0" id="editUserFirstName" required>
+                            <input type="text" class="form-control bg-secondary text-light border-0" id="editUserFirstName" required autocomplete="given-name">
                         </div>
                         <div class="mb-3">
                             <label for="editUserMiddleName" class="form-label">Middle Name</label>
-                            <input type="text" class="form-control bg-secondary text-light border-0" id="editUserMiddleName">
+                            <input type="text" class="form-control bg-secondary text-light border-0" id="editUserMiddleName" autocomplete="additional-name">
                         </div>
                         <div class="mb-3">
                             <label for="editUserLastName" class="form-label">Last Name</label>
-                            <input type="text" class="form-control bg-secondary text-light border-0" id="editUserLastName" required>
+                            <input type="text" class="form-control bg-secondary text-light border-0" id="editUserLastName" required autocomplete="family-name">
                         </div>
                         <div class="mb-3">
                             <label for="editUserEmail" class="form-label">Email</label>
-                            <input type="email" class="form-control bg-secondary text-light border-0" id="editUserEmail" required>
+                            <input type="email" class="form-control bg-secondary text-light border-0" id="editUserEmail" required autocomplete="email">
                         </div>
                         
                         <div class="mb-3">

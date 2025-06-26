@@ -687,7 +687,7 @@ if ($completion_percentage < 100 && !isset($_SESSION['profile_modal_shown'])) {
 </div>
 
 <!-- Profile Completion Modal -->
-<div class="modal fade" id="profileCompletionModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+<div class="modal fade" id="profileCompletionModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true" data-bs-backdrop="static">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 rounded-4 p-4 shadow-lg" style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);">
       
@@ -704,7 +704,7 @@ if ($completion_percentage < 100 && !isset($_SESSION['profile_modal_shown'])) {
             <p class="mb-0 text-muted small">Unlock all features by completing your profile</p>
           </div>
         </div>
-        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Close" tabindex="0"></button>
       </div>
       
       <!-- Body -->
@@ -784,15 +784,42 @@ if ($completion_percentage < 100 && !isset($_SESSION['profile_modal_shown'])) {
 <?php if (!empty($_SESSION['show_profile_modal']) && $_SESSION['show_profile_modal']): ?>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    var profileModal = new bootstrap.Modal(document.getElementById('profileCompletionModal'));
+    var profileModal = new bootstrap.Modal(document.getElementById('profileCompletionModal'), {
+        keyboard: false,
+        focus: true
+    });
+    
+    // Store the last focused element before opening modal
+    let lastFocusedElement;
+    
+    // Show modal
     profileModal.show();
     
-    // Update session flag when modal is closed
+    // When modal is shown, store the last focused element
+    document.getElementById('profileCompletionModal').addEventListener('shown.bs.modal', function () {
+        lastFocusedElement = document.activeElement;
+    });
+    
+    // When modal is hidden, restore focus and update session
     document.getElementById('profileCompletionModal').addEventListener('hidden.bs.modal', function () {
-        fetch('../controllers/update_profile_modal_flag.php')
-            .then(response => response.json())
-            .then(data => console.log('Modal flag updated'))
-            .catch(error => console.error('Error:', error));
+        if (lastFocusedElement) {
+            lastFocusedElement.focus();
+        }
+        
+        // Update session flag
+        fetch('../controllers/update_profile_modal_flag.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                console.error('Failed to update modal flag');
+            }
+        })
+        .catch(error => console.error('Error:', error));
     });
 });
 </script>

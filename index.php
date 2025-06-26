@@ -56,7 +56,7 @@ if (isset($_SESSION['user_id'])) {
         }
 
         .hero-section {
-            background: url('https://via.placeholder.com/1500x800') no-repeat center center/cover;
+            background: linear-gradient(45deg, var(--primary-color), #1C4B82);
             position: relative;
             color: white;
             padding: 100px 0;
@@ -69,7 +69,7 @@ if (isset($_SESSION['user_id'])) {
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(10, 38, 71, 0.94); 
+            background: rgba(10, 38, 71, 0.85); 
         }
 
         .hero-content {

@@ -88,7 +88,7 @@ $page_permissions = [
 ];
 
 // Get current page safely
-$current_page = filter_var(basename($_SERVER['PHP_SELF']), FILTER_SANITIZE_STRING);
+$current_page = htmlspecialchars(basename($_SERVER['PHP_SELF']), ENT_QUOTES, 'UTF-8');
 
 // Check if student is allowed on this page based on status
 if (isset($page_permissions[$current_page])) {
