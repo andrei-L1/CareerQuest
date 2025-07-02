@@ -548,7 +548,7 @@ if (isset($_SESSION['user_id'])) {
                                             <i class="fas fa-user-graduate fa-2x text-white"></i>
                                         </div>
                                         <div class="text-start">
-                                            <h4 class="text-white mb-1">Student</h4>
+                                            <h4 class="text-white mb-1">Applicant</h4>
                                             <p class="text-white text-opacity-75 mb-0">Find jobs, internships, and career guidance</p>
                                         </div>
                                     </div>
@@ -570,7 +570,7 @@ if (isset($_SESSION['user_id'])) {
                                 </a>
                             </div>
 
-                            <!-- Professional Role -->
+                            <!-- Professional Role 
                             <div class="col-12">
                                 <a href="views/register_professional.php" class="card role-card h-100 text-decoration-none bg-gradient-info-hover">
                                     <div class="card-body d-flex align-items-center gap-4 py-4">
@@ -584,6 +584,7 @@ if (isset($_SESSION['user_id'])) {
                                     </div>
                                 </a>
                             </div>
+                            -->
                         </div>
                     </div>
                     <div class="modal-footer border-0 pt-0">
@@ -618,7 +619,7 @@ if (isset($_SESSION['user_id'])) {
                                             <i class="fas fa-user-graduate fa-2x text-white"></i>
                                         </div>
                                         <div class="text-start">
-                                            <h4 class="text-white mb-1">Student</h4>
+                                            <h4 class="text-white mb-1">Applicant</h4>
                                             <p class="text-white text-opacity-75 mb-0">Access jobs, internships, and career resources</p>
                                         </div>
                                     </div>
@@ -640,7 +641,7 @@ if (isset($_SESSION['user_id'])) {
                                 </a>
                             </div>
 
-                            <!-- Professional Login -->
+                            <!-- Professional Login
                             <div class="col-12">
                                 <a href="auth/login_user.php" class="card role-card h-100 text-decoration-none bg-gradient-info-hover">
                                     <div class="card-body d-flex align-items-center gap-4 py-4">
@@ -654,6 +655,7 @@ if (isset($_SESSION['user_id'])) {
                                     </div>
                                 </a>
                             </div>
+                             -->
                         </div>
                     </div>
                     <div class="modal-footer border-0 pt-0">
