@@ -110,7 +110,7 @@ if (isset($_GET['unauthorized_access']) && $_GET['unauthorized_access'] == 1) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Login | Academic Portal</title>
+    <title>Applicant Login | Academic Portal</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -434,7 +434,7 @@ if (isset($_GET['unauthorized_access']) && $_GET['unauthorized_access'] == 1) {
 <body>
     <div class="login-container">
         <div class="login-header">
-            <h3>Student Login</h3>
+            <h3>Applicant Login</h3>
         </div>
         
         <?php if (isset($_GET['account_deleted'])): ?>

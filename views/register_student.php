@@ -341,7 +341,7 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
     <div class="signup-container" data-aos="fade-up" data-aos-duration="1000">
         <div class="signup-header">
             <h3>Create an Account</h3>
-            <p>Register as a Student</p>
+            <p>Register as an Applicant</p>
         </div>
         
         <div class="progress">
