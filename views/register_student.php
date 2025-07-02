@@ -469,7 +469,7 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
                         <option value="">Select</option>
                         <option value="College Student">College Student</option>
                         <option value="Graduate Student">Graduate Student</option>
-                        <option value="Graduate Student">Professional</option>
+                        <option value="Professional">Professional</option>
                         <option value="Not a Student">Not a Student</option>
                      </select>
                      <label for="edu_background" class="form-label">Educational Background</label>
