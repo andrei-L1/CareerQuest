@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS course (
 -- Table: student
 CREATE TABLE IF NOT EXISTS student (
     stud_id INT AUTO_INCREMENT PRIMARY KEY,
-    stud_no VARCHAR(255) UNIQUE NOT NULL,
+    -- < currently deleted > stud_no VARCHAR(255) UNIQUE NOT NULL,
     stud_first_name VARCHAR(255),
     stud_middle_name VARCHAR(255),
     stud_last_name VARCHAR(255),
@@ -41,6 +41,8 @@ CREATE TABLE IF NOT EXISTS student (
     deleted_at TIMESTAMP NULL,
     status VARCHAR(50),
     institution VARCHAR(255),
+    is_student BOOLEAN,
+    edu_background ENUM('College Student', 'Graduate Student', 'Not a Student') DEFAULT 'College Student',
     FOREIGN KEY (course_id) REFERENCES course(course_id)
 );
 

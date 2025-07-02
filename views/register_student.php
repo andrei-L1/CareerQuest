@@ -398,13 +398,19 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
                     <input type="text" name="last_name" class="form-control" placeholder=" " required>
                     <label for="last_name" class="form-label">Last Name</label>
                 </div>
-                
+
                 <div class="form-group">
-                    <i class="fas fa-id-card form-icon"></i>
-                    <input type="text" name="student_id" class="form-control" placeholder=" " required>
-                    <label for="student_id" class="form-label">Student ID</label>
+                     <i class="fas fa-user form-icon"></i>
+                     <select name="edu-background" id="edubackground" class="form-control" placeholder=" " required>
+                        <option value="">Select</option>
+                        <option value="College Student">College Student</option>
+                        <option value="Graduate Student">Graduate Student</option>
+                        <option value="Not a Student">Not a Student</option>
+                     </select>
+                     <label for="edu-background" class="form-label">Educational Background</label>
                 </div>
                 
+
                 <input type="hidden" id="entity" name="entity" value="student">
                 <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
                 
@@ -621,7 +627,7 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
             let isValid = true;
             
             if (currentStep == 1) {
-                const required = ['first_name', 'last_name', 'student_id'];
+                const required = ['first_name', 'last_name'];
                 
                 required.forEach(field => {
                     const input = document.querySelector(`[name="${field}"]`);

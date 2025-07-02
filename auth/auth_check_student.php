@@ -110,7 +110,6 @@ if (isset($page_permissions[$current_page])) {
 // Store student data in session for easy access
 $_SESSION['student_data'] = [
     'stud_id' => $student['stud_id'],
-    'student_no' => $student['stud_no'],
     'first_name' => $student['stud_first_name'],
     'last_name' => $student['stud_last_name'],
     'email' => $student['stud_email'],

@@ -23,7 +23,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // === Input Validation ===
         $entity = $_POST['entity'] ?? null;
-        $studno = $_POST['student_id'] ?? null;
 
         // Validate entity type
         if (!in_array($entity, ['student', 'professional', 'employer'])) {
@@ -62,28 +61,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception("All required fields must be filled.");
         }
         
-        // Entity-specific validations
-        if ($entity === 'student') {
-            if (empty($studno)) {
-                throw new Exception("Student ID is required.");
-            }
-            if (!preg_match('/^[a-zA-Z0-9]+$/', $studno)) {
-                throw new Exception("Student ID can only contain letters and numbers.");
-            }
-        }
+
+
+
+        $edu_background = $_POST['edu-background'] ?? null;
+
+
+
 
         // === Check for Existing Email ===
         if ($entity === "student") {
             $checkEmailStmt = $conn->prepare("SELECT stud_email FROM student WHERE stud_email = :email");
-            $checkStudnoStmt = $conn->prepare("SELECT stud_no FROM student WHERE stud_no = :studno");
-            $checkStudnoStmt->bindParam(':studno', $studno, PDO::PARAM_STR);
-            $checkStudnoStmt->execute();
-
-                
-            if ($checkStudnoStmt->rowCount() > 0) {
-                throw new Exception("Student ID already exists. Please use a different one.");
-            }
-
 
         } elseif ($entity === "professional" || $entity === "employer") {
             $checkEmailStmt = $conn->prepare("SELECT user_email FROM user WHERE user_email = :email");
@@ -136,6 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':middle_name' => $middle_name,
                 ':last_name' => $last_name,
                 ':active' => $status
+                
             ]);
 
             // Fetch user_id
@@ -164,18 +153,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Insert into `student` table
             $stmt = $conn->prepare("
-                INSERT INTO student (stud_no, stud_email, stud_password, stud_first_name, stud_middle_name, stud_last_name, institution, `status`) 
-                VALUES (:studno, :email, :password, :first_name, :middle_name, :last_name, :institution, :active)
+                INSERT INTO student (stud_email, stud_password, stud_first_name, stud_middle_name, stud_last_name, institution, `status` , edu_background) 
+                VALUES (:email, :password, :first_name, :middle_name, :last_name, :institution, :active, :edu_background)
             ");
             $stmt->execute([
-                ':studno' => $studno,
+        
                 ':email' => $email,
                 ':password' => $hashed_password,
                 ':first_name' => $first_name,
                 ':middle_name' => $middle_name,
                 ':last_name' => $last_name,
                 ':institution' => $institution,
-                ':active' => $status
+                ':active' => $status,
+                ':edu_background' => $edu_background
             ]);
 
             // Fetch stud_id

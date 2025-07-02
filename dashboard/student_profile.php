@@ -522,6 +522,7 @@ include '../includes/stud_navbar.php';
                         </div>
                         <?php endif; ?>
                         
+                        
                         <?php if (!empty($student['stud_no'])): ?>
                         <div class="profile-meta-item">
                             <i class="fas fa-id-card"></i>

@@ -17,7 +17,7 @@ try {
     // Fetch student details and join with course title
     $stmt = $conn->prepare("
         SELECT s.stud_first_name, s.stud_middle_name, s.stud_last_name,
-               s.stud_no, s.stud_email, s.profile_picture, s.bio,
+               s.stud_email, s.profile_picture, s.bio,
                s.institution, s.status, c.course_title
         FROM student s
         LEFT JOIN course c ON s.course_id = c.course_id
@@ -81,7 +81,7 @@ try {
 
     // Assign data for UI usage
     $full_name = htmlspecialchars($student['stud_first_name'] . ' ' . ($student['stud_middle_name'] ?? '') . ' ' . $student['stud_last_name']);
-    $stud_no = htmlspecialchars($student['stud_no']);
+    // $stud_no = htmlspecialchars($student['stud_no']);
     $email = htmlspecialchars($student['stud_email']);
     $bio = htmlspecialchars($student['bio'] ?? 'No bio added yet.');
     $course_title = htmlspecialchars($student['course_title'] ?? 'No course assigned');

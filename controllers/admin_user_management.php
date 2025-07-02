@@ -106,11 +106,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["entity"])) {
         $hashed_password = password_hash($password, PASSWORD_ARGON2ID);
 
         if ($entity === 'student') {
-            $stud_no = strtoupper(substr($first_name, 0, 2) . rand(1000, 9999));
-            $stmt = $conn->prepare("INSERT INTO student (stud_no, stud_email, stud_password, stud_first_name, stud_last_name, institution, status) 
-                                    VALUES (:stud_no, :email, :password, :first_name, :last_name, :institution, :status)");
+            // $stud_no = strtoupper(substr($first_name, 0, 2) . rand(1000, 9999));
+            $stmt = $conn->prepare("INSERT INTO student (/*stud_no, */ stud_email, stud_password, stud_first_name, stud_last_name, institution, status) 
+                                    VALUES (/* :stud_no,*/ :email, :password, :first_name, :last_name, :institution, :status)");
             $stmt->execute([
-                ":stud_no" => $stud_no,
+               /* ":stud_no" => $stud_no,*/ 
                 ":email" => $email,
                 ":password" => $hashed_password,
                 ":first_name" => $first_name,
