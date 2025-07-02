@@ -475,9 +475,9 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
                      <label for="edu_background" class="form-label">Educational Background</label>
                 </div>
                 
-                <div class="form-group">
+                <div class="form-group"  id="institutionGroup" style="display: none;">
                     <i class="fas fa-school form-icon"></i>
-                    <input type="text" name="institution" class="form-control" placeholder=" ">
+                    <input type="text" name="institution" class="form-control" placeholder=" " id="institution" required>
                     <label for="institution" class="form-label">Institution</label>
                 </div>
                 
@@ -669,9 +669,66 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
                     document.getElementById("confirmPasswordHelp").classList.add('d-none');
                 }
             }
+
+            else if (currentStep == 3) {
+                const edu = document.querySelector('[name="edu_background"]');
+                if (!edu.value) {
+                    edu.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    edu.classList.remove('is-invalid');
+                }
+            }
             
             return isValid;
         }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const eduSelect = document.getElementById("edu_background");
+            const institutionGroup = document.getElementById("institutionGroup");
+            const form = document.getElementById("signupForm");
+
+
+            function toggleInstitutionField() {
+                if (eduSelect.value === "College Student" || eduSelect.value === "Graduate Student") {
+                    institutionGroup.style.display = "block";
+                    document.getElementById("institution").setAttribute("required", "required");
+                } else {
+                    institutionGroup.style.display = "none";
+                    document.getElementById("institution").removeAttribute("required");
+                }
+            }   
+
+
+            eduSelect.addEventListener("change", toggleInstitutionField);
+
+            toggleInstitutionField();
+
+
+            form.addEventListener("keydown", function(event) {
+                if (event.key === "Enter") {
+                    const target = event.target;
+                    const tag = target.tagName.toLowerCase();
+
+                    // Skip for textarea or button
+                    if (tag === "textarea" || tag === "button") return;
+
+                    event.preventDefault(); // Prevent default form submission
+
+                    // Get all focusable form elements
+                    const focusable = Array.from(form.querySelectorAll("input, select, button, textarea"))
+                        .filter(el => !el.disabled && el.offsetParent !== null);
+
+                    const index = focusable.indexOf(target);
+                    const next = focusable[index + 1];
+
+                    if (next) {
+                        next.focus();
+                    }
+                }
+            });
+        });
+
     </script>
 </body>
 </html>
