@@ -398,17 +398,6 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
                     <input type="text" name="last_name" class="form-control" placeholder=" " required>
                     <label for="last_name" class="form-label">Last Name</label>
                 </div>
-
-                <div class="form-group">
-                     <i class="fas fa-user form-icon"></i>
-                     <select name="edu-background" id="edubackground" class="form-control" placeholder=" " required>
-                        <option value="">Select</option>
-                        <option value="College Student">College Student</option>
-                        <option value="Graduate Student">Graduate Student</option>
-                        <option value="Not a Student">Not a Student</option>
-                     </select>
-                     <label for="edu-background" class="form-label">Educational Background</label>
-                </div>
                 
 
                 <input type="hidden" id="entity" name="entity" value="student">
@@ -473,6 +462,18 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
             <!-- Step 3: Additional Information -->
             <div id="step-3" class="d-none">
                 <h5 class="step-title">Education Details</h5>
+                
+                <div class="form-group">
+                     <i class="fas fa-user form-icon"></i>
+                     <select name="edu_background" id="edu_background" class="form-control" placeholder=" " required>
+                        <option value="">Select</option>
+                        <option value="College Student">College Student</option>
+                        <option value="Graduate Student">Graduate Student</option>
+                        <option value="Graduate Student">Professional</option>
+                        <option value="Not a Student">Not a Student</option>
+                     </select>
+                     <label for="edu_background" class="form-label">Educational Background</label>
+                </div>
                 
                 <div class="form-group">
                     <i class="fas fa-school form-icon"></i>

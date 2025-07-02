@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS student (
     deleted_at TIMESTAMP NULL,
     status VARCHAR(50),
     institution VARCHAR(255),
-    is_student BOOLEAN,
+    is_student BOOLEAN NOT NULL DEFAULT FALSE,
     edu_background ENUM('College Student', 'Graduate Student', 'Not a Student') DEFAULT 'College Student',
     FOREIGN KEY (course_id) REFERENCES course(course_id)
 );

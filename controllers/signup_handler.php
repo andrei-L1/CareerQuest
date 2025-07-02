@@ -64,10 +64,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
 
-        $edu_background = $_POST['edu-background'] ?? null;
+        $edu_background = $_POST['edu_background'] ?? null;
 
+        if($entity === 'student'){
+            $is_student = false;
+            if ($edu_background === 'College Student') {
+                $is_student = true;
+            } elseif ($edu_background === 'Graduate Student') {
+                $is_student = false;
+            } elseif ($edu_background === 'Not a Student') {
+                $is_student = false;
+            } elseif ($edu_background === 'Professional') {
+                $is_student = false;
+            } else {
+                throw new Exception("Invalid educational background selected.");
+            }
 
-
+        }
 
         // === Check for Existing Email ===
         if ($entity === "student") {
@@ -153,8 +166,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Insert into `student` table
             $stmt = $conn->prepare("
-                INSERT INTO student (stud_email, stud_password, stud_first_name, stud_middle_name, stud_last_name, institution, `status` , edu_background) 
-                VALUES (:email, :password, :first_name, :middle_name, :last_name, :institution, :active, :edu_background)
+                INSERT INTO student (stud_email, stud_password, stud_first_name, stud_middle_name, stud_last_name, institution, `status` ,edu_background, is_student) 
+                VALUES (:email, :password, :first_name, :middle_name, :last_name, :institution, :active, :edu_background, :is_student)
             ");
             $stmt->execute([
         
@@ -165,7 +178,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':last_name' => $last_name,
                 ':institution' => $institution,
                 ':active' => $status,
-                ':edu_background' => $edu_background
+                ':edu_background' => $edu_background,
+                ':is_student' => $is_student
             ]);
 
             // Fetch stud_id
