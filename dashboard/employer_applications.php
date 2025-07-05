@@ -387,11 +387,22 @@ include '../includes/employer_navbar.php';
         
         /* Custom dropdown */
         .dropdown-actions .dropdown-menu {
+            /* Your existing styles */
             border: none;
             box-shadow: 0 4px 20px rgba(0,0,0,0.12);
             border-radius: 12px;
             padding: 0.5rem;
             min-width: 200px;
+
+            /* NEW: Keep absolute positioning but prevent clipping */
+            position: absolute !important; /* Let Bootstrap handle positioning */
+            z-index: 9999 !important; /* High enough to stay on top */
+            inset: auto auto 0 0 !important; /* Fallback position */
+        }
+
+        /* Ensure parent containers don't clip the dropdown */
+        .application-card, .kanban-column {
+            overflow: visible !important;
         }
         
         .dropdown-actions .dropdown-item {
