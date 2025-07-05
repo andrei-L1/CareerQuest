@@ -1409,7 +1409,11 @@ include '../includes/employer_navbar.php';
                                         </button>
                                         <ul class="dropdown-menu">
                                             <li><a class="dropdown-item" href="#" onclick="viewApplicantDetails(${applicant.stud_id})"><i class="fas fa-eye me-2"></i> View Profile</a></li>
-                                            <li><a class="dropdown-item" href="#"><i class="fas fa-file-pdf me-2"></i> View Resume</a></li>
+                                           <li>
+                                                <a class="dropdown-item" href="#" onclick="viewResume(${applicant.stud_id}, '${applicant.resume_file || ''}')">
+                                                    <i class="fas fa-file-pdf me-2"></i> View Resume
+                                                </a>
+                                            </li>   
                                             <li><hr class="dropdown-divider"></li>
                                             <li><a class="dropdown-item text-success" href="#" onclick="updateStatus(${applicant.stud_id}, 'accepted')"><i class="fas fa-check me-2"></i> Accept</a></li>
                                             <li><a class="dropdown-item text-danger" href="#" onclick="updateStatus(${applicant.stud_id}, 'rejected')"><i class="fas fa-times me-2"></i> Reject</a></li>
@@ -1460,6 +1464,17 @@ include '../includes/employer_navbar.php';
                     `).join('')}
                 </div>
             `;
+        }
+
+        function viewResume(studId, resumeFile) {
+            console.log(`Viewing resume for applicant ${studId}`);
+            if (!resumeFile) {
+                alert("No resume uploaded.");
+                return;
+            }
+
+            const resumePath = `../uploads/${resumeFile}`;
+            window.open(resumePath, '_blank');
         }
 
         // Show empty state
