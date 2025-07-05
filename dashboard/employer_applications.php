@@ -967,7 +967,7 @@ include '../includes/employer_navbar.php';
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary">Save changes</button>
+                    <!-- <button type="button" class="btn btn-primary">Save changes</button> -->
                 </div>
             </div>
         </div>
@@ -1197,7 +1197,7 @@ include '../includes/employer_navbar.php';
             return applicants.map(applicant => `
             <div class="application-card p-3 mb-2 ${toClassName(applicant.application_status)}" 
                 draggable="true" 
-                data-applicant-id="${applicant.application_id || applicant.id}">
+                data-applicant-id="${applicant.application_id || applicant.stud_id}">
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <div class="d-flex align-items-center">
                             <div class="applicant-avatar-wrapper me-2">
@@ -1221,7 +1221,7 @@ include '../includes/employer_navbar.php';
                                 <i class="fas fa-ellipsis-v"></i>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="#" onclick="viewApplicantDetails(${applicant.id})"><i class="fas fa-eye me-2"></i>View</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="viewApplicantDetails(${applicant.stud_id})"><i class="fas fa-eye me-2"></i>View</a></li>
                                 <li><a class="dropdown-item" href="#"><i class="fas fa-file-pdf me-2"></i>Resume</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-trash me-2"></i>Remove</a></li>
@@ -1381,7 +1381,7 @@ include '../includes/employer_navbar.php';
                     ${applicants.map(applicant => `
                         <div class="col-md-6 col-lg-4 col-xl-3">
                             <div class="application-card p-3 ${toClassName(applicant.application_status)}" 
-                                 data-applicant-id="${applicant.id}">
+                                 data-applicant-id="${applicant.stud_id}">
                                 <div class="d-flex justify-content-between mb-3">
                                     <div class="d-flex align-items-center">
                                         <div class="applicant-avatar-wrapper me-3">
@@ -1408,11 +1408,11 @@ include '../includes/employer_navbar.php';
                                             <i class="fas fa-ellipsis-v"></i>
                                         </button>
                                         <ul class="dropdown-menu">
-                                            <li><a class="dropdown-item" href="#" onclick="viewApplicantDetails(${applicant.id})"><i class="fas fa-eye me-2"></i> View Profile</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="viewApplicantDetails(${applicant.stud_id})"><i class="fas fa-eye me-2"></i> View Profile</a></li>
                                             <li><a class="dropdown-item" href="#"><i class="fas fa-file-pdf me-2"></i> View Resume</a></li>
                                             <li><hr class="dropdown-divider"></li>
-                                            <li><a class="dropdown-item text-success" href="#" onclick="updateStatus(${applicant.id}, 'accepted')"><i class="fas fa-check me-2"></i> Accept</a></li>
-                                            <li><a class="dropdown-item text-danger" href="#" onclick="updateStatus(${applicant.id}, 'rejected')"><i class="fas fa-times me-2"></i> Reject</a></li>
+                                            <li><a class="dropdown-item text-success" href="#" onclick="updateStatus(${applicant.stud_id}, 'accepted')"><i class="fas fa-check me-2"></i> Accept</a></li>
+                                            <li><a class="dropdown-item text-danger" href="#" onclick="updateStatus(${applicant.stud_id}, 'rejected')"><i class="fas fa-times me-2"></i> Reject</a></li>
                                             <li><hr class="dropdown-divider"></li>
                                             <li><a class="dropdown-item" href="#"><i class="fas fa-envelope me-2"></i> Message</a></li>
                                         </ul>
@@ -1507,112 +1507,96 @@ include '../includes/employer_navbar.php';
         }
 
         
-        // View applicant details
         function viewApplicantDetails(applicantId) {
-            // In a real app, you would fetch applicant details from the server
             console.log(`Viewing details for applicant ${applicantId}`);
             
-            // For demo purposes, we'll just show a modal with placeholder content
-            const modalContent = document.getElementById('applicantModalContent');
-            modalContent.innerHTML = `
-                <div class="row">
-                    <div class="col-md-4 text-center">
-                        <div class="applicant-avatar-wrapper mx-auto mb-3" style="width: 120px; height: 120px;">
-                            <div class="applicant-default-icon" style="font-size: 3rem;">
-                                <i class="fas fa-user"></i>
-                            </div>
-                        </div>
-                        <h4>Applicant Name</h4>
-                        <p class="text-muted">Software Developer</p>
-                        
-                        <div class="d-flex justify-content-center gap-2 mb-4">
-                            <button class="btn btn-success btn-sm">
-                                <i class="fas fa-check me-1"></i> Accept
-                            </button>
-                            <button class="btn btn-danger btn-sm">
-                                <i class="fas fa-times me-1"></i> Reject
-                            </button>
-                        </div>
-                        
-                        <div class="card mb-3">
-                            <div class="card-body">
-                                <h6 class="card-title">Contact Info</h6>
-                                <p class="mb-1"><i class="fas fa-envelope me-2"></i> applicant@example.com</p>
-                                <p class="mb-1"><i class="fas fa-phone me-2"></i> (123) 456-7890</p>
-                                <p class="mb-0"><i class="fas fa-map-marker-alt me-2"></i> San Francisco, CA</p>
-                            </div>
-                        </div>
-                        
-                        <div class="card">
-                            <div class="card-body">
-                                <h6 class="card-title">Match Score</h6>
-                                <div class="progress mb-2" style="height: 10px;">
-                                    <div class="progress-bar bg-success" role="progressbar" style="width: 85%"></div>
-                                </div>
-                                <p class="small text-muted mb-0">85% match with job requirements</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-8">
-                        <div class="card mb-3">
-                            <div class="card-body">
-                                <h5 class="card-title">Professional Summary</h5>
-                                <p>Experienced software developer with 5+ years of experience in web development. Strong skills in JavaScript, React, Node.js, and database design. Passionate about creating efficient, scalable applications with clean code.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="card mb-3">
-                            <div class="card-body">
-                                <h5 class="card-title">Work Experience</h5>
-                                <div class="mb-3">
-                                    <h6 class="mb-1">Senior Developer at Tech Corp</h6>
-                                    <p class="text-muted small mb-1">Jan 2020 - Present</p>
-                                    <ul class="small">
-                                        <li>Led a team of 5 developers to build a SaaS platform</li>
-                                        <li>Improved application performance by 40%</li>
-                                        <li>Implemented CI/CD pipeline reducing deployment time</li>
-                                    </ul>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <h6 class="mb-1">Developer at Web Solutions</h6>
-                                    <p class="text-muted small mb-1">Mar 2018 - Dec 2019</p>
-                                    <ul class="small">
-                                        <li>Developed custom WordPress themes and plugins</li>
-                                        <li>Worked with clients to implement requirements</li>
-                                    </ul>
+            fetch(`../employer_api/get_applicant_details.php?applicantId=${applicantId}`)
+                .then(response => response.json())
+                .then(applicant => {
+                    if (applicant.error) {
+                        alert(applicant.error);
+                        return;
+                    }
+
+                    const modalContent = document.getElementById('applicantModalContent');
+                    modalContent.innerHTML = `
+                        <div class="applicant-profile">
+                            <!-- Header Section -->
+                            <div class="profile-header p-4" style="background-color: #f8f9fa; border-bottom: 1px solid #e9ecef;">
+                                <div class="d-flex align-items-center">
+                                    <div class="profile-avatar me-4">
+                                        ${applicant.profile_picture ? 
+                                            `<img src="../uploads/${applicant.profile_picture}" class="rounded-circle border" style="width: 100px; height: 100px; object-fit: cover; border-color: #dee2e6 !important;" alt="Profile">` : 
+                                            `<div class="rounded-circle border d-flex align-items-center justify-content-center" style="width: 100px; height: 100px; background-color: #e9ecef; border-color: #dee2e6 !important;">
+                                                <i class="fas fa-user" style="font-size: 2.5rem; color: #6c757d;"></i>
+                                            </div>`
+                                        }
+                                    </div>
+                                    <div>
+                                        <h2 class="mb-1" style="color: #495057;">${applicant.stud_first_name} ${applicant.stud_last_name}</h2>
+                                        <p class="mb-2" style="color: #6c757d; font-size: 1.1rem;">${applicant.edu_background}</p>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <span class="badge" style="background-color: #e9ecef; color: #495057;"><i class="fas fa-university me-1" style="color: #6c757d;"></i> ${applicant.institution || 'Not specified'}</span>
+                                            ${applicant.graduation_yr ? `<span class="badge" style="background-color: #e9ecef; color: #495057;"><i class="fas fa-calendar-alt me-1" style="color: #6c757d;"></i> ${applicant.graduation_yr}</span>` : ''}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">Education</h5>
-                                <div class="mb-3">
-                                    <h6 class="mb-1">BS in Computer Science</h6>
-                                    <p class="text-muted small mb-1">University of California, 2017</p>
+
+                            <!-- Body Section -->
+                            <div class="profile-body p-4">
+                                <div class="row">
+                                    <!-- Contact Column -->
+                                    <div class="col-md-6 mb-4">
+                                        <div class="card h-100 border-0" style="box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                            <div class="card-body">
+                                                <h5 class="card-title" style="color: #495057;"><i class="fas fa-envelope me-2" style="color: #6c757d;"></i>Contact</h5>
+                                                <ul class="list-unstyled" style="color: #6c757d;">
+                                                    <li class="mb-2"><strong style="color: #495057;">Email:</strong> ${applicant.stud_email}</li>
+                                                    ${applicant.phone ? `<li class="mb-2"><strong style="color: #495057;">Phone:</strong> ${applicant.phone}</li>` : ''}
+                                                    ${applicant.address ? `<li><strong style="color: #495057;">Location:</strong> ${applicant.address}</li>` : ''}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Education Column -->
+                                    <div class="col-md-6 mb-4">
+                                        <div class="card h-100 border-0" style="box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                            <div class="card-body">
+                                                <h5 class="card-title" style="color: #495057;"><i class="fas fa-graduation-cap me-2" style="color: #6c757d;"></i>Education</h5>
+                                                <div class="education-item">
+                                                    <h6 class="fw-bold mb-1" style="color: #495057;">${applicant.edu_background}</h6>
+                                                    <p class="mb-1" style="color: #6c757d;">${applicant.institution || 'Not specified'}</p>
+                                                    ${applicant.graduation_yr ? `<p class="small" style="color: #6c757d;">Expected graduation: ${applicant.graduation_yr}</p>` : ''}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                
-                                <h5 class="card-title mt-4">Skills</h5>
-                                <div class="d-flex flex-wrap gap-2">
-                                    <span class="badge bg-light text-dark">JavaScript</span>
-                                    <span class="badge bg-light text-dark">React</span>
-                                    <span class="badge bg-light text-dark">Node.js</span>
-                                    <span class="badge bg-light text-dark">HTML/CSS</span>
-                                    <span class="badge bg-light text-dark">SQL</span>
-                                    <span class="badge bg-light text-dark">Git</span>
+
+                                <!-- Professional Summary -->
+                                <div class="card border-0 mb-4" style="box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                    <div class="card-body">
+                                        <h5 class="card-title" style="color: #495057;"><i class="fas fa-user-tie me-2" style="color: #6c757d;"></i>Professional Summary</h5>
+                                        <div class="p-3 rounded" style="background-color: #f8f9fa;">
+                                            <p class="mb-0" style="color: #495057;">${applicant.bio ? applicant.bio.replace(/\n/g, '<br>') : 'No professional summary provided.'}</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            `;
-            
-            // Show the modal
-            const modal = new bootstrap.Modal(document.getElementById('applicantModal'));
-            modal.show();
+                    `;
+
+                    const modal = new bootstrap.Modal(document.getElementById('applicantModal'));
+                    modal.show();
+                })
+                .catch(error => {
+                    console.error('Error fetching applicant:', error);
+                    alert('Failed to load applicant details.');
+                });
         }
+
         
         // Show toast notification
         function showToast(message, type = 'success') {
