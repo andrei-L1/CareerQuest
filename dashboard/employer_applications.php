@@ -1111,8 +1111,9 @@ include '../includes/employer_navbar.php';
                         <h6 class="pipeline-stage-title">Under Review</h6>
                         <span class="pipeline-stage-count">${groupedByStatus.review.length}</span>
                     </div>
-                    ${renderPipelineApplicants(groupedByStatus.review)}
+                    ${renderPipelineApplicants(groupedByStatus.review, 'Under Review')}
                 </div>
+
 
                 <div class="pipeline-stage" data-status="Interview Scheduled">
                     <div class="pipeline-stage-header">
@@ -1184,64 +1185,221 @@ include '../includes/employer_navbar.php';
 
         
         // Render applicants for pipeline view
-        function renderPipelineApplicants(applicants) {
-            if (applicants.length === 0) {
-                return `
-                    <div class="text-center py-3 text-muted">
-                        <i class="fas fa-user-slash mb-2"></i>
-                        <div class="small">No applicants</div>
-                    </div>
-                `;
-            }
-            
-            return applicants.map(applicant => `
-            <div class="application-card p-3 mb-2 ${toClassName(applicant.application_status)}" 
-                draggable="true" 
-                data-applicant-id="${applicant.application_id || applicant.stud_id}">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <div class="d-flex align-items-center">
-                            <div class="applicant-avatar-wrapper me-2">
-                                ${applicant.profile_picture ? `
-                                    <img src="../uploads/${applicant.profile_picture}"
-                                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-                                        alt="Profile"
-                                        class="applicant-avatar">
-                                ` : ''}
-                                <div class="applicant-default-icon" style="${applicant.profile_picture ? 'display:none;' : ''}">
-                                    <i class="fas fa-user"></i>
+            function renderPipelineApplicants(applicants, status = '') {
+                if (applicants.length === 0) {
+                    return `
+                        <div class="text-center py-3 text-muted">
+                            <i class="fas fa-user-slash mb-2"></i>
+                            <div class="small">No applicants</div>
+                        </div>
+                    `;
+                }
+
+                return applicants.map(applicant => `
+                    <div class="application-card p-3 mb-2 ${toClassName(applicant.application_status)}" 
+                        draggable="true" 
+                        data-applicant-id="${applicant.application_id || applicant.stud_id}">
+                            
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="d-flex align-items-center">
+                                <div class="applicant-avatar-wrapper me-2">
+                                    ${applicant.profile_picture ? `
+                                        <img src="../uploads/${applicant.profile_picture}"
+                                            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                                            alt="Profile"
+                                            class="applicant-avatar">
+                                    ` : ''}
+                                    <div class="applicant-default-icon" style="${applicant.profile_picture ? 'display:none;' : ''}">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="applicant-name">${applicant.name}</div>
+                                    <div class="applicant-title small text-muted">${applicant.jobTitle}</div>
                                 </div>
                             </div>
-                            <div>
-                                <div class="applicant-name">${applicant.name}</div>
-                                <div class="applicant-title small text-muted">${applicant.jobTitle}</div>
+                            <div class="dropdown dropdown-actions">
+                                <button class="btn-action" type="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="#" onclick="viewApplicantDetails(${applicant.stud_id})"><i class="fas fa-eye me-2"></i>View Profile</a></li>
+                                    <li>
+                                        <a class="dropdown-item" href="#" onclick="viewResume(${applicant.stud_id}, '${applicant.resume_file || ''}')">
+                                            <i class="fas fa-file-pdf me-2"></i> View Resume
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-trash me-2"></i>Remove</a></li>
+                                </ul>
                             </div>
                         </div>
-                        <div class="dropdown dropdown-actions">
-                            <button class="btn-action" type="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-ellipsis-v"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="#" onclick="viewApplicantDetails(${applicant.stud_id})"><i class="fas fa-eye me-2"></i>View Profile</a></li>
-                                <li>
-                                    <a class="dropdown-item" href="#" onclick="viewResume(${applicant.stud_id}, '${applicant.resume_file || ''}')">
-                                        <i class="fas fa-file-pdf me-2"></i> View Resume
-                                    </a>
-                                </li> 
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-trash me-2"></i>Remove</a></li>
-                            </ul>
+
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="match-score ${getMatchScoreClass(applicant.match_score)} small">
+                                ${applicant.match_score || 'N/A'}% match
+                            </span>
+                            <span class="text-muted small">${formatDate(applicant.applied_at)}</span>
                         </div>
+
+                        ${status === 'Under Review' ? `
+                            <div class="text-center mt-2">
+                                <button class="btn btn-sm btn-outline-primary" onclick="scheduleInterview(${applicant.application_id}, '${applicant.stud_email}')">
+                                    <i class="fas fa-calendar-alt me-1"></i> Schedule Interview
+                                </button>
+                            </div>
+                        ` : ''}
+
                     </div>
-                    
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="match-score ${getMatchScoreClass(applicant.match_score)} small">
-                            ${applicant.match_score || 'N/A'}% match
-                        </span>
-                        <span class="text-muted small">${formatDate(applicant.applied_at)}</span>
+                `).join('');
+            }
+
+
+
+function scheduleInterview(applicationId, studentEmail) {
+    // Create a modal dialog for interview scheduling
+    const modalHtml = `
+        <div class="modal fade" id="scheduleInterviewModal" tabindex="-1" aria-labelledby="scheduleInterviewModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="scheduleInterviewModalLabel">Schedule Interview</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="interviewForm">
+                            <div class="mb-3">
+                                <label for="interviewDate" class="form-label">Date & Time</label>
+                                <input type="datetime-local" class="form-control" id="interviewDate" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="interviewMode" class="form-label">Interview Mode</label>
+                                <select class="form-select" id="interviewMode" required>
+                                    <option value="">Select Mode</option>
+                                    <option value="In-person">In-person</option>
+                                    <option value="Virtual">Virtual</option>
+                                    <option value="Phone">Phone</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="location" class="form-label">Location/Details</label>
+                                <input type="text" class="form-control" id="location" required>
+                                <small class="text-muted">For virtual interviews, provide meeting link</small>
+                            </div>
+                            <div class="mb-3">
+                                <label for="notes" class="form-label">Additional Notes</label>
+                                <textarea class="form-control" id="notes" rows="3"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="confirmSchedule">Schedule Interview</button>
                     </div>
                 </div>
-            `).join('');
+            </div>
+        </div>
+    `;
+
+    // Add modal to DOM
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Show the modal
+    const modal = new bootstrap.Modal(document.getElementById('scheduleInterviewModal'));
+    modal.show();
+
+    // Handle confirm button click
+    document.getElementById('confirmSchedule').addEventListener('click', async function() {
+        const form = document.getElementById('interviewForm');
+        if (!form.checkValidity()) {
+            form.classList.add('was-validated');
+            return;
         }
+
+        const interviewData = {
+            application_id: applicationId,
+            email: studentEmail,
+            date: document.getElementById('interviewDate').value,
+            mode: document.getElementById('interviewMode').value,
+            location: document.getElementById('location').value,
+            notes: document.getElementById('notes').value
+        };
+
+        const confirmBtn = this;
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Scheduling...';
+
+        try {
+            const response = await fetch('../controllers/employer_schedule_interview.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(interviewData)
+            });
+
+            // First check if response is OK (status 200-299)
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            // Check if response has content
+            const text = await response.text();
+            if (!text) {
+                throw new Error('Empty response from server');
+            }
+
+            // Try to parse JSON
+            const result = JSON.parse(text);
+
+            if (result.success) {
+                // Show success message
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Interview Scheduled',
+                    text: result.message,
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+
+                // Close modal and refresh or update UI as needed
+                modal.hide();
+                document.getElementById('scheduleInterviewModal').remove();
+                
+                // Optionally refresh the application list or update the status
+                if (typeof loadApplications === 'function') {
+                    loadApplications();
+                }
+            } else {
+                throw new Error(result.message || 'Failed to schedule interview');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message || 'An error occurred while scheduling the interview'
+            });
+        } finally {
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = 'Schedule Interview';
+        }
+    });
+
+    // Clean up modal when closed
+    document.getElementById('scheduleInterviewModal').addEventListener('hidden.bs.modal', function() {
+        this.remove();
+    });
+}
+
+
+
+
+
+
+
+
+
         
         // Initialize drag and drop for pipeline
         function initDragAndDrop() {

@@ -335,6 +335,18 @@ CREATE TABLE IF NOT EXISTS report (
 
 
 
+CREATE TABLE IF NOT EXISTS interviews (
+    interview_id INT AUTO_INCREMENT PRIMARY KEY,
+    application_id INT NOT NULL,
+    interview_date DATETIME NOT NULL,
+    interview_mode ENUM('In-person', 'Phone', 'Video') NOT NULL,
+    location_details VARCHAR(255) NOT NULL,
+    additional_notes TEXT,
+    scheduled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('Scheduled', 'Completed', 'Cancelled', 'Rescheduled') DEFAULT 'Scheduled',
+    FOREIGN KEY (application_id) REFERENCES application_tracking(application_id)
+);
+
 
 
 
