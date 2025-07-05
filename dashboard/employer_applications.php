@@ -1221,8 +1221,12 @@ include '../includes/employer_navbar.php';
                                 <i class="fas fa-ellipsis-v"></i>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="#" onclick="viewApplicantDetails(${applicant.stud_id})"><i class="fas fa-eye me-2"></i>View</a></li>
-                                <li><a class="dropdown-item" href="#"><i class="fas fa-file-pdf me-2"></i>Resume</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="viewApplicantDetails(${applicant.stud_id})"><i class="fas fa-eye me-2"></i>View Profile</a></li>
+                                <li>
+                                    <a class="dropdown-item" href="#" onclick="viewResume(${applicant.stud_id}, '${applicant.resume_file || ''}')">
+                                        <i class="fas fa-file-pdf me-2"></i> View Resume
+                                    </a>
+                                </li> 
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-trash me-2"></i>Remove</a></li>
                             </ul>
@@ -1409,7 +1413,7 @@ include '../includes/employer_navbar.php';
                                         </button>
                                         <ul class="dropdown-menu">
                                             <li><a class="dropdown-item" href="#" onclick="viewApplicantDetails(${applicant.stud_id})"><i class="fas fa-eye me-2"></i> View Profile</a></li>
-                                           <li>
+                                            <li>
                                                 <a class="dropdown-item" href="#" onclick="viewResume(${applicant.stud_id}, '${applicant.resume_file || ''}')">
                                                     <i class="fas fa-file-pdf me-2"></i> View Resume
                                                 </a>
