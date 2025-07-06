@@ -325,16 +325,6 @@ CREATE TABLE IF NOT EXISTS report (
     FOREIGN KEY (moderator_id) REFERENCES user(user_id)
 );
 
-
-
-
-
-
-
-
-
-
-
 CREATE TABLE IF NOT EXISTS interviews (
     interview_id INT AUTO_INCREMENT PRIMARY KEY,
     application_id INT NOT NULL,
