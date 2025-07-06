@@ -921,7 +921,7 @@ include '../includes/employer_navbar.php';
                                     <?php endif; ?>
                                 </div>
                                 <div class="d-flex gap-2">
-                                    <a href="employer_view_applicants.php?job_id=<?= $job['job_id'] ?>" 
+                                    <a href="employer_applications.php?job_id=<?= $job['job_id'] ?>" 
                                        class="action-btn btn-view-applicants">
                                         <i class="bi bi-people-fill"></i> View Applicants
                                     </a>

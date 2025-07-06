@@ -18,6 +18,7 @@ require '../controllers/update_due_interviews.php';
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- AOS Animation -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
         :root {
@@ -1231,7 +1232,12 @@ require '../controllers/update_due_interviews.php';
                                         </a>
                                     </li>
                                     <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-danger" href="#" onclick="RemoveApplication(${applicant.application_id})"><i class="fas fa-trash me-2"></i>Remove</a></li>
+                                    <li>
+                                        <a class="dropdown-item text-danger" href="#" 
+                                            onclick="confirmRemove(${applicant.application_id})">
+                                            <i class="fas fa-trash me-2"></i>Remove
+                                        </a>
+                                    </li>
                                 </ul>
                             </div>
                         </div>
@@ -1254,168 +1260,190 @@ require '../controllers/update_due_interviews.php';
                     </div>
                 `).join('');
             }
-
-    function RemoveApplication(applicationId) {
-        console.log(`RemoveApplication function called for application ID: ${applicationId}`);
-
-        fetch('../employer_api/reject_application.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ application_id: applicationId })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Application rejected successfully');
-                // Optionally refresh table or remove row from DOM
-            } else {
-                alert('Failed to reject application: ' + data.message);
+        function confirmRemove(applicationId) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+            RemoveApplication(applicationId);
+            // Optional: Show success message after deletion
+            Swal.fire(
+                'Deleted!',
+                'The application has been removed.',
+                'success'
+            );
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Request failed.');
         });
-    }
-
-
-function scheduleInterview(applicationId, studentEmail) {
-    // Create a modal dialog for interview scheduling
-    const modalHtml = `
-        <div class="modal fade" id="scheduleInterviewModal" tabindex="-1" aria-labelledby="scheduleInterviewModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="scheduleInterviewModalLabel">Schedule Interview</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="interviewForm">
-                            <div class="mb-3">
-                                <label for="interviewDate" class="form-label">Date & Time</label>
-                                <input type="datetime-local" class="form-control" id="interviewDate" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="interviewMode" class="form-label">Interview Mode</label>
-                                <select class="form-select" id="interviewMode" required>
-                                    <option value="">Select Mode</option>
-                                    <option value="In-person">In-person</option>
-                                    <option value="Virtual">Virtual</option>
-                                    <option value="Phone">Phone</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="location" class="form-label">Location/Details</label>
-                                <input type="text" class="form-control" id="location" required>
-                                <small class="text-muted">For virtual interviews, provide meeting link</small>
-                            </div>
-                            <div class="mb-3">
-                                <label for="notes" class="form-label">Additional Notes</label>
-                                <textarea class="form-control" id="notes" rows="3"></textarea>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-primary" id="confirmSchedule">Schedule Interview</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-
-    // Add modal to DOM
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-    
-    // Show the modal
-    const modal = new bootstrap.Modal(document.getElementById('scheduleInterviewModal'));
-    modal.show();
-
-    // Handle confirm button click
-    document.getElementById('confirmSchedule').addEventListener('click', async function() {
-        const form = document.getElementById('interviewForm');
-        if (!form.checkValidity()) {
-            form.classList.add('was-validated');
-            return;
         }
 
-        const interviewData = {
-            application_id: applicationId,
-            email: studentEmail,
-            date: document.getElementById('interviewDate').value,
-            mode: document.getElementById('interviewMode').value,
-            location: document.getElementById('location').value,
-            notes: document.getElementById('notes').value
-        };
 
-        const confirmBtn = this;
-        confirmBtn.disabled = true;
-        confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Scheduling...';
+        function RemoveApplication(applicationId) {
+            console.log(`RemoveApplication function called for application ID: ${applicationId}`);
 
-        try {
-            const response = await fetch('../controllers/employer_schedule_interview.php', {
+            fetch('../employer_api/reject_application.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(interviewData)
-            });
-
-            // First check if response is OK (status 200-299)
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            // Check if response has content
-            const text = await response.text();
-            if (!text) {
-                throw new Error('Empty response from server');
-            }
-
-            // Try to parse JSON
-            const result = JSON.parse(text);
-
-            if (result.success) {
-                // Show success message
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Interview Scheduled',
-                    text: result.message,
-                    timer: 3000,
-                    showConfirmButton: false
-                });
-
-                // Close modal and refresh or update UI as needed
-                modal.hide();
-                document.getElementById('scheduleInterviewModal').remove();
-                
-                // Optionally refresh the application list or update the status
-                if (typeof loadApplications === 'function') {
-                    loadApplications();
+                body: JSON.stringify({ application_id: applicationId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('Application rejected successfully');
+                    // Optionally refresh table or remove row from DOM
+                } else {
+                    alert('Failed to reject application: ' + data.message);
                 }
-            } else {
-                throw new Error(result.message || 'Failed to schedule interview');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: error.message || 'An error occurred while scheduling the interview'
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Request failed.');
             });
-        } finally {
-            confirmBtn.disabled = false;
-            confirmBtn.textContent = 'Schedule Interview';
         }
-    });
 
-    // Clean up modal when closed
-    document.getElementById('scheduleInterviewModal').addEventListener('hidden.bs.modal', function() {
-        this.remove();
-    });
-}
+
+        function scheduleInterview(applicationId, studentEmail) {
+            // Create a modal dialog for interview scheduling
+            const modalHtml = `
+                <div class="modal fade" id="scheduleInterviewModal" tabindex="-1" aria-labelledby="scheduleInterviewModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="scheduleInterviewModalLabel">Schedule Interview</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="interviewForm">
+                                    <div class="mb-3">
+                                        <label for="interviewDate" class="form-label">Date & Time</label>
+                                        <input type="datetime-local" class="form-control" id="interviewDate" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="interviewMode" class="form-label">Interview Mode</label>
+                                        <select class="form-select" id="interviewMode" required>
+                                            <option value="">Select Mode</option>
+                                            <option value="In-person">In-person</option>
+                                            <option value="Virtual">Virtual</option>
+                                            <option value="Phone">Phone</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="location" class="form-label">Location/Details</label>
+                                        <input type="text" class="form-control" id="location" required>
+                                        <small class="text-muted">For virtual interviews, provide meeting link</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="notes" class="form-label">Additional Notes</label>
+                                        <textarea class="form-control" id="notes" rows="3"></textarea>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-primary" id="confirmSchedule">Schedule Interview</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Add modal to DOM
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            // Show the modal
+            const modal = new bootstrap.Modal(document.getElementById('scheduleInterviewModal'));
+            modal.show();
+
+            // Handle confirm button click
+            document.getElementById('confirmSchedule').addEventListener('click', async function() {
+                const form = document.getElementById('interviewForm');
+                if (!form.checkValidity()) {
+                    form.classList.add('was-validated');
+                    return;
+                }
+
+                const interviewData = {
+                    application_id: applicationId,
+                    email: studentEmail,
+                    date: document.getElementById('interviewDate').value,
+                    mode: document.getElementById('interviewMode').value,
+                    location: document.getElementById('location').value,
+                    notes: document.getElementById('notes').value
+                };
+
+                const confirmBtn = this;
+                confirmBtn.disabled = true;
+                confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Scheduling...';
+
+                try {
+                    const response = await fetch('../controllers/employer_schedule_interview.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(interviewData)
+                    });
+
+                    // First check if response is OK (status 200-299)
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    // Check if response has content
+                    const text = await response.text();
+                    if (!text) {
+                        throw new Error('Empty response from server');
+                    }
+
+                    // Try to parse JSON
+                    const result = JSON.parse(text);
+
+                    if (result.success) {
+                        // Show success message
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Interview Scheduled',
+                            text: result.message,
+                            timer: 3000,
+                            showConfirmButton: false
+                        });
+
+                        // Close modal and refresh or update UI as needed
+                        modal.hide();
+                        document.getElementById('scheduleInterviewModal').remove();
+                        
+                        // Optionally refresh the application list or update the status
+                        if (typeof loadApplications === 'function') {
+                            loadApplications();
+                        }
+                    } else {
+                        throw new Error(result.message || 'Failed to schedule interview');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: error.message || 'An error occurred while scheduling the interview'
+                    });
+                } finally {
+                    confirmBtn.disabled = false;
+                    confirmBtn.textContent = 'Schedule Interview';
+                }
+            });
+
+            // Clean up modal when closed
+            document.getElementById('scheduleInterviewModal').addEventListener('hidden.bs.modal', function() {
+                this.remove();
+            });
+        }
 
 
 
@@ -1603,7 +1631,11 @@ function scheduleInterview(applicationId, studentEmail) {
                                             </li>   
                                             <li><hr class="dropdown-divider"></li>
                                             <?php //<li><a class="dropdown-item text-success" href="#" onclick="updateStatus(${applicant.stud_id}, 'accepted')"><i class="fas fa-check me-2"></i> Accept</a></li>?>
-                                            <li><a class="dropdown-item text-danger" href="#" onclick="RemoveApplication(${applicant.application_id}, 'rejected')"><i class="fas fa-times me-2"></i> Reject</a></li>
+                                           <li>
+                                                <a class="dropdown-item text-danger" href="#" onclick="confirmRemove(${applicant.application_id}, 'rejected')">
+                                                    <i class="fas fa-times me-2"></i> Reject
+                                                </a>
+                                            </li>
                                             <li><hr class="dropdown-divider"></li>
                                             <li><a class="dropdown-item" href="/skillmatch/dashboard/messages.php"><i class="fas fa-envelope me-2"></i> Message</a></li>
 
