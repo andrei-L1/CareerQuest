@@ -1,6 +1,7 @@
 <?php
 require '../auth/employer_auth.php';
 include '../includes/employer_navbar.php';
+require '../controllers/update_due_interviews.php';
 ?>
 
 <!DOCTYPE html>

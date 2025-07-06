@@ -1,4 +1,5 @@
 <?php
+ob_start();
 require_once '../config/dbcon.php';
 include '../includes/employer_navbar.php';
 require_once '../auth/employer_auth.php';
@@ -176,6 +177,7 @@ $unread_count = 0;
 foreach ($notifications as $n) {
     if (!$n['is_read']) $unread_count++;
 }
+ob_end_flush();
 ?>
 <!DOCTYPE html>
 <html lang="en">
