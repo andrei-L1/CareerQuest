@@ -1230,7 +1230,7 @@ include '../includes/employer_navbar.php';
                                         </a>
                                     </li>
                                     <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-trash me-2"></i>Remove</a></li>
+                                    <li><a class="dropdown-item text-danger" href="#" onclick="RemoveApplication(${applicant.application_id})"><i class="fas fa-trash me-2"></i>Remove</a></li>
                                 </ul>
                             </div>
                         </div>
@@ -1254,6 +1254,30 @@ include '../includes/employer_navbar.php';
                 `).join('');
             }
 
+    function RemoveApplication(applicationId) {
+        console.log(`RemoveApplication function called for application ID: ${applicationId}`);
+
+        fetch('../employer_api/reject_application.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ application_id: applicationId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Application rejected successfully');
+                // Optionally refresh table or remove row from DOM
+            } else {
+                alert('Failed to reject application: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Request failed.');
+        });
+    }
 
 
 function scheduleInterview(applicationId, studentEmail) {
