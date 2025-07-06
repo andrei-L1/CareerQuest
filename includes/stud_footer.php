@@ -1,7 +1,8 @@
 <footer class="footer bg-white text-primary pt-5 pb-4">
   <div class="container">
+    <!--
     <div class="row g-4">
-      <!-- Platform Info -->
+       Platform Info 
       <div class="col-lg-4 col-md-6 mb-4">
         <div class="d-flex align-items-center mb-3">
           <i class="bi bi-briefcase-fill fs-3 me-2" style="color: #1a4d8f;"></i>
@@ -16,7 +17,7 @@
         </div>
       </div>
 
-      <!-- Quick Links -->
+      <Quick Links 
       <div class="col-lg-2 col-md-6 mb-4">
         <h6 class="text-uppercase fw-bold mb-3" style="color: #1a4d8f;">Explore</h6>
         <ul class="list-unstyled">
@@ -27,7 +28,7 @@
         </ul>
       </div>
 
-      <!-- For Students -->
+       For Students 
       <div class="col-lg-2 col-md-6 mb-4">
         <h6 class="text-uppercase fw-bold mb-3" style="color: #1a4d8f;">Students</h6>
         <ul class="list-unstyled">
@@ -38,7 +39,7 @@
         </ul>
       </div>
 
-      <!-- For Employers -->
+      For Employers 
       <div class="col-lg-2 col-md-6 mb-4">
         <h6 class="text-uppercase fw-bold mb-3" style="color: #1a4d8f;">Employers</h6>
         <ul class="list-unstyled">
@@ -49,7 +50,7 @@
         </ul>
       </div>
 
-      <!-- Contact -->
+      Contact 
       <div class="col-lg-2 col-md-6 mb-4">
         <h6 class="text-uppercase fw-bold mb-3" style="color: #1a4d8f;">Contact Us</h6>
         <ul class="list-unstyled">
@@ -76,22 +77,27 @@
           </li>
         </ul>
       </div>
-    </div>
+  -->
 
-    <div class="row mt-4 pt-3 border-top" style="border-color: rgba(26, 77, 143, 0.1) !important;">
+
+
+          <div class="row mt-4 pt-3 border-top" style="border-color: rgba(26, 77, 143, 0.1) !important;">
       <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
-        <p class="small mb-0" style="color: #6c757d;">&copy; 2025 CareerConnect. All rights reserved.</p>
+        <p class="small mb-0" style="color: #6c757d;">&copy; 2025 CareerQuest. All rights reserved.</p>
       </div>
       <div class="col-md-6 text-center text-md-end">
         <ul class="list-inline small mb-0">
-          <li class="list-inline-item"><a href="/privacy" class="text-decoration-none" style="color: #6c757d;">Privacy Policy</a></li>
+          <li class="list-inline-item"><a href="/privacy" class="text-decoration-none" style="color: #6c757d;">Neust Talavera Off-Campus</a></li>
           <li class="list-inline-item mx-2" style="color: #6c757d;">•</li>
-          <li class="list-inline-item"><a href="/terms" class="text-decoration-none" style="color: #6c757d;">Terms of Service</a></li>
+          <li class="list-inline-item"><a href="/terms" class="text-decoration-none" style="color: #6c757d;">BSIT</a></li>
           <li class="list-inline-item mx-2" style="color: #6c757d;">•</li>
           <li class="list-inline-item"><a href="/cookies" class="text-decoration-none" style="color: #6c757d;">Cookie Policy</a></li>
         </ul>
       </div>
     </div>
+    </div>
+
+
   </div>
 </footer>
 
