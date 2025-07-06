@@ -1601,10 +1601,11 @@ function scheduleInterview(applicationId, studentEmail) {
                                                 </a>
                                             </li>   
                                             <li><hr class="dropdown-divider"></li>
-                                            <li><a class="dropdown-item text-success" href="#" onclick="updateStatus(${applicant.stud_id}, 'accepted')"><i class="fas fa-check me-2"></i> Accept</a></li>
-                                            <li><a class="dropdown-item text-danger" href="#" onclick="updateStatus(${applicant.stud_id}, 'rejected')"><i class="fas fa-times me-2"></i> Reject</a></li>
+                                            <?php //<li><a class="dropdown-item text-success" href="#" onclick="updateStatus(${applicant.stud_id}, 'accepted')"><i class="fas fa-check me-2"></i> Accept</a></li>?>
+                                            <li><a class="dropdown-item text-danger" href="#" onclick="RemoveApplication(${applicant.application_id}, 'rejected')"><i class="fas fa-times me-2"></i> Reject</a></li>
                                             <li><hr class="dropdown-divider"></li>
-                                            <li><a class="dropdown-item" href="#"><i class="fas fa-envelope me-2"></i> Message</a></li>
+                                            <li><a class="dropdown-item" href="/skillmatch/dashboard/messages.php"><i class="fas fa-envelope me-2"></i> Message</a></li>
+
                                         </ul>
                                     </div>
                                 </div>
