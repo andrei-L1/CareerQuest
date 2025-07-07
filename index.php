@@ -28,6 +28,32 @@ if (isset($_SESSION['user_id'])) {
     exit();
 }
 
+
+// Database connection
+require_once 'config/dbcon.php';
+
+// Get jobs posted (job_posting table)
+$jobsQuery = "SELECT COUNT(*) AS total_jobs FROM job_posting WHERE deleted_at IS NULL";
+$jobsResult = $conn->query($jobsQuery);
+$jobsPosted = ($jobsResult && $row = $jobsResult->fetch(PDO::FETCH_ASSOC)) ? $row['total_jobs'] : 0;
+
+// Get professionals (user table with role_id = 3 for professionals)
+$professionalsQuery = "SELECT COUNT(*) AS total_professionals FROM user WHERE role_id = 3 AND deleted_at IS NULL";
+$professionalsResult = $conn->query($professionalsQuery);
+$professionals = ($professionalsResult && $row = $professionalsResult->fetch(PDO::FETCH_ASSOC)) ? $row['total_professionals'] : 0;
+
+// Get companies hiring (distinct employer_id from job_posting)
+$companiesQuery = "SELECT COUNT(DISTINCT employer_id) AS total_companies FROM job_posting WHERE deleted_at IS NULL";
+$companiesResult = $conn->query($companiesQuery);
+$companies = ($companiesResult && $row = $companiesResult->fetch(PDO::FETCH_ASSOC)) ? $row['total_companies'] : 0;
+
+// Get success rate (percentage of jobs filled, assuming moderation_status = 'Approved' and not deleted)
+$filledJobsQuery = "SELECT COUNT(*) AS filled_jobs FROM job_posting WHERE moderation_status = 'Approved' AND deleted_at IS NULL";
+$filledJobsResult = $conn->query($filledJobsQuery);
+$filledJobs = ($filledJobsResult && $row = $filledJobsResult->fetch(PDO::FETCH_ASSOC)) ? $row['filled_jobs'] : 0;
+$successRate = ($jobsPosted > 0) ? round(($filledJobs / $jobsPosted) * 100) : 0;
+
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -255,7 +281,7 @@ if (isset($_SESSION['user_id'])) {
                         </div>
                         <h4 class="card-title font-weight-bold mb-3">For Students</h4>
                         <p class="card-text text-muted">Create Profile → Match Skills → Apply & Get Hired</p>
-                        <a href="#" class="btn btn-outline-primary mt-3">Learn More</a>
+                         <a href="learnmore/student-how-it-works.php" class="btn btn-outline-primary mt-3">Learn More</a>
                     </div>
                 </div>
             </div>
@@ -269,7 +295,7 @@ if (isset($_SESSION['user_id'])) {
                         </div>
                         <h4 class="card-title font-weight-bold mb-3">For Employers</h4>
                         <p class="card-text text-muted">Post Jobs → Find Top Talent → Hire Easily</p>
-                        <a href="#" class="btn btn-outline-success mt-3">Learn More</a>
+                        <a href="learnmore/employer-how-it-works.php" class="btn btn-outline-success mt-3">Learn More</a>
                     </div>
                 </div>
             </div>
@@ -283,7 +309,7 @@ if (isset($_SESSION['user_id'])) {
                         </div>
                         <h4 class="card-title font-weight-bold mb-3">For Professionals</h4>
                         <p class="card-text text-muted">Build Profile → Network & Mentor → Access Opportunities</p>
-                        <a href="#" class="btn btn-outline-info mt-3">Learn More</a>
+                         <a href="learnmore/applicant-how-it-works.php" class="btn btn-outline-info mt-3">Learn More</a>
                     </div>
                 </div>
             </div>
@@ -292,27 +318,28 @@ if (isset($_SESSION['user_id'])) {
 
 
     <section class="bg-light py-5">
-    <div class="container text-center">
-        <h2 class="mb-5" data-aos="fade-up">By the Numbers</h2>
-        <div class="row" data-aos="fade-up">
-            <div class="col-md-3">
-                <h3 class="display-4">10,000+</h3>
-                <p class="text-muted">Jobs Posted</p>
-            </div>
-            <div class="col-md-3">
-                <h3 class="display-4">50,000+</h3>
-                <p class="text-muted">Professionals</p>
-            </div>
-            <div class="col-md-3">
-                <h3 class="display-4">95%</h3>
-                <p class="text-muted">Success Rate</p>
-            </div>
-            <div class="col-md-3">
-                <h3 class="display-4">100+</h3>
-                <p class="text-muted">Companies Hiring</p>
-            </div>
+        <div class="container text-center">
+            <h2 class="mb-5" data-aos="fade-up">By the Numbers</h2>
+            <div class="row" data-aos="fade-up">
+                <div class="col-md-3">
+                    <h3 class="display-4"><?php echo number_format($jobsPosted); ?></h3>
+                    <p class="text-muted">Jobs Posted</p>
+                </div>
+                <div class="col-md-3">
+                    <h3 class="display-4"><?php echo number_format($professionals); ?></h3>
+                    <p class="text-muted">Professionals</p>
+                </div>
+                <div class="col-md-3">
+                    <h3 class="display-4"><?php echo $successRate; ?>%</h3>
+                    <p class="text-muted">Success Rate</p>
+                </div>
+                <div class="col-md-3">
+                    <h3 class="display-4"><?php echo number_format($companies); ?></h3>
+                    <p class="text-muted">Companies Hiring</p>
+                </div>
             </div>
         </div>
+    </section>
     </section>
 
     <!-- Testimonials -->
