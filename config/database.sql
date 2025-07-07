@@ -207,6 +207,7 @@ CREATE TABLE IF NOT EXISTS forum (
     forum_id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     description TEXT,
+    is_private BOOLEAN DEFAULT FALSE,
     created_by INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -338,19 +339,19 @@ CREATE TABLE IF NOT EXISTS interviews (
 );
 
 
--- Add the forum_membership table with enhanced features
 CREATE TABLE IF NOT EXISTS forum_membership (
     membership_id INT AUTO_INCREMENT PRIMARY KEY,
     forum_id INT NOT NULL,
     actor_id INT NOT NULL,
     joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     role ENUM('Member', 'Moderator', 'Admin') DEFAULT 'Member',
-    status ENUM('Active', 'Banned', 'Left') DEFAULT 'Active',
+    status ENUM('Pending', 'Active', 'Banned', 'Left') DEFAULT 'Pending',
     deleted_at TIMESTAMP NULL,
     FOREIGN KEY (forum_id) REFERENCES forum(forum_id) ON DELETE CASCADE,
     FOREIGN KEY (actor_id) REFERENCES actor(actor_id) ON DELETE CASCADE,
     UNIQUE KEY (forum_id, actor_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 
 
