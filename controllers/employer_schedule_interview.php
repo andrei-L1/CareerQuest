@@ -161,7 +161,7 @@ try {
             
             ".(!empty($input['notes']) ? "<h3>Additional Notes:</h3><p>{$input['notes']}</p>" : "")."
             
-            <p>Please reply to this email to confirm your attendance or request alternative arrangements.</p>
+            <p>Please do not reply to this email.</p>
             
             <p>Best regards,<br>
             <strong>{$details['company_name']} Hiring Team</strong></p>

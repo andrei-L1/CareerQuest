@@ -1234,7 +1234,7 @@ require '../controllers/update_due_interviews.php';
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
                                         <a class="dropdown-item text-danger" href="#" 
-                                            onclick="confirmRemove(${applicant.application_id})">
+                                            onclick="confirmRemove(${applicant.application_id}, '${applicant.stud_email}')">
                                             <i class="fas fa-trash me-2"></i>Remove
                                         </a>
                                     </li>
@@ -1260,52 +1260,74 @@ require '../controllers/update_due_interviews.php';
                     </div>
                 `).join('');
             }
-        function confirmRemove(applicationId) {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "You won't be able to revert this!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-            RemoveApplication(applicationId);
-            // Optional: Show success message after deletion
-            Swal.fire(
-                'Deleted!',
-                'The application has been removed.',
-                'success'
-            );
-            }
-        });
+        function confirmRemove(applicationId, studentEmail) {
+            Swal.fire({
+                title: 'Reject Application?',
+                text: "This will notify the candidate and cannot be undone!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, reject it!',
+                showLoaderOnConfirm: true,
+                preConfirm: () => {
+                    return RemoveApplication(applicationId, studentEmail)
+                        .then(response => {
+                            if (!response.success) {
+                                throw new Error(response.message || 'Failed to reject application');
+                            }
+                            return response;
+                        })
+                        .catch(error => {
+                            Swal.showValidationMessage(
+                                `Request failed: ${error.message}`
+                            );
+                        });
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire(
+                        'Rejected!',
+                        'The application has been rejected and the candidate has been notified.',
+                        'success'
+                    );
+                    // Remove the row from the table
+                    document.querySelector(`tr[data-application-id="${applicationId}"]`)?.remove();
+                }
+            });
         }
 
+        async function RemoveApplication(applicationId, studentEmail) {
+            console.log(`Rejecting application ID: ${applicationId}, student email: ${studentEmail}`);
 
-        function RemoveApplication(applicationId) {
-            console.log(`RemoveApplication function called for application ID: ${applicationId}`);
+            try {
+                const response = await fetch('../employer_api/reject_application.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        application_id: applicationId,
+                        email: studentEmail  // Make sure your PHP expects this field
+                    })
+                });
 
-            fetch('../employer_api/reject_application.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ application_id: applicationId })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    console.log('Application rejected successfully');
-                    // Optionally refresh table or remove row from DOM
-                } else {
-                    alert('Failed to reject application: ' + data.message);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-            })
-            .catch(error => {
+
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.message || 'Unknown error occurred');
+                }
+
+                return data;
+            } catch (error) {
                 console.error('Error:', error);
-                alert('Request failed.');
-            });
+                throw error; // Re-throw to be caught by the caller
+            }
         }
 
 
