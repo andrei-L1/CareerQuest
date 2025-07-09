@@ -339,89 +339,145 @@ $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
         /* Main Content Area */
         .forum-content {
             flex: 1;
-            padding: 20px;
+            padding: 2rem;
             overflow-y: auto;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
         }
 
         .forum-header {
-            margin-bottom: 20px;
+            margin-bottom: 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
 
         .forum-title {
-            font-weight: 600;
-            color: var(--dark-color);
+            font-weight: 700;
+            color: #1e293b;
+            font-size: 1.8rem;
+            margin: 0;
+        }
+
+        .forum-header p {
+            color: #64748b;
+            margin: 0.5rem 0 0;
+            font-size: 1rem;
         }
 
         .forum-list {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
         }
 
         .forum-card {
             background: white;
-            border-radius: var(--border-radius);
-            padding: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            transition: transform 0.2s, box-shadow 0.2s;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
         }
 
         .forum-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            border-color: #cbd5e1;
         }
 
         .forum-card h3 {
-            margin-top: 0;
-            color: var(--primary-color);
+            margin: 0 0 1rem;
+            color: #2563eb;
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+
+        .forum-card h3 a {
+            color: inherit;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .forum-card h3 a:hover {
+            color: #1d4ed8;
+            text-decoration: underline;
         }
 
         .forum-card p {
-            color: var(--gray-color);
-            margin-bottom: 10px;
+            color: #475569;
+            margin-bottom: 1.5rem;
+            flex-grow: 1;
+            line-height: 1.5;
         }
 
         .forum-meta {
             display: flex;
             justify-content: space-between;
-            font-size: 12px;
-            color: var(--gray-color);
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .forum-meta i {
+            margin-right: 0.3rem;
         }
 
         .post-list {
             list-style: none;
             padding: 0;
+            margin: 0;
         }
 
         .post-item {
             background: white;
-            border-radius: var(--border-radius);
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            cursor: pointer;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.25rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            border: 1px solid #e2e8f0;
+            position: relative;
+        }
+
+        .post-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+            border-color: #cbd5e1;
         }
 
         .post-header {
             display: flex;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 1rem;
         }
 
         .post-author-avatar {
-            width: 40px;
-            height: 40px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
             overflow: hidden;
-            margin-right: 10px;
-            background-color: #e9ecef;
+            margin-right: 1rem;
+            background-color: #f1f5f9;
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
         }
+
 
         .post-author-avatar img {
             width: 100%;
@@ -429,102 +485,249 @@ $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
             object-fit: cover;
         }
 
+        .post-author-avatar i {
+            font-size: 1.5rem;
+            color: #94a3b8;
+        }
+
         .post-author-info {
             flex: 1;
+            min-width: 0;
         }
 
         .post-author-name {
             font-weight: 600;
             margin: 0;
+            color: #1e293b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .post-date {
-            font-size: 12px;
-            color: var(--gray-color);
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-top: 0.25rem;
         }
 
         .post-title {
-            font-size: 18px;
-            margin: 10px 0;
-            color: var(--dark-color);
+            font-size: 1.25rem;
+            margin: 0.5rem 0 1rem;
+            color: #1e293b;
+            font-weight: 600;
+            line-height: 1.4;
         }
 
         .post-content {
-            margin-bottom: 10px;
-            color: var(--dark-color);
+            margin-bottom: 1.25rem;
+            color: #475569;
+            line-height: 1.6;
+        }
+
+        .post-content a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        .post-content a:hover {
+            text-decoration: underline;
         }
 
         .post-footer {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 14px;
+            font-size: 0.9rem;
+            padding-top: 1rem;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .post-actions {
+            display: flex;
+            gap: 1.25rem;
         }
 
         .post-actions a {
-            color: var(--gray-color);
-            margin-right: 10px;
+            color: #64748b;
             text-decoration: none;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .post-actions a i {
+            margin-right: 0.4rem;
+            font-size: 1rem;
         }
 
         .post-actions a:hover {
-            color: var(--primary-color);
+            color: #2563eb;
+        }
+
+        .post-views {
+            color: #64748b;
+            display: flex;
+            align-items: center;
+        }
+
+        .post-views i {
+            margin-right: 0.4rem;
         }
 
         .pinned-badge {
-            background-color: var(--primary-color);
+            background-color: #2563eb;
             color: white;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 12px;
-            margin-left: 10px;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            margin-left: 0.75rem;
+            display: inline-flex;
+            align-items: center;
         }
 
+        .pinned-badge i {
+            margin-right: 0.25rem;
+        }
+
+        /* New post button styles */
         .new-post-btn {
-            background-color: var(--primary-color);
+            background-color: #2563eb;
             color: white;
             border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
+            padding: 0.6rem 1.25rem;
+            border-radius: 8px;
             font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+        }
+
+        .new-post-btn i {
+            margin-right: 0.5rem;
         }
 
         .new-post-btn:hover {
-            background-color: #3a56d4;
+            background-color: #1d4ed8;
             color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
         }
 
+        /* Alert styles */
+        .alert {
+            border-radius: 10px;
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 1.5rem;
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .alert i {
+            margin-right: 0.5rem;
+            font-size: 1.25rem;
+        }
+
+        .alert h4 {
+            margin-top: 0;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 992px) {
+            .forum-content {
+                padding: 1.5rem;
+            }
+            
+            .forum-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .forum-title {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .forum-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .post-actions {
+                gap: 0.75rem;
+            }
+        }
+
+        /* Animation for new content */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .forum-card, .post-item {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        /* Hover effects for interactive elements */
+        .clickable-post {
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .clickable-post:hover {
+            transform: translateY(-3px);
+        }
+
+        /* Like button animation */
+        .like-btn {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .like-btn:active i {
+            animation: likeBounce 0.4s;
+        }
+
+        @keyframes likeBounce {
+            0% { transform: scale(1); }
+            25% { transform: scale(1.2); }
+            50% { transform: scale(0.9); }
+            75% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* Membership badge styles */
         .forum-membership-badge {
-            font-size: 12px;
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-left: 8px;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            margin-left: 0.5rem;
+            font-weight: 500;
         }
 
         .badge-member {
-            background-color: #6c757d;
+            background-color: #64748b;
             color: white;
         }
 
         .badge-moderator {
-            background-color: #0d6efd;
+            background-color: #2563eb;
             color: white;
         }
 
         .badge-admin {
-            background-color: #dc3545;
+            background-color: #dc2626;
             color: white;
         }
 
-        @media (max-width: 768px) {
-            .forum-sidebar {
-                width: 100%;
-                height: auto;
-            }
-            
-            .forum-container {
-                flex-direction: column;
-            }
+        /* Private forum indicator */
+        .private-forum-icon {
+            color: #d946ef;
+            margin-left: 0.5rem;
+            font-size: 0.9em;
         }
     </style>
 </head>
@@ -541,7 +744,7 @@ $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <?php if (!empty($currentUser['picture'])): ?>
                             <img src="../uploads/<?php echo htmlspecialchars($currentUser['picture']); ?>" alt="Profile Picture">
                         <?php else: ?>
-                            <i class="bi bi-person-fill text-muted"></i>
+                            <i class="bi bi-person-circle text-muted"></i>
                         <?php endif; ?>
                     </div>
                     <div class="user-details">
@@ -549,34 +752,49 @@ $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <div class="user-role"><?php echo htmlspecialchars($currentUser['role']); ?></div>
                     </div>
                 </div>
-                <button id="new-forum-btn" class="new-forum-btn" title="Create New Forum" data-bs-toggle="modal" data-bs-target="#newForumModal">
+                <button id="new-forum-btn" class="btn btn-sm btn-outline-primary" title="Create New Forum" data-bs-toggle="modal" data-bs-target="#newForumModal">
                     <i class="bi bi-plus-lg"></i>
                 </button>
             </div>
             
-            <!-- Forum Navigation -->
             <div class="forum-navigation">
                 <div class="nav-section">
-                    <h4 class="nav-title">Main Navigation</h4>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="nav-title mb-0">MAIN NAVIGATION</h6>
+                    </div>
                     <ul class="nav-links">
                         <li class="nav-item <?php echo !$selectedForumId ? 'active' : ''; ?>">
-                            <a href="forums.php"><i class="bi bi-house-door"></i> Home</a>
+                            <a href="forums.php" class="d-flex align-items-center">
+                                <i class="bi bi-house-door me-2"></i>
+                                <span>Home</span>
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a href="#"><i class="bi bi-bell"></i> Notifications</a>
+                            <a href="#" class="d-flex align-items-center">
+                                <i class="bi bi-bell me-2"></i>
+                                <span>Notifications</span>
+                                <span class="badge bg-danger ms-auto">3</span>
+                            </a>
                         </li>
                     </ul>
                 </div>
                 
                 <div class="nav-section">
-                    <h4 class="nav-title">My Forums</h4>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="nav-title mb-0">MY FORUMS</h6>
+                        <span class="badge bg-primary rounded-pill"><?php echo count($memberForums); ?></span>
+                    </div>
                     <ul class="nav-links">
                         <?php foreach ($memberForums as $forum): ?>
                             <li class="nav-item <?php echo $selectedForumId == $forum['forum_id'] ? 'active' : ''; ?>">
-                                <a href="forums.php?forum_id=<?php echo $forum['forum_id']; ?>">
-                                    <i class="bi bi-people-fill"></i> <?php echo htmlspecialchars($forum['title']); ?>
+                                <a href="forums.php?forum_id=<?php echo $forum['forum_id']; ?>" class="d-flex align-items-center">
+                                    <i class="bi bi-people-fill me-2"></i>
+                                    <span class="text-truncate"><?php echo htmlspecialchars($forum['title']); ?></span>
                                     <?php if ($forum['role'] !== 'Member'): ?>
-                                        <span class="forum-membership-badge badge-<?php echo strtolower($forum['role']); ?>">
+                                        <span class="badge ms-auto bg-<?php 
+                                            echo $forum['role'] === 'Admin' ? 'danger' : 
+                                            ($forum['role'] === 'Moderator' ? 'primary' : 'secondary'); 
+                                        ?>">
                                             <?php echo $forum['role']; ?>
                                         </span>
                                     <?php endif; ?>
@@ -587,25 +805,24 @@ $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </div>
                 
                 <div class="nav-section">
-                    <h4 class="nav-title">All Forums</h4>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="nav-title mb-0">ALL FORUMS</h6>
+                        <span class="badge bg-secondary rounded-pill"><?php echo count($forums); ?></span>
+                    </div>
                     <ul class="nav-links">
                         <?php foreach ($forums as $forum): 
-                            // Check if user has pending request for this forum
-                            $query = "SELECT status FROM forum_membership 
-                                      WHERE forum_id = ? AND actor_id = ? AND deleted_at IS NULL";
-                            $stmt = $conn->prepare($query);
-                            $stmt->execute([$forum['forum_id'], $currentUser['actor_id']]);
-                            $membership = $stmt->fetch(PDO::FETCH_ASSOC);
                             $isPending = ($membership['status'] ?? null) === 'Pending';
                         ?>
                             <li class="nav-item <?php echo $selectedForumId == $forum['forum_id'] ? 'active' : ''; ?>">
-                                <a href="forums.php?forum_id=<?php echo $forum['forum_id']; ?>">
-                                    <i class="bi bi-collection"></i> <?php echo htmlspecialchars($forum['title']); ?>
-                                    <?php if ($isPending): ?>
-                                        <span class="ms-auto badge bg-warning text-dark">Pending</span>
-                                    <?php else: ?>
-                                        <span class="ms-auto badge bg-secondary"><?php echo $forum['post_count']; ?></span>
-                                    <?php endif; ?>
+                                <a href="forums.php?forum_id=<?php echo $forum['forum_id']; ?>" class="d-flex align-items-center">
+                                    <i class="bi bi-collection me-2"></i>
+                                    <span class="text-truncate"><?php echo htmlspecialchars($forum['title']); ?></span>
+                                    <span class="ms-auto d-flex align-items-center">
+                                        <?php if ($isPending): ?>
+                                            <span class="badge bg-warning text-dark me-1">Pending</span>
+                                        <?php endif; ?>
+                                        <span class="badge bg-light text-dark"><?php echo $forum['post_count']; ?></span>
+                                    </span>
                                 </a>
                             </li>
                         <?php endforeach; ?>
