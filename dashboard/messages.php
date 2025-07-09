@@ -1011,12 +1011,15 @@ if (isset($_SESSION['user_id'])) {
 
         // Open a thread
         function openThread(threadId) {
+            unsubscribeFromCurrentChannel();
             currentThreadId = threadId;
             subscribeToThread(threadId);    
 
                 // Subscribe to the channel for this specific thread
                 currentChannel = pusher.subscribe('thread_' + threadId);
                 
+                currentChannel.unbind('new_message');
+
                 currentChannel.bind('new_message', function(data) {
                     // Check if the new message belongs to the current thread
                     if (data.thread_id === threadId) {
@@ -1136,6 +1139,22 @@ if (isset($_SESSION['user_id'])) {
                 }
             });
         }
+
+        function unsubscribeFromCurrentChannel() {
+            if (currentChannel) {
+                // Unbind all event listeners
+                currentChannel.unbind('new_message');
+                currentChannel.unbind('thread_update');
+                
+                // Unsubscribe from the channel
+                pusher.unsubscribe(currentChannel.name);
+                delete subscribedChannels[currentChannel.name];
+                currentChannel = null;
+            }
+        }
+        window.addEventListener('beforeunload', () => {
+            unsubscribeFromCurrentChannel();
+        });
 
         // Mark messages as read
         function markMessagesAsRead(threadId) {
