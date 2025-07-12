@@ -135,6 +135,13 @@ $members = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </head>
 <body>
     <div class="container py-4">
+        <?php if (isset($_GET['message'])): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <?php echo htmlspecialchars($_GET['message']); ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+
         <div class="forum-header">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -173,7 +180,7 @@ $members = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <tr>
                                     <td>
                                         <?php if ($m['picture']): ?>
-                                            <img src="../uploads/<?php echo htmlspecialchars($m['picture']); ?>" class="member-avatar">
+                                            <img src="../Uploads/<?php echo htmlspecialchars($m['picture']); ?>" class="member-avatar">
                                         <?php else: ?>
                                             <div class="member-avatar bg-secondary d-flex align-items-center justify-content-center">
                                                 <i class="bi bi-person-fill text-white"></i>
@@ -186,7 +193,8 @@ $members = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     </td>
                                     <td>
                                         <span class="badge badge-role 
-                                            <?php echo $m['role'] === 'Admin' ? 'badge-admin' : 
+                                            <?php echo $m['role'] === 'Admin demote
+Admin' ? 'badge-admin' : 
                                                   ($m['role'] === 'Moderator' ? 'badge-moderator' : 'badge-member'); ?>">
                                             <?php echo $m['role']; ?>
                                         </span>
@@ -202,43 +210,27 @@ $members = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                             <form action="update_member.php" method="POST" class="d-inline">
                                                 <input type="hidden" name="forum_id" value="<?php echo $forumId; ?>">
                                                 <input type="hidden" name="actor_id" value="<?php echo $m['actor_id']; ?>">
+                                                <input type="hidden" name="action" value="update_role">
+                                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? bin2hex(random_bytes(32))); ?>">
                                                 
                                                 <div class="btn-group btn-group-sm" role="group">
-                                                    <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
-                                                        Change Role
-                                                    </button>
-                                                    <ul class="dropdown-menu">
-                                                        <li>
-                                                            <button type="submit" name="action" value="update_role" class="dropdown-item" <?php if ($m['role'] === 'Member') echo 'active'; ?>>
-                                                                <input type="hidden" name="new_role" value="Member">
-                                                                <i class="bi bi-person me-2"></i>Member
-                                                            </button>
-                                                        </li>
-                                                        <li>
-                                                            <button type="submit" name="action" value="update_role" class="dropdown-item" <?php if ($m['role'] === 'Moderator') echo 'active'; ?>>
-                                                                <input type="hidden" name="new_role" value="Moderator">
-                                                                <i class="bi bi-shield me-2"></i>Moderator
-                                                            </button>
-                                                        </li>
-                                                        <li>
-                                                            <button type="submit" name="action" value="update_role" class="dropdown-item" <?php if ($m['role'] === 'Admin') echo 'active'; ?>>
-                                                                <input type="hidden" name="new_role" value="Admin">
-                                                                <i class="bi bi-star me-2"></i>Admin
-                                                            </button>
-                                                        </li>
-                                                    </ul>
-                                                    
+                                                    <select name="new_role" class="form-select form-select-sm" onchange="this.form.submit()">
+                                                        <option value="Member" <?php if ($m['role'] === 'Member') echo 'selected'; ?>>Member</option>
+                                                        <option value="Moderator" <?php if ($m['role'] === 'Moderator') echo 'selected'; ?>>Moderator</option>
+                                                        <option value="Admin" <?php if ($m['role'] === 'Admin') echo 'selected'; ?>>Admin</option>
+                                                    </select>
+
                                                     <?php if ($m['status'] !== 'Banned'): ?>
-                                                        <button type="submit" name="action" value="ban" class="btn btn-outline-warning" title="Ban">
+                                                        <button type="submit" name="action" value="ban" class="btn btn-outline-warning action-btn" title="Ban">
                                                             <i class="bi bi-slash-circle"></i>
                                                         </button>
                                                     <?php else: ?>
-                                                        <button type="submit" name="action" value="unban" class="btn btn-outline-success" title="Unban">
+                                                        <button type="submit" name="action" value="unban" class="btn btn-outline-success action-btn" title="Unban">
                                                             <i class="bi bi-arrow-counterclockwise"></i>
                                                         </button>
                                                     <?php endif; ?>
-                                                    
-                                                    <button type="submit" name="action" value="remove" class="btn btn-outline-danger" title="Remove">
+
+                                                    <button type="submit" name="action" value="remove" class="btn btn-outline-danger action-btn" title="Remove">
                                                         <i class="bi bi-trash"></i>
                                                     </button>
                                                 </div>
@@ -288,7 +280,7 @@ $members = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <tr>
                                     <td>
                                         <?php if ($m['picture']): ?>
-                                            <img src="../uploads/<?php echo htmlspecialchars($m['picture']); ?>" class="member-avatar">
+                                            <img src="../Uploads/<?php echo htmlspecialchars($m['picture']); ?>" class="member-avatar">
                                         <?php else: ?>
                                             <div class="member-avatar bg-secondary d-flex align-items-center justify-content-center">
                                                 <i class="bi bi-person-fill text-white"></i>
@@ -306,6 +298,7 @@ $members = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         <form action="update_member.php" method="POST" class="d-inline">
                                             <input type="hidden" name="forum_id" value="<?php echo $forumId; ?>">
                                             <input type="hidden" name="actor_id" value="<?php echo $m['actor_id']; ?>">
+                                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? bin2hex(random_bytes(32))); ?>">
                                             
                                             <div class="btn-group btn-group-sm" role="group">
                                                 <button type="submit" name="action" value="approve" class="btn btn-success" title="Approve">

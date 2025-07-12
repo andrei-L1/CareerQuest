@@ -174,7 +174,6 @@ if ($selectedForumId) {
                         AND fm.status = 'Active'
                     GROUP BY fp.post_id
                     ORDER BY fp.is_pinned DESC, fp.posted_at DESC";
-
             $stmt = $conn->prepare($query);
             $stmt->execute([$selectedForumId]);
             $forumPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -202,36 +201,48 @@ $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
         :root {
-            --primary-color: #4361ee;
-            --light-gray: #e9ecef;
-            --gray-color: #6c757d;
-            --dark-color: #212529;
-            --border-radius: 12px;
+            --primary-color: #3b82f6;
+            --secondary-color: #64748b;
+            --accent-color: #10b981;
+            --danger-color: #ef4444;
+            --light-gray: #f1f5f9;
+            --dark-color: #1e293b;
+            --border-radius: 8px;
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --transition: all 0.2s ease-in-out;
         }
-        
+
         body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f5f7fb;
-            height: 100vh;
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: #f8fafc;
             margin: 0;
+            min-height: 100vh;
+            display: flex;
         }
 
         .forum-container {
+            width: calc(100% - 70px); /* Account for sidebar-nav width */
+            margin-left: 70px; /* Shift to accommodate sidebar-nav */
             display: flex;
-            height: 100vh;
+            background-color: white;
+            min-height: 100vh;
         }
 
         /* Sidebar Styles */
         .forum-sidebar {
-            width: 300px;
+            width: 280px;
             background-color: white;
             border-right: 1px solid var(--light-gray);
-            display: flex;
-            flex-direction: column;
+            transition: var(--transition);
+            position: fixed;
+            top: 0;
+            left: 70px; /* Position to the right of sidebar-nav */
+            height: 100vh;
+            z-index: 1100; /* Below sidebar-nav */
         }
 
         .sidebar-header {
-            padding: 15px;
+            padding: 1rem;
             border-bottom: 1px solid var(--light-gray);
             display: flex;
             justify-content: space-between;
@@ -241,15 +252,15 @@ $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
         .user-info {
             display: flex;
             align-items: center;
+            gap: 0.75rem;
         }
 
         .user-avatar {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             overflow: hidden;
-            margin-right: 10px;
-            background-color: #e9ecef;
+            background-color: var(--light-gray);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -263,40 +274,44 @@ $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         .user-name {
             font-weight: 600;
-            font-size: 14px;
+            font-size: 0.95rem;
+            color: var(--dark-color);
         }
 
         .user-role {
-            font-size: 12px;
-            color: var(--gray-color);
+            font-size: 0.8rem;
+            color: var(--secondary-color);
         }
 
         .new-forum-btn {
             background: none;
             border: none;
-            color: var(--gray-color);
-            font-size: 18px;
+            color: var(--secondary-color);
+            font-size: 1.25rem;
             cursor: pointer;
+            transition: var(--transition);
         }
 
         .new-forum-btn:hover {
             color: var(--primary-color);
+            transform: scale(1.1);
         }
 
         .forum-navigation {
-            padding: 15px;
+            padding: 1rem;
             flex-grow: 1;
+            overflow-y: auto;
         }
 
         .nav-section {
-            margin-bottom: 20px;
+            margin-bottom: 1.5rem;
         }
 
         .nav-title {
-            font-size: 12px;
+            font-size: 0.75rem;
             text-transform: uppercase;
-            color: var(--gray-color);
-            margin-bottom: 10px;
+            color: var(--secondary-color);
+            margin-bottom: 0.75rem;
             font-weight: 600;
         }
 
@@ -306,23 +321,19 @@ $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
             margin: 0;
         }
 
-        .nav-item {
-            margin-bottom: 5px;
-        }
-
         .nav-item a {
             display: flex;
             align-items: center;
-            padding: 8px 10px;
-            color: #495057;
+            padding: 0.5rem 0.75rem;
+            color: var(--dark-color);
             text-decoration: none;
-            border-radius: 4px;
-            transition: all 0.2s;
+            border-radius: var(--border-radius);
+            transition: var(--transition);
         }
 
         .nav-item a i {
-            margin-right: 10px;
-            font-size: 16px;
+            margin-right: 0.5rem;
+            font-size: 1rem;
         }
 
         .nav-item a:hover {
@@ -331,7 +342,7 @@ $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         .nav-item.active a {
-            background-color: #e7f1ff;
+            background-color: #eff6ff;
             color: var(--primary-color);
             font-weight: 500;
         }
@@ -339,101 +350,91 @@ $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
         /* Main Content Area */
         .forum-content {
             flex: 1;
-            padding: 2rem;
+            padding: 1.5rem;
             overflow-y: auto;
             max-width: 1200px;
             margin: 0 auto;
-            width: 100%;
         }
 
         .forum-header {
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1.5rem;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
 
         .forum-title {
             font-weight: 700;
-            color: #1e293b;
-            font-size: 1.8rem;
+            color: var(--dark-color);
+            font-size: 1.5rem;
             margin: 0;
         }
 
         .forum-header p {
-            color: #64748b;
+            color: var(--secondary-color);
             margin: 0.5rem 0 0;
-            font-size: 1rem;
+            font-size: 0.9rem;
         }
 
         .forum-list {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 1.5rem;
-            margin-top: 1.5rem;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
         }
 
         .forum-card {
             background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            transition: all 0.3s ease;
-            border: 1px solid #e2e8f0;
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            box-shadow: var(--card-shadow);
+            transition: var(--transition);
+            border: 1px solid var(--light-gray);
             display: flex;
             flex-direction: column;
-            height: 100%;
         }
 
         .forum-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-            border-color: #cbd5e1;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
         }
 
         .forum-card h3 {
-            margin: 0 0 1rem;
-            color: #2563eb;
-            font-size: 1.25rem;
+            margin: 0 0 0.75rem;
+            font-size: 1.1rem;
             font-weight: 600;
-            display: flex;
-            align-items: center;
+            color: var(--primary-color);
         }
 
         .forum-card h3 a {
             color: inherit;
             text-decoration: none;
-            transition: color 0.2s;
         }
 
         .forum-card h3 a:hover {
-            color: #1d4ed8;
             text-decoration: underline;
         }
 
         .forum-card p {
-            color: #475569;
-            margin-bottom: 1.5rem;
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
             flex-grow: 1;
+            font-size: 0.9rem;
             line-height: 1.5;
         }
 
         .forum-meta {
             display: flex;
             justify-content: space-between;
-            font-size: 0.85rem;
-            color: #64748b;
+            font-size: 0.8rem;
+            color: var(--secondary-color);
             margin-top: auto;
-            padding-top: 1rem;
-            border-top: 1px solid #f1f5f9;
-        }
-
-        .forum-meta i {
-            margin-right: 0.3rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--light-gray);
         }
 
         .post-list {
@@ -444,40 +445,36 @@ $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         .post-item {
             background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 1.25rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            transition: all 0.3s ease;
-            border: 1px solid #e2e8f0;
-            position: relative;
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--card-shadow);
+            transition: var(--transition);
+            border: 1px solid var(--light-gray);
         }
 
         .post-item:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0,0,0,0.1);
-            border-color: #cbd5e1;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
         }
 
         .post-header {
             display: flex;
             align-items: center;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
         }
 
         .post-author-avatar {
-            width: 48px;
-            height: 48px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             overflow: hidden;
-            margin-right: 1rem;
-            background-color: #f1f5f9;
+            margin-right: 0.75rem;
+            background-color: var(--light-gray);
             display: flex;
             align-items: center;
             justify-content: center;
-            flex-shrink: 0;
         }
-
 
         .post-author-avatar img {
             width: 100%;
@@ -485,47 +482,39 @@ $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
             object-fit: cover;
         }
 
-        .post-author-avatar i {
-            font-size: 1.5rem;
-            color: #94a3b8;
-        }
-
         .post-author-info {
             flex: 1;
-            min-width: 0;
         }
 
         .post-author-name {
             font-weight: 600;
             margin: 0;
-            color: #1e293b;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            color: var(--dark-color);
+            font-size: 0.95rem;
         }
 
         .post-date {
-            font-size: 0.85rem;
-            color: #64748b;
+            font-size: 0.8rem;
+            color: var(--secondary-color);
             margin-top: 0.25rem;
         }
 
         .post-title {
-            font-size: 1.25rem;
-            margin: 0.5rem 0 1rem;
-            color: #1e293b;
+            font-size: 1.1rem;
+            margin: 0.5rem 0;
+            color: var(--dark-color);
             font-weight: 600;
-            line-height: 1.4;
         }
 
         .post-content {
-            margin-bottom: 1.25rem;
-            color: #475569;
-            line-height: 1.6;
+            margin-bottom: 1rem;
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+            line-height: 1.5;
         }
 
         .post-content a {
-            color: #2563eb;
+            color: var(--primary-color);
             text-decoration: none;
         }
 
@@ -537,35 +526,34 @@ $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.9rem;
-            padding-top: 1rem;
-            border-top: 1px solid #f1f5f9;
+            font-size: 0.85rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--light-gray);
         }
 
         .post-actions {
             display: flex;
-            gap: 1.25rem;
+            gap: 1rem;
         }
 
         .post-actions a {
-            color: #64748b;
+            color: var(--secondary-color);
             text-decoration: none;
             display: flex;
             align-items: center;
-            transition: all 0.2s;
+            transition: var(--transition);
+        }
+
+        .post-actions a:hover {
+            color: var(--primary-color);
         }
 
         .post-actions a i {
             margin-right: 0.4rem;
-            font-size: 1rem;
-        }
-
-        .post-actions a:hover {
-            color: #2563eb;
         }
 
         .post-views {
-            color: #64748b;
+            color: var(--secondary-color);
             display: flex;
             align-items: center;
         }
@@ -575,95 +563,135 @@ $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         .pinned-badge {
-            background-color: #2563eb;
+            background-color: var(--primary-color);
             color: white;
-            padding: 0.25rem 0.5rem;
+            padding: 0.2rem 0.5rem;
             border-radius: 6px;
             font-size: 0.75rem;
-            margin-left: 0.75rem;
-            display: inline-flex;
-            align-items: center;
+            margin-left: 0.5rem;
         }
 
-        .pinned-badge i {
-            margin-right: 0.25rem;
-        }
-
-        /* New post button styles */
         .new-post-btn {
-            background-color: #2563eb;
+            background-color: var(--primary-color);
             color: white;
             border: none;
-            padding: 0.6rem 1.25rem;
-            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
             font-weight: 500;
             display: inline-flex;
             align-items: center;
-            transition: all 0.2s;
-            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
-        }
-
-        .new-post-btn i {
-            margin-right: 0.5rem;
+            transition: var(--transition);
         }
 
         .new-post-btn:hover {
-            background-color: #1d4ed8;
-            color: white;
+            background-color: #2563eb;
             transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+            box-shadow: var(--card-shadow);
         }
 
-        /* Alert styles */
         .alert {
-            border-radius: 10px;
-            padding: 1.25rem 1.5rem;
-            margin-bottom: 1.5rem;
-            border: none;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .alert i {
-            margin-right: 0.5rem;
             font-size: 1.25rem;
         }
 
         .alert h4 {
-            margin-top: 0;
-            margin-bottom: 0.75rem;
+            margin: 0;
+            font-size: 1rem;
             font-weight: 600;
         }
 
-        /* Responsive adjustments */
-        @media (max-width: 992px) {
-            .forum-content {
-                padding: 1.5rem;
-            }
-            
-            .forum-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 1rem;
-            }
-            
-            .forum-title {
-                font-size: 1.5rem;
-            }
+        /* Toast Notification */
+        .toast-container {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1300; /* Above both sidebars */
         }
 
-        @media (max-width: 768px) {
+        .toast {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            transform: translateX(100%);
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .toast-success {
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .toast-error {
+            border-left: 4px solid var(--danger-color);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 767px) {
+            .forum-container {
+                width: 100%;
+                margin-left: 0; /* Remove sidebar-nav offset on mobile */
+                flex-direction: column;
+                padding-bottom: 60px; /* Space for bottom sidebar-nav */
+            }
+
+            .forum-sidebar {
+                width: 100%;
+                max-height: 60px;
+                overflow: hidden;
+                transition: max-height 0.3s ease-in-out;
+                position: relative;
+                left: 0; /* Reset position for mobile */
+                z-index: 1100;
+            }
+
+            .forum-sidebar.active {
+                max-height: 100vh;
+            }
+
+            .forum-content {
+                padding: 1rem;
+            }
+
             .forum-list {
                 grid-template-columns: 1fr;
             }
-            
-            .post-actions {
-                gap: 0.75rem;
+
+            .sidebar-toggle {
+                display: block;
+                position: absolute;
+                top: 1rem;
+                right: 1rem;
+                background: none;
+                border: none;
+                font-size: 1.5rem;
+                color: var(--primary-color);
+                cursor: pointer;
+                z-index: 1150; /* Above forum-sidebar but below sidebar-nav */
             }
         }
 
-        /* Animation for new content */
+        /* Animations */
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
@@ -671,78 +699,44 @@ $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
             animation: fadeIn 0.3s ease-out forwards;
         }
 
-        /* Hover effects for interactive elements */
-        .clickable-post {
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .clickable-post:hover {
-            transform: translateY(-3px);
-        }
-
-        /* Like button animation */
-        .like-btn {
-            position: relative;
-            overflow: hidden;
-        }
-
-        .like-btn:active i {
-            animation: likeBounce 0.4s;
-        }
-
-        @keyframes likeBounce {
-            0% { transform: scale(1); }
-            25% { transform: scale(1.2); }
-            50% { transform: scale(0.9); }
-            75% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-
-        /* Membership badge styles */
-        .forum-membership-badge {
-            font-size: 0.75rem;
-            padding: 0.25rem 0.5rem;
-            border-radius: 6px;
-            margin-left: 0.5rem;
+        .like-btn.active {
+            color: var(--primary-color);
             font-weight: 500;
         }
 
-        .badge-member {
-            background-color: #64748b;
-            color: white;
+        .like-btn i {
+            transition: transform 0.2s;
         }
 
-        .badge-moderator {
-            background-color: #2563eb;
-            color: white;
+        .like-btn:active i {
+            transform: scale(1.2);
         }
 
-        .badge-admin {
-            background-color: #dc2626;
-            color: white;
+        /* Accessibility */
+        .nav-item a:focus {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
         }
 
-        /* Private forum indicator */
-        .private-forum-icon {
-            color: #d946ef;
-            margin-left: 0.5rem;
-            font-size: 0.9em;
+        .new-post-btn:focus, .new-forum-btn:focus {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
         }
     </style>
 </head>
 <body>
     <div class="forum-container">
-
-            <!-- Sidebar Navigation -->
-        <?php require '../includes/forum_sidebar.php'; ?>
         <!-- Sidebar Navigation -->
+        <?php require '../includes/forum_sidebar.php'; ?>
         <div class="forum-sidebar">
+            <button class="sidebar-toggle d-none" aria-label="Toggle Sidebar">
+                <i class="bi bi-list"></i>
+            </button>
             <div class="sidebar-header">
                 <div class="user-info">
-                    <div class="user-avatar">
+                    <div class="user-avatar" aria-label="User Profile Picture">
                         <?php if (!empty($currentUser['picture'])): ?>
-                            <img src="../uploads/<?php echo htmlspecialchars($currentUser['picture']); ?>" alt="Profile Picture">
+                            <img src="../Uploads/<?php echo htmlspecialchars($currentUser['picture']); ?>" alt="Profile Picture of <?php echo htmlspecialchars($currentUser['name']); ?>">
                         <?php else: ?>
                             <i class="bi bi-person-circle text-muted"></i>
                         <?php endif; ?>
@@ -752,7 +746,7 @@ $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <div class="user-role"><?php echo htmlspecialchars($currentUser['role']); ?></div>
                     </div>
                 </div>
-                <button id="new-forum-btn" class="btn btn-sm btn-outline-primary" title="Create New Forum" data-bs-toggle="modal" data-bs-target="#newForumModal">
+                <button id="new-forum-btn" class="new-forum-btn" title="Create New Forum" data-bs-toggle="modal" data-bs-target="#newForumModal" aria-label="Create New Forum">
                     <i class="bi bi-plus-lg"></i>
                 </button>
             </div>
@@ -764,14 +758,14 @@ $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     </div>
                     <ul class="nav-links">
                         <li class="nav-item <?php echo !$selectedForumId ? 'active' : ''; ?>">
-                            <a href="forums.php" class="d-flex align-items-center">
-                                <i class="bi bi-house-door me-2"></i>
+                            <a href="forums.php" class="d-flex align-items-center" aria-current="<?php echo !$selectedForumId ? 'page' : ''; ?>">
+                                <i class="bi bi-house-door"></i>
                                 <span>Home</span>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="d-flex align-items-center">
-                                <i class="bi bi-bell me-2"></i>
+                            <a href="#" class="d-flex align-items-center" aria-label="Notifications (3 unread)">
+                                <i class="bi bi-bell"></i>
                                 <span>Notifications</span>
                                 <span class="badge bg-danger ms-auto">3</span>
                             </a>
@@ -787,8 +781,8 @@ $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <ul class="nav-links">
                         <?php foreach ($memberForums as $forum): ?>
                             <li class="nav-item <?php echo $selectedForumId == $forum['forum_id'] ? 'active' : ''; ?>">
-                                <a href="forums.php?forum_id=<?php echo $forum['forum_id']; ?>" class="d-flex align-items-center">
-                                    <i class="bi bi-people-fill me-2"></i>
+                                <a href="forums.php?forum_id=<?php echo $forum['forum_id']; ?>" class="d-flex align-items-center" aria-current="<?php echo $selectedForumId == $forum['forum_id'] ? 'page' : ''; ?>">
+                                    <i class="bi bi-people-fill"></i>
                                     <span class="text-truncate"><?php echo htmlspecialchars($forum['title']); ?></span>
                                     <?php if ($forum['role'] !== 'Member'): ?>
                                         <span class="badge ms-auto bg-<?php 
@@ -814,8 +808,8 @@ $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             $isPending = ($membership['status'] ?? null) === 'Pending';
                         ?>
                             <li class="nav-item <?php echo $selectedForumId == $forum['forum_id'] ? 'active' : ''; ?>">
-                                <a href="forums.php?forum_id=<?php echo $forum['forum_id']; ?>" class="d-flex align-items-center">
-                                    <i class="bi bi-collection me-2"></i>
+                                <a href="forums.php?forum_id=<?php echo $forum['forum_id']; ?>" class="d-flex align-items-center" aria-current="<?php echo $selectedForumId == $forum['forum_id'] ? 'page' : ''; ?>">
+                                    <i class="bi bi-collection"></i>
                                     <span class="text-truncate"><?php echo htmlspecialchars($forum['title']); ?></span>
                                     <span class="ms-auto d-flex align-items-center">
                                         <?php if ($isPending): ?>
@@ -836,50 +830,59 @@ $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <?php if ($selectedForum): ?>
                 <?php if ($bannedFromForum): ?>
                     <div class="alert alert-danger">
-                        <h4><i class="bi bi-slash-circle"></i> Access Denied</h4>
-                        <p>You have been banned from this forum and cannot view or participate in discussions.</p>
-                        <p>If you believe this is an error, please contact the forum administrators.</p>
+                        <i class="bi bi-slash-circle"></i>
+                        <div>
+                            <h4>Access Denied</h4>
+                            <p>You have been banned from this forum and cannot view or participate in discussions.</p>
+                            <p>If you believe this is an error, please contact the forum administrators.</p>
+                        </div>
                     </div>
                 <?php elseif ($isPrivateForum && !$currentUser['forum_role'] && !$currentUser['is_pending']): ?>
                     <div class="alert alert-warning">
-                        <h4><i class="bi bi-lock"></i> Private Forum</h4>
-                        <p>This is a private forum. You need to join to view content.</p>
-                        <form action="../forum/join_forum.php" method="POST" class="mt-3">
-                            <input type="hidden" name="forum_id" value="<?php echo $selectedForumId; ?>">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-door-open"></i> Request to Join
-                            </button>
-                        </form>
+                        <i class="bi bi-lock"></i>
+                        <div>
+                            <h4>Private Forum</h4>
+                            <p>This is a private forum. You need to join to view content.</p>
+                            <form action="../forum/join_forum.php" method="POST" class="mt-3">
+                                <input type="hidden" name="forum_id" value="<?php echo $selectedForumId; ?>">
+                                <button type="submit" class="btn btn-primary new-post-btn" aria-label="Request to Join Forum">
+                                    <i class="bi bi-door-open"></i> Request to Join
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 <?php elseif ($isPrivateForum && $currentUser['is_pending']): ?>
                     <div class="alert alert-info">
-                        <h4><i class="bi bi-hourglass"></i> Pending Approval</h4>
-                        <p>Your request to join this private forum is pending approval by the forum administrators.</p>
-                        <form action="../forum/cancel_join_request.php" method="POST">
-                            <input type="hidden" name="forum_id" value="<?php echo $selectedForumId; ?>">
-                            <button type="submit" class="btn btn-outline-danger">
-                                <i class="bi bi-x-circle"></i> Cancel Request
-                            </button>
-                        </form>
+                        <i class="bi bi-hourglass"></i>
+                        <div>
+                            <h4>Pending Approval</h4>
+                            <p>Your request to join this private forum is pending approval by the forum administrators.</p>
+                            <form action="../forum/cancel_join_request.php" method="POST">
+                                <input type="hidden" name="forum_id" value="<?php echo $selectedForumId; ?>">
+                                <button type="submit" class="btn btn-outline-danger" aria-label="Cancel Join Request">
+                                    <i class="bi bi-x-circle"></i> Cancel Request
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 <?php else: ?>
-                    <div class="forum-header d-flex justify-content-between align-items-center">
+                    <div class="forum-header">
                         <div>
                             <h2 class="forum-title"><?php echo htmlspecialchars($selectedForum['title']); ?></h2>
                             <p class="text-muted mb-0"><?php echo htmlspecialchars($selectedForum['description']); ?></p>
                         </div>
-                        <div class="d-flex align-items-center">
+                        <div class="d-flex align-items-center gap-2">
                             <?php if ($currentUser['forum_role']): ?>
-                                <form action="../forum/leave_forum.php" method="POST" class="me-2">
+                                <form action="../forum/leave_forum.php" method="POST">
                                     <input type="hidden" name="forum_id" value="<?php echo $selectedForumId; ?>">
-                                    <button type="submit" class="btn btn-outline-danger">
+                                    <button type="submit" class="btn btn-outline-danger" aria-label="Leave Forum">
                                         <i class="bi bi-door-closed"></i> Leave
                                     </button>
                                 </form>
                             <?php elseif (!$isPrivateForum): ?>
-                                <form action="../forum/join_forum.php" method="POST" class="me-2">
+                                <form action="../forum/join_forum.php" method="POST">
                                     <input type="hidden" name="forum_id" value="<?php echo $selectedForumId; ?>">
-                                    <button type="submit" class="btn btn-outline-primary">
+                                    <button type="submit" class="btn btn-outline-primary" aria-label="Join Forum">
                                         <i class="bi bi-door-open"></i> Join
                                     </button>
                                 </form>
@@ -887,12 +890,13 @@ $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             
                             <?php if (in_array($currentUser['forum_role'], ['Moderator', 'Admin'])): ?>
                                 <a href="../forum/manage_forum.php?forum_id=<?php echo $selectedForumId; ?>" 
-                                   class="btn btn-outline-secondary me-2">
+                                   class="btn btn-outline-secondary" aria-label="Manage Forum">
                                     <i class="bi bi-gear"></i> Manage
                                 </a>
                             <?php endif; ?>
                             
-                            <a href="../forum/new_post.php?forum_id=<?php echo $selectedForumId; ?>" class="btn btn-primary">
+                            <a href="../forum/new_post.php?forum_id=<?php echo $selectedForumId; ?>" 
+                               class="btn btn-primary new-post-btn" aria-label="Create New Post">
                                 <i class="bi bi-plus-lg"></i> New Post
                             </a>
                         </div>
@@ -901,11 +905,11 @@ $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <?php if (count($forumPosts) > 0): ?>
                         <ul class="post-list">
                             <?php foreach ($forumPosts as $post): ?>
-                                <li class="post-item clickable-post" data-post-id="<?php echo $post['post_id']; ?>">
+                                <li class="post-item clickable-post" data-post-id="<?php echo $post['post_id']; ?>" role="article">
                                     <div class="post-header">
-                                        <div class="post-author-avatar">
+                                        <div class="post-author-avatar" aria-hidden="true">
                                             <?php if (!empty($post['poster_picture'])): ?>
-                                                <img src="../uploads/<?php echo htmlspecialchars($post['poster_picture']); ?>" alt="Poster Picture">
+                                                <img src="../Uploads/<?php echo htmlspecialchars($post['poster_picture']); ?>" alt="Profile Picture of <?php echo htmlspecialchars($post['poster_name']); ?>">
                                             <?php else: ?>
                                                 <i class="bi bi-person-fill text-muted"></i>
                                             <?php endif; ?>
@@ -925,14 +929,20 @@ $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     </h3>
                                     <div class="post-content">
                                         <?php echo nl2br(htmlspecialchars(substr($post['content'], 0, 200))); ?>
-                                        <?php if (strlen($post['content']) > 200): ?>... <a href="../forum/post.php?post_id=<?php echo $post['post_id']; ?>">Read more</a><?php endif; ?>
+                                        <?php if (strlen($post['content']) > 200): ?>... 
+                                            <a href="../forum/post.php?post_id=<?php echo $post['post_id']; ?>">Read more</a>
+                                        <?php endif; ?>
                                     </div>
                                     <div class="post-footer">
                                         <div class="post-actions">
-                                           <a href="#" class="like-btn" data-post-id="<?php echo $post['post_id']; ?>">
+                                            <a href="#" class="like-btn" data-post-id="<?php echo $post['post_id']; ?>" 
+                                               aria-label="Like Post (<?php echo $post['up_count']; ?> likes)">
                                                 <i class="bi bi-hand-thumbs-up"></i> Like (<span class="like-count"><?php echo $post['up_count']; ?></span>)
                                             </a>
-                                            <a href="../forum/post.php?post_id=<?php echo $post['post_id']; ?>"><i class="bi bi-chat"></i> Comments (<?php echo $post['comment_count']; ?>)</a>
+                                            <a href="../forum/post.php?post_id=<?php echo $post['post_id']; ?>" 
+                                               aria-label="View Comments (<?php echo $post['comment_count']; ?> comments)">
+                                                <i class="bi bi-chat"></i> Comments (<?php echo $post['comment_count']; ?>)
+                                            </a>
                                         </div>
                                         <div class="post-views">
                                             <i class="bi bi-eye"></i> <?php echo $post['view_count']; ?> views
@@ -942,171 +952,204 @@ $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <?php endforeach; ?>
                         </ul>
                     <?php else: ?>
-                        <div class="alert alert-info mt-4">
-                            <i class="bi bi-info-circle"></i> No posts yet in this forum. Be the first to post!
+                        <div class="alert alert-info mt-3">
+                            <i class="bi bi-info-circle"></i>
+                            <div>
+                                No posts yet in this forum. Be the first to post!
+                            </div>
                         </div>
                     <?php endif; ?>
                 <?php endif; ?>
-            <?php else: ?>
-                <div class="forum-header">
-                    <h2 class="forum-title">All Forums</h2>
-                    <p class="text-muted">Browse and join forums to participate in discussions</p>
-                </div>
-                
-                <?php if (count($forums) > 0): ?>
-                    <div class="forum-list">
-                        <?php foreach ($forums as $forum): 
-                            // Check if user has pending request for this forum
-                            $query = "SELECT status FROM forum_membership 
-                                      WHERE forum_id = ? AND actor_id = ? AND deleted_at IS NULL";
-                            $stmt = $conn->prepare($query);
-                            $stmt->execute([$forum['forum_id'], $currentUser['actor_id']]);
-                            $membership = $stmt->fetch(PDO::FETCH_ASSOC);
-                            $isPending = ($membership['status'] ?? null) === 'Pending';
-                        ?>
-                            <div class="forum-card">
-                                <h3><a href="forums.php?forum_id=<?php echo $forum['forum_id']; ?>" style="color: inherit; text-decoration: none;">
-                                    <?php echo htmlspecialchars($forum['title']); ?>
-                                    <?php if ($forum['is_private']): ?>
-                                        <i class="bi bi-lock text-muted ms-1"></i>
-                                    <?php endif; ?>
-                                </a></h3>
-                                <p><?php echo htmlspecialchars($forum['description']); ?></p>
-                                <div class="forum-meta">
-                                    <span><i class="bi bi-person"></i> <?php echo htmlspecialchars($forum['creator_name']); ?></span>
-                                    <span>
-                                        <i class="bi bi-people"></i> <?php echo $forum['member_count']; ?> members • 
-                                        <i class="bi bi-chat"></i> <?php echo $forum['post_count']; ?> posts
-                                        <?php if ($isPending): ?>
-                                            <span class="badge bg-warning text-dark ms-2">Pending Approval</span>
-                                        <?php endif; ?>
-                                    </span>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
                 <?php else: ?>
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i> No forums available yet. Create the first forum!
+                    <div class="forum-header">
+                        <h2 class="forum-title">All Forums</h2>
+                        <p class="text-muted">Browse and join forums to participate in discussions</p>
                     </div>
+                    
+                    <?php if (count($forums) > 0): ?>
+                        <div class="forum-list">
+                            <?php foreach ($forums as $forum): 
+                                $query = "SELECT status FROM forum_membership 
+                                          WHERE forum_id = ? AND actor_id = ? AND deleted_at IS NULL";
+                                $stmt = $conn->prepare($query);
+                                $stmt->execute([$forum['forum_id'], $currentUser['actor_id']]);
+                                $membership = $stmt->fetch(PDO::FETCH_ASSOC);
+                                $isPending = ($membership['status'] ?? null) === 'Pending';
+                            ?>
+                                <div class="forum-card" role="article">
+                                    <h3>
+                                        <a href="forums.php?forum_id=<?php echo $forum['forum_id']; ?>" style="color: inherit; text-decoration: none;">
+                                            <?php echo htmlspecialchars($forum['title']); ?>
+                                            <?php if ($forum['is_private']): ?>
+                                                <i class="bi bi-lock text-muted ms-1" aria-label="Private Forum"></i>
+                                            <?php endif; ?>
+                                        </a>
+                                    </h3>
+                                    <p><?php echo htmlspecialchars($forum['description']); ?></p>
+                                    <div class="forum-meta">
+                                        <span><i class="bi bi-person"></i> <?php echo htmlspecialchars($forum['creator_name']); ?></span>
+                                        <span>
+                                            <i class="bi bi-people"></i> <?php echo $forum['member_count']; ?> members • 
+                                            <i class="bi bi-chat"></i> <?php echo $forum['post_count']; ?> posts
+                                            <?php if ($isPending): ?>
+                                                <span class="badge bg-warning text-dark ms-2">Pending Approval</span>
+                                            <?php endif; ?>
+                                        </span>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php else: ?>
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            <div>
+                                No forums available yet. Create the first forum!
+                            </div>
+                        </div>
+                    <?php endif; ?>
                 <?php endif; ?>
-            <?php endif; ?>
-        </div>
-    </div>
-
-    <!-- New Forum Modal -->
-    <div class="modal fade" id="newForumModal" tabindex="-1" aria-labelledby="newForumModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="newForumModalLabel">Create New Forum</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form action="../forum/create_forum.php" method="POST">
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="forumTitle" class="form-label">Forum Title *</label>
-                            <input type="text" class="form-control" id="forumTitle" name="title" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="forumDescription" class="form-label">Description *</label>
-                            <textarea class="form-control" id="forumDescription" name="description" rows="3" required></textarea>
-                        </div>
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="forumPrivate" name="is_private">
-                            <label class="form-check-label" for="forumPrivate">Make this a private forum (requires approval to join)</label>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Create Forum</button>
-                    </div>
-                </form>
             </div>
         </div>
-    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Navigation item click handlers
-            document.querySelectorAll('.nav-item a').forEach(item => {
-                item.addEventListener('click', function(e) {
-                    // Remove active class from all items
-                    document.querySelectorAll('.nav-item').forEach(navItem => {
-                        navItem.classList.remove('active');
+        <!-- New Forum Modal -->
+        <div class="modal fade" id="newForumModal" tabindex="-1" aria-labelledby="newForumModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="newForumModalLabel">Create New Forum</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form action="../forum/create_forum.php" method="POST">
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="forumTitle" class="form-label">Forum Title <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="forumTitle" name="title" required aria-describedby="forumTitleHelp">
+                                <div id="forumTitleHelp" class="form-text">Enter a concise and descriptive title for your forum.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="forumDescription" class="form-label">Description <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="forumDescription" name="description" rows="4" required aria-describedby="forumDescriptionHelp"></textarea>
+                                <div id="forumDescriptionHelp" class="form-text">Provide a brief description of the forum's purpose.</div>
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="forumPrivate" name="is_private" aria-describedby="forumPrivateHelp">
+                                <label class="form-check-label" for="forumPrivate">Make this a private forum</label>
+                                <div id="forumPrivateHelp" class="form-text">Private forums require approval to join.</div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary new-post-btn">Create Forum</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Container -->
+        <div class="toast-container"></div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Initialize Bootstrap tooltips for sidebar-nav
+                const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+                const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+
+                // Sidebar toggle for mobile
+                const sidebar = document.querySelector('.forum-sidebar');
+                const toggleBtn = document.querySelector('.sidebar-toggle');
+                if (toggleBtn) {
+                    toggleBtn.addEventListener('click', () => {
+                        sidebar.classList.toggle('active');
+                        toggleBtn.innerHTML = sidebar.classList.contains('active') 
+                            ? '<i class="bi bi-x-lg"></i>' 
+                            : '<i class="bi bi-list"></i>';
                     });
-                    // Add active class to clicked item
-                    this.parentElement.classList.add('active');
-                });
-            });
-        });
-
-    
-
-        document.querySelectorAll('.like-btn').forEach(button => {
-            const postId = button.dataset.postId;
-
-            // Check if already liked (disable the button or change style)
-            if (localStorage.getItem(`liked_post_${postId}`)) {
-                button.classList.add('text-primary'); // Optional: style liked state
-                button.style.pointerEvents = 'none'; // Prevent further clicks
-            }
-
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-
-                // Prevent if already liked
-                if (localStorage.getItem(`liked_post_${postId}`)) {
-                    alert('You already liked this post.');
-                    return;
                 }
 
-                fetch('../forum/like_post.php', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                    body: `post_id=${postId}`
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        const countSpan = button.querySelector('.like-count');
-                        countSpan.textContent = data.like_count;
-
-                        // Mark as liked
-                        localStorage.setItem(`liked_post_${postId}`, 'true');
-                        button.classList.add('text-primary');
-                        button.style.pointerEvents = 'none';
-                    } else {
-                        alert(data.message || 'Something went wrong.');
-                    }
-                })
-                .catch(err => {
-                    console.error('Error:', err);
-                    alert('Something went wrong.');
+                // Navigation item click handlers
+                document.querySelectorAll('.nav-item a').forEach(item => {
+                    item.addEventListener('click', function() {
+                        document.querySelectorAll('.nav-item').forEach(navItem => {
+                            navItem.classList.remove('active');
+                        });
+                        this.parentElement.classList.add('active');
+                        if (window.innerWidth <= 767) {
+                            sidebar.classList.remove('active');
+                            toggleBtn.innerHTML = '<i class="bi bi-list"></i>';
+                        }
+                    });
                 });
+
+                // Post click handler
+                document.querySelectorAll('.clickable-post').forEach(post => {
+                    post.addEventListener('click', function(e) {
+                        if (e.target.closest('a, button')) return;
+                        const postId = this.dataset.postId;
+                        window.location.href = `../forum/post.php?post_id=${postId}`;
+                    });
+                });
+
+                // Like button handler with toast notification
+                document.querySelectorAll('.like-btn').forEach(button => {
+                    const postId = button.dataset.postId;
+                    if (localStorage.getItem(`liked_post_${postId}`)) {
+                        button.classList.add('active');
+                        button.style.pointerEvents = 'none';
+                    }
+
+                    button.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        if (localStorage.getItem(`liked_post_${postId}`)) {
+                            showToast('You already liked this post.', 'error');
+                            return;
+                        }
+
+                        button.classList.add('disabled');
+                        fetch('../forum/like_post.php', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                            body: `post_id=${postId}`
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            button.classList.remove('disabled');
+                            if (data.success) {
+                                const countSpan = button.querySelector('.like-count');
+                                countSpan.textContent = data.like_count;
+                                localStorage.setItem(`liked_post_${postId}`, 'true');
+                                button.classList.add('active');
+                                button.style.pointerEvents = 'none';
+                                showToast('Post liked successfully!', 'success');
+                            } else {
+                                showToast(data.message || 'Failed to like post.', 'error');
+                            }
+                        })
+                        .catch(err => {
+                            button.classList.remove('disabled');
+                            showToast('An error occurred.', 'error');
+                            console.error('Error:', err);
+                        });
+                    });
+                });
+
+                // Toast notification function
+                function showToast(message, type = 'success') {
+                    const toastContainer = document.querySelector('.toast-container');
+                    const toast = document.createElement('div');
+                    toast.className = `toast toast-${type} show`;
+                    toast.innerHTML = `
+                        <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                        <span>${message}</span>
+                    `;
+                    toastContainer.appendChild(toast);
+                    setTimeout(() => {
+                        toast.classList.remove('show');
+                        setTimeout(() => toast.remove(), 300);
+                    }, 3000);
+                }
             });
-        });
-
-
-
-    </script>
-
-
-
-        <script>
-        document.querySelectorAll('.clickable-post').forEach(post => {
-            post.addEventListener('click', function(e) {
-                // Prevent click if the target is a link or inside a like/comment button
-                if (e.target.closest('a')) return;
-
-                const postId = this.dataset.postId;
-                window.location.href = `../forum/post.php?post_id=${postId}`;
-            });
-        });
-
-        
         </script>
-
 </body>
 </html>
