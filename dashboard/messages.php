@@ -992,7 +992,7 @@ if (isset($_SESSION['user_id'])) {
             });
             
             if (window.innerWidth <= 768) {
-                document.querySelector('.sidebar').style.display = 'none';
+                document.querySelector('.sidebar-nav').style.display = 'none';
                 document.getElementById('chat-area').classList.add('active');
             }
             
@@ -1277,7 +1277,7 @@ if (isset($_SESSION['user_id'])) {
         });
 
         document.getElementById('back-to-inbox').addEventListener('click', () => {
-            document.querySelector('.sidebar').style.display = 'block';
+            document.querySelector('.sidebar-nav').style.display = 'flex';
             document.getElementById('chat-area').classList.remove('active');
         });
 
