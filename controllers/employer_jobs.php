@@ -240,4 +240,120 @@ try {
     error_log($error_message);
     $_SESSION['error'] = "An error occurred while fetching job data. Please try again later.";
 }
+
+
+function getJobDetails($job_id) {
+    global $conn;
+    $stmt = $conn->prepare("
+        SELECT j.*, jt.job_type_title 
+        FROM job_posting j 
+        LEFT JOIN job_type jt ON j.job_type_id = jt.job_type_id 
+        WHERE j.job_id = ? AND j.employer_id = ? AND j.deleted_at IS NULL
+    ");
+    $stmt->execute([$job_id, $_SESSION['employer_id']]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+function getJobTypes() {
+    global $conn;
+    $stmt = $conn->query("SELECT job_type_id, job_type_title FROM job_type");
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getAvailableSkills() {
+    global $conn;
+    $stmt = $conn->query("SELECT skill_id, skill_name FROM skill_masterlist WHERE deleted_at IS NULL");
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getJobSkills($job_id) {
+    global $conn;
+    $stmt = $conn->prepare("
+        SELECT s.skill_id, s.skill_name, js.importance
+        FROM job_skill js 
+        JOIN skill_masterlist s ON js.skill_id = s.skill_id 
+        WHERE js.job_id = ? AND js.deleted_at IS NULL
+    ");
+    $stmt->execute([$job_id]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getJobs($employer_id, $page = 1, $per_page = 10, $status = '', $date = '', $search = '') {
+    global $conn;
+    $offset = ($page - 1) * $per_page;
+    $conditions = ['j.employer_id = ?', 'j.deleted_at IS NULL'];
+    $params = [$employer_id];
+
+    if ($status) {
+        $conditions[] = 'j.moderation_status = ?';
+        $params[] = $status;
+    }
+    if ($date) {
+        if ($date === 'today') {
+            $conditions[] = 'DATE(j.posted_at) = CURDATE()';
+        } elseif ($date === 'week') {
+            $conditions[] = 'j.posted_at >= DATE_SUB(CURDATE(), INTERVAL 1 WEEK)';
+        } elseif ($date === 'month') {
+            $conditions[] = 'j.posted_at >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)';
+        } elseif ($date === 'year') {
+            $conditions[] = 'j.posted_at >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)';
+        }
+    }
+    if ($search) {
+        $conditions[] = '(j.title LIKE ? OR j.description LIKE ?)';
+        $params[] = '%' . $search . '%';
+        $params[] = '%' . $search . '%';
+    }
+
+    $where = !empty($conditions) ? 'WHERE ' . implode(' AND ', $conditions) : '';
+    $query = "
+        SELECT j.*, jt.job_type_title, 
+               (SELECT COUNT(*) FROM application_tracking a WHERE a.job_id = j.job_id AND a.deleted_at IS NULL) as applicant_count,
+               (SELECT COUNT(*) FROM saved_jobs s WHERE s.job_id = j.job_id AND s.deleted_at IS NULL) as saved_count
+        FROM job_posting j
+        LEFT JOIN job_type jt ON j.job_type_id = jt.job_type_id
+        $where
+        ORDER BY j.posted_at DESC
+        LIMIT ? OFFSET ?
+    ";
+    $params[] = $per_page;
+    $params[] = $offset;
+
+    $stmt = $conn->prepare($query);
+    $stmt->execute($params);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getTotalJobs($employer_id, $status = '', $date = '', $search = '') {
+    global $conn;
+    $conditions = ['employer_id = ?', 'deleted_at IS NULL'];
+    $params = [$employer_id];
+
+    if ($status) {
+        $conditions[] = 'moderation_status = ?';
+        $params[] = $status;
+    }
+    if ($date) {
+        if ($date === 'today') {
+            $conditions[] = 'DATE(posted_at) = CURDATE()';
+        } elseif ($date === 'week') {
+            $conditions[] = 'posted_at >= DATE_SUB(CURDATE(), INTERVAL 1 WEEK)';
+        } elseif ($date === 'month') {
+            $conditions[] = 'posted_at >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)';
+        } elseif ($date === 'year') {
+            $conditions[] = 'posted_at >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)';
+        }
+    }
+    if ($search) {
+        $conditions[] = '(title LIKE ? OR description LIKE ?)';
+        $params[] = '%' . $search . '%';
+        $params[] = '%' . $search . '%';
+    }
+
+    $where = !empty($conditions) ? 'WHERE ' . implode(' AND ', $conditions) : '';
+    $stmt = $conn->prepare("SELECT COUNT(*) FROM job_posting $where");
+    $stmt->execute($params);
+    return $stmt->fetchColumn();
+}
+
 ?>

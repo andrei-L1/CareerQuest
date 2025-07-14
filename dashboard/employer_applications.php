@@ -803,8 +803,8 @@ require '../controllers/update_due_interviews.php';
                         <i class="fas fa-plus me-2"></i> Add New
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-user-plus me-2"></i> Manual Applicant</a></li>
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-bullhorn me-2"></i> New Job Posting</a></li>
+                       <!--  <li><a class="dropdown-item" href="#"><i class="fas fa-user-plus me-2"></i> Manual Applicant</a></li>-->
+                        <li><a class="dropdown-item" href="../dashboard/employer_post_job.php"><i class="fas fa-bullhorn me-2"></i> New Job Posting</a></li>
                     </ul>
                 </div>
             </div>

@@ -2,6 +2,11 @@
 require '../controllers/employer_jobs.php';
 require '../auth/employer_auth.php';
 include '../includes/employer_navbar.php';
+// Example: require database or session start here
+require_once '../config/dbcon.php';
+
+$successMessage = isset($_GET['success']) ? urldecode($_GET['success']) : null;
+$errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
 ?>
 
 <!DOCTYPE html>
@@ -844,6 +849,20 @@ include '../includes/employer_navbar.php';
     
     <!-- Jobs Table View -->
     <div class="card mb-4">
+    
+    
+        <?php if ($successMessage): ?>
+            <div class="alert alert-success" role="alert">
+                <?= htmlspecialchars($successMessage) ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($errorMessage): ?>
+            <div class="alert alert-danger" role="alert">
+                <?= htmlspecialchars($errorMessage) ?>
+            </div>
+        <?php endif; ?>
+
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">All Job Postings</h5>
             <div class="form-check form-switch">
@@ -1033,21 +1052,23 @@ include '../includes/employer_navbar.php';
                                                     Actions
                                                 </button>
                                                 <ul class="dropdown-menu" aria-labelledby="tableActionsDropdown<?= $job['job_id'] ?>">
-                                                    <li>
+                                                    <!-- <li>
                                                         <a class="dropdown-item" href="employer_view_job.php?id=<?= $job['job_id'] ?>">
                                                             <i class="bi bi-eye"></i> View
                                                         </a>
-                                                    </li>
+                                                    </li> -->
                                                     <li>
                                                         <a class="dropdown-item" href="employer_edit_job.php?id=<?= $job['job_id'] ?>">
                                                             <i class="bi bi-pencil"></i> Edit
                                                         </a>
                                                     </li>
+                                                    <!-- 
                                                     <li>
                                                         <a class="dropdown-item" href="employer_view_applicants.php?job_id=<?= $job['job_id'] ?>">
                                                             <i class="bi bi-people"></i> Applicants
                                                         </a>
                                                     </li>
+                                                    -->
                                                     <li><hr class="dropdown-divider"></li>
                                                     <li>
                                                         <a class="dropdown-item text-danger" href="#" 
@@ -1162,9 +1183,13 @@ include '../includes/employer_navbar.php';
 
 <!-- ✅ Then your custom script -->
 <script>
-$(document).ready(function () {
-    $('#yourTableID').DataTable(); // Example
-});
+if (!$.fn.DataTable.isDataTable('#jobsTable')) {
+    $('#jobsTable').DataTable({
+        responsive: true,
+        order: [[6, 'desc']],
+        pageLength: 10 // Optional: Set default page length
+    });
+}
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -1297,5 +1322,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+<script>
+    setTimeout(() => {
+        const alert = document.querySelector('.alert');
+        if (alert) {
+            alert.style.display = 'none';
+        }
+    }, 3000);
+</script>
+
 </body>
 </html>
