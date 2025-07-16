@@ -63,6 +63,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
 
 
+        $grad_year = $_POST['graduation_yr'] ?? null;
+        if ($entity === 'student' && !empty($grad_year)) {
+            if (!preg_match('/^\d{4}$/', $grad_year) || $grad_year < 1900 || $grad_year > date('Y') + 10) {
+                throw new Exception("Invalid graduation year. Please enter a valid year (e.g., 2023).");
+            }
+        }
 
         $edu_background = $_POST['edu_background'] ?? null;
 
@@ -166,8 +172,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Insert into `student` table
             $stmt = $conn->prepare("
-                INSERT INTO student (stud_email, stud_password, stud_first_name, stud_middle_name, stud_last_name, institution, `status` ,edu_background, is_student) 
-                VALUES (:email, :password, :first_name, :middle_name, :last_name, :institution, :active, :edu_background, :is_student)
+                INSERT INTO student (stud_email, stud_password, stud_first_name, stud_middle_name, stud_last_name, institution, `status` ,edu_background, is_student, graduation_yr) 
+                VALUES (:email, :password, :first_name, :middle_name, :last_name, :institution, :active, :edu_background, :is_student, :grad_year)
             ");
             $stmt->execute([
         
@@ -179,7 +185,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':institution' => $institution,
                 ':active' => $status,
                 ':edu_background' => $edu_background,
-                ':is_student' => $is_student
+                ':is_student' => $is_student,
+                ':grad_year' => $grad_year
             ]);
 
             // Fetch stud_id

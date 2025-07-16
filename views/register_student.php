@@ -475,10 +475,15 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
                      <label for="edu_background" class="form-label">Educational Background</label>
                 </div>
                 
-                <div class="form-group"  id="institutionGroup" style="display: none;">
+                <div class="form-group" id="institutionGroup" style="display: none;">
                     <i class="fas fa-school form-icon"></i>
                     <input type="text" name="institution" class="form-control" placeholder=" " id="institution" required>
                     <label for="institution" class="form-label">Institution</label>
+                </div>
+                <div class="form-group" id="graduationGroup" style="display: none;">
+                    <i class="fas fa-calendar-alt form-icon"></i>
+                    <input type="number" name="graduation_yr" class="form-control" placeholder=" " id="graduation_yr" min="2025" max="2100" step="1">
+                    <label for="graduation_yr" class="form-label">Expected Graduation Year</label>
                 </div>
                 
                 <div class="d-flex justify-content-between gap-3 mt-3">
@@ -686,46 +691,48 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
         document.addEventListener("DOMContentLoaded", () => {
             const eduSelect = document.getElementById("edu_background");
             const institutionGroup = document.getElementById("institutionGroup");
+            const graduationGroup = document.getElementById("graduationGroup");
             const form = document.getElementById("signupForm");
 
-
             function toggleInstitutionField() {
-                if (eduSelect.value === "College Student" || eduSelect.value === "Graduate Student") {
-                    institutionGroup.style.display = "block";
-                    document.getElementById("institution").setAttribute("required", "required");
-                } else {
-                    institutionGroup.style.display = "none";
-                    document.getElementById("institution").removeAttribute("required");
-                }
-            }   
-
+            if (eduSelect.value === "College Student" || eduSelect.value === "Graduate Student") {
+                institutionGroup.style.display = "block";
+                document.getElementById("institution").setAttribute("required", "required");
+                graduationGroup.style.display = "block";
+                document.getElementById("expected_graduation").setAttribute("required", "required");
+            } else {
+                institutionGroup.style.display = "none";
+                document.getElementById("institution").removeAttribute("required");
+                graduationGroup.style.display = "none";
+                document.getElementById("expected_graduation").removeAttribute("required");
+            }
+            }
 
             eduSelect.addEventListener("change", toggleInstitutionField);
 
             toggleInstitutionField();
 
-
             form.addEventListener("keydown", function(event) {
-                if (event.key === "Enter") {
-                    const target = event.target;
-                    const tag = target.tagName.toLowerCase();
+            if (event.key === "Enter") {
+                const target = event.target;
+                const tag = target.tagName.toLowerCase();
 
-                    // Skip for textarea or button
-                    if (tag === "textarea" || tag === "button") return;
+                // Skip for textarea or button
+                if (tag === "textarea" || tag === "button") return;
 
-                    event.preventDefault(); // Prevent default form submission
+                event.preventDefault(); // Prevent default form submission
 
-                    // Get all focusable form elements
-                    const focusable = Array.from(form.querySelectorAll("input, select, button, textarea"))
-                        .filter(el => !el.disabled && el.offsetParent !== null);
+                // Get all focusable form elements
+                const focusable = Array.from(form.querySelectorAll("input, select, button, textarea"))
+                .filter(el => !el.disabled && el.offsetParent !== null);
 
-                    const index = focusable.indexOf(target);
-                    const next = focusable[index + 1];
+                const index = focusable.indexOf(target);
+                const next = focusable[index + 1];
 
-                    if (next) {
-                        next.focus();
-                    }
+                if (next) {
+                next.focus();
                 }
+            }
             });
         });
 
