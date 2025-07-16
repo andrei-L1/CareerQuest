@@ -1,7 +1,6 @@
 <?php
 session_start();
 if (isset($_SESSION['user_id'])) { 
-
     if (isset($_SESSION['role_id'])) {
         switch ($_SESSION['role_id']) {
             case 1: 
@@ -23,11 +22,9 @@ if (isset($_SESSION['user_id'])) {
     }
     exit();
 } elseif (isset($_SESSION['stud_id'])) {
- 
     header("Location: dashboard/student.php");
     exit();
 }
-
 
 // Database connection
 require_once 'config/dbcon.php';
@@ -52,40 +49,58 @@ $filledJobsQuery = "SELECT COUNT(*) AS filled_jobs FROM job_posting WHERE modera
 $filledJobsResult = $conn->query($filledJobsQuery);
 $filledJobs = ($filledJobsResult && $row = $filledJobsResult->fetch(PDO::FETCH_ASSOC)) ? $row['filled_jobs'] : 0;
 $successRate = ($jobsPosted > 0) ? round(($filledJobs / $jobsPosted) * 100) : 0;
-
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Career Quest</title>
+    <title>Career Quest - Find Your Dream Job</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- AOS (Animate On Scroll) -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <style>
-        /* Custom Colors */
         :root {
-            --primary-color: #0A2647; /* Navy Blue */
-            --secondary-color: #2C7865; /* Teal */
-            --accent-color: #FFD700; /* Gold */
-            --background-light: #F5F5F5; /* Light Gray */
-            --text-dark: #333333; /* Dark Gray */
+            --primary-color: #0A2647;
+            --primary-dark: #07203a;
+            --secondary-color: #2C7865;
+            --secondary-dark: #1f5a4d;
+            --accent-color: #FFD700;
+            --accent-dark: #e6c200;
+            --background-light: #F8F9FA;
+            --text-dark: #212529;
+            --text-light: #6C757D;
+            --gradient-primary: linear-gradient(135deg, var(--primary-color), #1C4B82);
+            --gradient-secondary: linear-gradient(135deg, var(--secondary-color), #3AA68D);
+            --gradient-accent: linear-gradient(135deg, var(--accent-color), #FFC107);
         }
 
         body {
             background-color: var(--background-light);
             color: var(--text-dark);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
         }
 
+        /* Hero Section */
         .hero-section {
-            background: linear-gradient(45deg, var(--primary-color), #1C4B82);
+            background: var(--gradient-primary);
             position: relative;
             color: white;
-            padding: 100px 0;
+            padding: 120px 0 100px;
+            overflow: hidden;
+            background-size: 200% 200%;
+            animation: gradientBG 15s ease infinite;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         .hero-section::before {
@@ -95,7 +110,8 @@ $successRate = ($jobsPosted > 0) ? round(($filledJobs / $jobsPosted) * 100) : 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(10, 38, 71, 0.85); 
+            background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxkZWZzPjxwYXR0ZXJuIGlkPSJwYXR0ZXJuIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHBhdHRlcm5UcmFuc2Zvcm09InJvdGF0ZSg0NSkiPjxyZWN0IHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjA1KSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNwYXR0ZXJuKSIvPjwvc3ZnPg==');
+            opacity: 0.5;
         }
 
         .hero-content {
@@ -103,48 +119,212 @@ $successRate = ($jobsPosted > 0) ? round(($filledJobs / $jobsPosted) * 100) : 0;
             z-index: 1;
         }
 
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.2;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+
+        /* Buttons */
+        .btn {
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
         .btn-primary {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
+            background: var(--gradient-primary);
+            background-size: 200% auto;
         }
 
         .btn-primary:hover {
-            background-color: #1C4B82; /* Darker Navy Blue */
-            border-color: #1C4B82;
+            background-position: right center;
         }
 
-        .btn-outline-primary {
-            border-color: var(--primary-color);
-            color: var(--primary-color);
-        }
-
-        .btn-outline-primary:hover {
-            background-color: var(--primary-color);
+        .btn-secondary {
+            background: var(--gradient-secondary);
+            background-size: 200% auto;
             color: white;
         }
 
-        .bg-gradient-primary {
-            background: linear-gradient(45deg, var(--primary-color), #1C4B82);
+        .btn-secondary:hover {
+            background-position: right center;
+            color: white;
         }
 
-        .bg-gradient-success {
-            background: linear-gradient(45deg, var(--secondary-color), #3AA68D);
+        .btn-accent {
+            background: var(--gradient-accent);
+            background-size: 200% auto;
+            color: var(--text-dark);
         }
 
-        .bg-gradient-info {
-            background: linear-gradient(45deg, #1E3C72, #2A5298);
+        .btn-accent:hover {
+            background-position: right center;
+            color: var(--text-dark);
         }
 
+        .btn-outline-light {
+            border: 2px solid white;
+            background: transparent;
+            color: white;
+        }
+
+        .btn-outline-light:hover {
+            background: white;
+            color: var(--primary-color);
+        }
+
+        /* Cards */
         .card {
             border: none;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.05);
+            height: 100%;
         }
 
         .card:hover {
             transform: translateY(-10px);
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
         }
 
+        .card-body {
+            padding: 2rem;
+        }
+
+        .card-title {
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        /* Stats Section */
+        .stat-item {
+            text-align: center;
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        .stat-number {
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            line-height: 1;
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+
+        /* Testimonials */
+        .testimonial-card {
+            border-left: 4px solid var(--primary-color);
+            position: relative;
+        }
+
+        .testimonial-card::before {
+            content: '"';
+            position: absolute;
+            top: 0;
+            left: 1rem;
+            font-size: 5rem;
+            color: rgba(10, 38, 71, 0.1);
+            font-family: Georgia, serif;
+            line-height: 1;
+        }
+
+        .testimonial-text {
+            font-style: italic;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Job Cards */
+        .job-card {
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .job-card:hover {
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .job-type {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: rgba(10, 38, 71, 0.1);
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* FAQ */
+        .accordion-button {
+            font-weight: 600;
+            padding: 1.25rem;
+        }
+
+        .accordion-button:not(.collapsed) {
+            background-color: rgba(10, 38, 71, 0.05);
+            color: var(--primary-color);
+        }
+
+        .accordion-button:focus {
+            box-shadow: none;
+            border-color: rgba(10, 38, 71, 0.1);
+        }
+
+        /* Section Styling */
+        section {
+            padding: 5rem 0;
+            position: relative;
+        }
+
+        .section-title {
+            font-weight: 800;
+            margin-bottom: 3rem;
+            position: relative;
+            display: inline-block;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: var(--gradient-primary);
+            border-radius: 2px;
+        }
+
+        /* Icon Wrapper */
         .icon-wrapper {
             width: 80px;
             height: 80px;
@@ -152,106 +332,160 @@ $successRate = ($jobsPosted > 0) ? round(($filledJobs / $jobsPosted) * 100) : 0;
             align-items: center;
             justify-content: center;
             border-radius: 50%;
-        }
-
-        .bg-light {
-            background-color: var(--background-light) !important;
-        }
-
-        .text-dark {
-            color: var(--text-dark) !important;
-        }
-
-        .bg-dark {
-            background-color: var(--primary-color) !important;
-        }
-
-        .btn-light {
-            background-color: white;
-            color: var(--primary-color);
-        }
-
-        .btn-light:hover {
-            background-color: var(--accent-color);
-            color: var(--primary-color);
-        }
-
-        .btn-outline-light {
-            border-color: white;
+            margin: 0 auto 1.5rem;
+            background: var(--gradient-primary);
             color: white;
+            font-size: 2rem;
+            box-shadow: 0 4px 15px rgba(10, 38, 71, 0.2);
         }
 
-        .btn-outline-light:hover {
-            background-color: white;
-            color: var(--primary-color);
-        }
-
-
-            /* MODAL */
-        .modal-header {
+        /* CTA Section */
+        .cta-section {
+            background: var(--gradient-primary);
             position: relative;
-            padding: 1rem;
-        }
-        
-        .btn-close {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-        }
-        .role-card {
-            border: none;
-            transition: all 0.3s ease;
-            background: var(--primary-color);
-            border-radius: 1rem;
             overflow: hidden;
-            position: relative;
         }
 
-        .role-card::before {
+        .cta-section::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
+            top: -50%;
+            right: -50%;
             width: 100%;
-            height: 100%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.15));
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        }
+
+        /* Modal Enhancements */
+        .modal-content {
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .role-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
         }
 
         .role-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-        }  
+            border-color: rgba(255,255,255,0.3);
+        }
 
         .role-card.active {
-            outline: 5px solid #4682b4; /* Blue border for the active card */
-            box-shadow: 0 0 10px rgba(0, 123, 255, 0.5); /* Soft glow effect */
+            border-color: white;
+            box-shadow: 0 0 0 3px rgba(255,255,255,0.5);
         }
 
-
-        .role-card:hover::before {
-            opacity: 1;
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--gradient-primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 6px 20px rgba(10, 38, 71, 0.3);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            animation: pulse 2s infinite;
         }
 
-        .bg-gradient-primary-hover {
-            background: linear-gradient(45deg, var(--primary-color), #1C4B82);
+        .fab:hover {
+            transform: scale(1.1) translateY(-5px);
+            color: white;
         }
 
-        .bg-gradient-success-hover {
-            background: linear-gradient(45deg, var(--secondary-color), #3AA68D);
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(10, 38, 71, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(10, 38, 71, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(10, 38, 71, 0); }
         }
 
-        .bg-gradient-info-hover {
-            background: linear-gradient(45deg, #1E3C72, #2A5298);
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.2rem;
+            }
+            
+            section {
+                padding: 3rem 0;
+            }
+            
+            .stat-number {
+                font-size: 2.5rem;
+            }
         }
 
-        .icon-container {
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Animated Underline */
+        .animated-underline {
+            position: relative;
+            display: inline-block;
+        }
+
+        .animated-underline::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            bottom: -2px;
+            left: 0;
+            background: var(--gradient-primary);
+            transform: scaleX(0);
+            transform-origin: bottom right;
             transition: transform 0.3s ease;
         }
 
-        .role-card:hover .icon-container {
-            transform: scale(1.1);
+        .animated-underline:hover::after {
+            transform: scaleX(1);
+            transform-origin: bottom left;
+        }
+
+        /* Loading Animation */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -259,494 +493,652 @@ $successRate = ($jobsPosted > 0) ? round(($filledJobs / $jobsPosted) * 100) : 0;
     <?php include 'includes/navbar.php'; ?>
 
     <!-- Hero Section -->
-    <header class="hero-section text-center">
+    <header class="hero-section">
         <div class="container hero-content">
-            <h1 data-aos="fade-down">Connecting Talent with Opportunity</h1>
-            <p class="lead" data-aos="fade-up" data-aos-delay="100">Find jobs, post openings, and grow your professional network.</p>
-            <a href="#" class="btn btn-light btn-lg me-2" data-aos="fade-up" data-aos-delay="200">Find Jobs & Internships</a>
-            <a href="#" class="btn btn-outline-light btn-lg" data-aos="fade-up" data-aos-delay="300">Hire Top Talent</a>
+            <div class="row align-items-center">
+                <div class="col-lg-6" data-aos="fade-right">
+                    <h1 class="hero-title animate__animated animate__fadeInDown">Launch Your <span class="animated-underline">Dream Career</span> Today</h1>
+                    <p class="hero-subtitle animate__animated animate__fadeIn animate__delay-1s">Connect with top employers and find opportunities that match your skills and aspirations.</p>
+                    <div class="d-flex gap-3 animate__animated animate__fadeIn animate__delay-2s">
+                        <a href="#" class="btn btn-accent btn-lg" data-bs-toggle="modal" data-bs-target="#signupModal">
+                            Get Started <i class="fas fa-arrow-right ms-2"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-light btn-lg">
+                            Explore Jobs <i class="fas fa-search ms-2"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-6 d-none d-lg-block" data-aos="fade-left">
+                    <img src="https://images.unsplash.com/photo-1521791136064-7986c2920216?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" alt="Career Growth" class="img-fluid rounded-3 shadow-lg" style="transform: perspective(1000px) rotateY(-15deg);">
+                </div>
+            </div>
         </div>
     </header>
 
+    <!-- Trust Badges -->
+    <div class="bg-white py-4 shadow-sm">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-auto text-center px-4">
+                    <p class="mb-0 text-muted"><i class="fas fa-check-circle text-success me-2"></i> Trusted by 10,000+ professionals</p>
+                </div>
+                <div class="col-auto text-center px-4">
+                    <p class="mb-0 text-muted"><i class="fas fa-star text-warning me-2"></i> 4.9/5 Average Rating</p>
+                </div>
+                <div class="col-auto text-center px-4">
+                    <p class="mb-0 text-muted"><i class="fas fa-briefcase text-primary me-2"></i> 5,000+ Job Openings</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- How It Works -->
-    <section class="container py-5">
-        <h2 class="text-center mb-5 display-4 font-weight-bold" data-aos="fade-up">How It Works</h2>
-        <div class="row text-center">
-            <!-- For Students -->
-            <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="100">
-                <div class="card shadow-lg h-100">
-                    <div class="card-body p-4">
-                        <div class="icon-wrapper bg-gradient-primary mx-auto mb-4">
-                            <i class="fas fa-user-graduate fa-3x text-white"></i>
+    <section class="container">
+        <h2 class="text-center section-title" data-aos="fade-up">How Career Quest Works</h2>
+        <p class="text-center text-muted mb-5" data-aos="fade-up" data-aos-delay="100">Simple steps to achieve your career goals</p>
+        
+        <div class="row g-4">
+            <!-- Step 1 -->
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+                <div class="card h-100 border-0">
+                    <div class="card-body text-center p-4">
+                        <div class="position-relative mb-4">
+                            <div class="icon-wrapper">
+                                <i class="fas fa-user-edit"></i>
+                            </div>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-accent text-dark">1</span>
                         </div>
-                        <h4 class="card-title font-weight-bold mb-3">For Students</h4>
-                        <p class="card-text text-muted">Create Profile → Match Skills → Apply & Get Hired</p>
-                         <a href="learnmore/student-how-it-works.php" class="btn btn-outline-primary mt-3">Learn More</a>
+                        <h4 class="card-title mb-3">Create Your Profile</h4>
+                        <p class="card-text text-muted">Build a professional profile highlighting your skills, education, and experience.</p>
                     </div>
                 </div>
             </div>
-
-            <!-- For Employers -->
-            <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="200">
-                <div class="card shadow-lg h-100">
-                    <div class="card-body p-4">
-                        <div class="icon-wrapper bg-gradient-success mx-auto mb-4">
-                            <i class="fas fa-briefcase fa-3x text-white"></i>
+            
+            <!-- Step 2 -->
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="card h-100 border-0">
+                    <div class="card-body text-center p-4">
+                        <div class="position-relative mb-4">
+                            <div class="icon-wrapper" style="background: var(--gradient-secondary);">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-accent text-dark">2</span>
                         </div>
-                        <h4 class="card-title font-weight-bold mb-3">For Employers</h4>
-                        <p class="card-text text-muted">Post Jobs → Find Top Talent → Hire Easily</p>
-                        <a href="learnmore/employer-how-it-works.php" class="btn btn-outline-success mt-3">Learn More</a>
+                        <h4 class="card-title mb-3">Find Opportunities</h4>
+                        <p class="card-text text-muted">Discover jobs, internships, and projects that match your profile and interests.</p>
                     </div>
                 </div>
             </div>
-
-            <!-- For Professionals -->
-            <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="300">
-                <div class="card shadow-lg h-100">
-                    <div class="card-body p-4">
-                        <div class="icon-wrapper bg-gradient-info mx-auto mb-4">
-                            <i class="fas fa-chalkboard-teacher fa-3x text-white"></i>
+            
+            <!-- Step 3 -->
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
+                <div class="card h-100 border-0">
+                    <div class="card-body text-center p-4">
+                        <div class="position-relative mb-4">
+                            <div class="icon-wrapper" style="background: var(--gradient-accent);">
+                                <i class="fas fa-bullseye"></i>
+                            </div>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-accent text-dark">3</span>
                         </div>
-                        <h4 class="card-title font-weight-bold mb-3">For Professionals</h4>
-                        <p class="card-text text-muted">Build Profile → Network & Mentor → Access Opportunities</p>
-                         <a href="learnmore/applicant-how-it-works.php" class="btn btn-outline-info mt-3">Learn More</a>
+                        <h4 class="card-title mb-3">Achieve Success</h4>
+                        <p class="card-text text-muted">Apply, interview, and land your dream opportunity with our support.</p>
                     </div>
                 </div>
             </div>
         </div>
+        
+        <div class="text-center mt-5" data-aos="fade-up" data-aos-delay="400">
+            <a href="#" class="btn btn-primary btn-lg px-5" data-bs-toggle="modal" data-bs-target="#signupModal">
+                Start Your Journey <i class="fas fa-arrow-right ms-2"></i>
+            </a>
+        </div>
     </section>
 
-
-    <section class="bg-light py-5">
-        <div class="container text-center">
-            <h2 class="mb-5" data-aos="fade-up">By the Numbers</h2>
-            <div class="row" data-aos="fade-up">
-                <div class="col-md-3">
-                    <h3 class="display-4"><?php echo number_format($jobsPosted); ?></h3>
-                    <p class="text-muted">Jobs Posted</p>
+    <!-- Stats Section -->
+    <section class="bg-light position-relative">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-md-3 col-6" data-aos="fade-up">
+                    <div class="stat-item">
+                        <div class="stat-number countup" data-count="<?php echo $jobsPosted; ?>">0</div>
+                        <p class="stat-label">Jobs Posted</p>
+                    </div>
                 </div>
-                <div class="col-md-3">
-                    <h3 class="display-4"><?php echo number_format($professionals); ?></h3>
-                    <p class="text-muted">Professionals</p>
+                <div class="col-md-3 col-6" data-aos="fade-up" data-aos-delay="100">
+                    <div class="stat-item">
+                        <div class="stat-number countup" data-count="<?php echo $professionals; ?>">0</div>
+                        <p class="stat-label">Professionals</p>
+                    </div>
                 </div>
-                <div class="col-md-3">
-                    <h3 class="display-4"><?php echo $successRate; ?>%</h3>
-                    <p class="text-muted">Success Rate</p>
+                <div class="col-md-3 col-6" data-aos="fade-up" data-aos-delay="200">
+                    <div class="stat-item">
+                        <div class="stat-number countup" data-count="<?php echo $successRate; ?>">0</div>
+                        <p class="stat-label">Success Rate</p>
+                    </div>
                 </div>
-                <div class="col-md-3">
-                    <h3 class="display-4"><?php echo number_format($companies); ?></h3>
-                    <p class="text-muted">Companies Hiring</p>
+                <div class="col-md-3 col-6" data-aos="fade-up" data-aos-delay="300">
+                    <div class="stat-item">
+                        <div class="stat-number countup" data-count="<?php echo $companies; ?>">0</div>
+                        <p class="stat-label">Companies Hiring</p>
+                    </div>
                 </div>
             </div>
         </div>
-    </section>
     </section>
 
     <!-- Testimonials -->
-    <section class="bg-light py-5">
+    <section class="container">
+        <h2 class="text-center section-title" data-aos="fade-up">Success Stories</h2>
+        <p class="text-center text-muted mb-5" data-aos="fade-up" data-aos-delay="100">Hear from people who found their dream jobs</p>
+        
+        <div class="row g-4">
+            <!-- Testimonial 1 -->
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+                <div class="card testimonial-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <img src="https://randomuser.me/api/portraits/women/32.jpg" alt="Jane Doe" class="rounded-circle me-3" width="60">
+                            <div>
+                                <h5 class="mb-0">Jane Doe</h5>
+                                <p class="text-muted mb-0">Software Engineer</p>
+                            </div>
+                        </div>
+                        <p class="testimonial-text">"Career Quest helped me transition from a non-tech background to a software engineering role at a top tech company. The resources and network were invaluable!"</p>
+                        <div class="mt-3">
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Testimonial 2 -->
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="card testimonial-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <img src="https://randomuser.me/api/portraits/men/45.jpg" alt="John Smith" class="rounded-circle me-3" width="60">
+                            <div>
+                                <h5 class="mb-0">John Smith</h5>
+                                <p class="text-muted mb-0">Marketing Director</p>
+                            </div>
+                        </div>
+                        <p class="testimonial-text">"As an employer, I've found exceptional talent through Career Quest. The platform's matching algorithm saves us countless hours in the hiring process."</p>
+                        <div class="mt-3">
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Testimonial 3 -->
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
+                <div class="card testimonial-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <img src="https://randomuser.me/api/portraits/women/65.jpg" alt="Emily Johnson" class="rounded-circle me-3" width="60">
+                            <div>
+                                <h5 class="mb-0">Emily Johnson</h5>
+                                <p class="text-muted mb-0">Data Scientist</p>
+                            </div>
+                        </div>
+                        <p class="testimonial-text">"The mentorship program connected me with industry leaders who provided guidance that was crucial for my career advancement. Highly recommend!"</p>
+                        <div class="mt-3">
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star-half-alt text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Jobs -->
+    <section class="bg-light">
         <div class="container">
-            <h2 class="text-center mb-5" data-aos="fade-up">What Our Users Say</h2>
-            <div class="row">
-                <!-- Testimonial 1 -->
-                <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="100">
-                    <div class="card border-0 shadow-sm h-100 rounded-3 hover-effect">
-                        <div class="card-body text-center p-4">
-                            <p class="card-text fs-5 text-muted mb-3">"This platform helped me land my dream job right after graduation!"</p>
-                            <p class="text-muted mb-0">— Jane Doe, Software Engineer</p>
+            <div class="d-flex justify-content-between align-items-center mb-5">
+                <div>
+                    <h2 class="section-title" data-aos="fade-up">Featured Opportunities</h2>
+                    <p class="text-muted" data-aos="fade-up" data-aos-delay="100">Browse our latest job openings</p>
+                </div>
+                <div data-aos="fade-up" data-aos-delay="200">
+                    <a href="#" class="btn btn-outline-primary">View All Jobs <i class="fas fa-arrow-right ms-2"></i></a>
+                </div>
+            </div>
+            
+            <div class="row g-4">
+                <!-- Job 1 -->
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="card job-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <span class="job-type">Full-time</span>
+                                </div>
+                                <div>
+                                    <i class="far fa-bookmark text-primary"></i>
+                                </div>
+                            </div>
+                            <h4 class="card-title">Senior Software Engineer</h4>
+                            <p class="text-muted mb-3">Tech Solutions Inc.</p>
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fas fa-map-marker-alt text-muted me-2"></i>
+                                <span class="text-muted">San Francisco, CA or Remote</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-primary bg-opacity-10 text-primary">$120k - $150k</span>
+                                <a href="#" class="btn btn-sm btn-primary">Apply Now</a>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <!-- Testimonial 2 -->
-                <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="200">
-                    <div class="card border-0 shadow-sm h-100 rounded-3 hover-effect">
-                        <div class="card-body text-center p-4">
-                            <p class="card-text fs-5 text-muted mb-3">"We found the perfect candidate for our team in just a few days."</p>
-                            <p class="text-muted mb-0">— John Smith, Hiring Manager</p>
+                
+                <!-- Job 2 -->
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="card job-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <span class="job-type">Internship</span>
+                                </div>
+                                <div>
+                                    <i class="far fa-bookmark text-primary"></i>
+                                </div>
+                            </div>
+                            <h4 class="card-title">Marketing Intern</h4>
+                            <p class="text-muted mb-3">Global Brands LLC</p>
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fas fa-map-marker-alt text-muted me-2"></i>
+                                <span class="text-muted">New York, NY</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-primary bg-opacity-10 text-primary">$25/hr</span>
+                                <a href="#" class="btn btn-sm btn-primary">Apply Now</a>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <!-- Testimonial 3 -->
-                <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="300">
-                    <div class="card border-0 shadow-sm h-100 rounded-3 hover-effect">
-                        <div class="card-body text-center p-4">
-                            <p class="card-text fs-5 text-muted mb-3">"Networking with professionals here has been invaluable for my career growth."</p>
-                            <p class="text-muted mb-0">— Emily Johnson, Marketing Professional</p>
+                
+                <!-- Job 3 -->
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="300">
+                    <div class="card job-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <span class="job-type">Contract</span>
+                                </div>
+                                <div>
+                                    <i class="far fa-bookmark text-primary"></i>
+                                </div>
+                            </div>
+                            <h4 class="card-title">UX/UI Designer</h4>
+                            <p class="text-muted mb-3">Creative Minds Agency</p>
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fas fa-map-marker-alt text-muted me-2"></i>
+                                <span class="text-muted">Remote</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-primary bg-opacity-10 text-primary">$50 - $70/hr</span>
+                                <a href="#" class="btn btn-sm btn-primary">Apply Now</a>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
     </section>
-    
-    <section class="container py-5">
-        <h2 class="text-center mb-5" data-aos="fade-up">Featured Jobs</h2>
-        <div class="row">
-            <!-- Job 1 -->
-            <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="100">
-                <div class="card shadow-sm h-100 border-0">
-                    <div class="card-body">
-                        <h5 class="card-title">Software Engineer</h5>
-                        <p class="card-text">Join a leading tech company and work on cutting-edge projects.</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted">Location: San Francisco, CA</small>
-                            <a href="#" class="btn btn-primary">Apply Now</a>
+
+    <!-- FAQ Section -->
+    <section class="container">
+        <h2 class="text-center section-title" data-aos="fade-up">Frequently Asked Questions</h2>
+        <p class="text-center text-muted mb-5" data-aos="fade-up" data-aos-delay="100">Find answers to common questions about Career Quest</p>
+        
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="accordion" id="faqAccordion">
+                    <!-- Question 1 -->
+                    <div class="accordion-item border-0 mb-3 shadow-sm" data-aos="fade-up" data-aos-delay="100">
+                        <h2 class="accordion-header" id="headingOne">
+                            <button class="accordion-button rounded-3 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                <i class="fas fa-question-circle text-primary me-3"></i> How do I create a profile?
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Creating a profile is simple! Click on the "Sign Up" button, select your role (student, professional, or employer), and follow the step-by-step process to complete your profile. You'll need to provide basic information, education details, work experience (if any), and skills.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Question 2 -->
+                    <div class="accordion-item border-0 mb-3 shadow-sm" data-aos="fade-up" data-aos-delay="200">
+                        <h2 class="accordion-header" id="headingTwo">
+                            <button class="accordion-button rounded-3 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                <i class="fas fa-question-circle text-primary me-3"></i> Is the platform free to use?
+                            </button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Yes, Career Quest is completely free for students and professionals to create profiles, search for jobs, and apply for opportunities. Employers can post a limited number of jobs for free, with premium options available for additional features and visibility.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Question 3 -->
+                    <div class="accordion-item border-0 mb-3 shadow-sm" data-aos="fade-up" data-aos-delay="300">
+                        <h2 class="accordion-header" id="headingThree">
+                            <button class="accordion-button rounded-3 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                <i class="fas fa-question-circle text-primary me-3"></i> How can I find job opportunities?
+                            </button>
+                        </h2>
+                        <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                After completing your profile, you can browse job listings in the "Jobs" section. Our smart matching algorithm will also recommend relevant opportunities based on your skills and preferences. You can set up job alerts to receive notifications when new positions matching your criteria are posted.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Question 4 -->
+                    <div class="accordion-item border-0 mb-3 shadow-sm" data-aos="fade-up" data-aos-delay="400">
+                        <h2 class="accordion-header" id="headingFour">
+                            <button class="accordion-button rounded-3 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                <i class="fas fa-question-circle text-primary me-3"></i> Can I post a job as an employer?
+                            </button>
+                        </h2>
+                        <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Absolutely! Employers can post job listings by creating an employer account. Once your account is verified, you can post jobs, view candidate profiles, and contact potential hires directly through the platform. Premium employer accounts offer additional features like featured job listings and advanced candidate search filters.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Question 5 -->
+                    <div class="accordion-item border-0 mb-3 shadow-sm" data-aos="fade-up" data-aos-delay="500">
+                        <h2 class="accordion-header" id="headingFive">
+                            <button class="accordion-button rounded-3 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                                <i class="fas fa-question-circle text-primary me-3"></i> How does the mentorship program work?
+                            </button>
+                        </h2>
+                        <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Our mentorship program connects students and early-career professionals with experienced industry mentors. After completing your profile, you can browse mentor profiles and request mentorship sessions. Mentors offer guidance on career development, resume reviews, interview preparation, and industry insights. Both one-time and ongoing mentorship arrangements are available.
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Job 2 -->
-            <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="200">
-                <div class="card shadow-sm h-100 border-0">
-                    <div class="card-body">
-                        <h5 class="card-title">Marketing Manager</h5>
-                        <p class="card-text">Lead marketing campaigns for a global brand.</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted">Location: New York, NY</small>
-                            <a href="#" class="btn btn-primary">Apply Now</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Job 3 -->
-            <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="300">
-                <div class="card shadow-sm h-100 border-0">
-                    <div class="card-body">
-                        <h5 class="card-title">Data Analyst</h5>
-                        <p class="card-text">Work with big data and drive business decisions.</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted">Location: Remote</small>
-                            <a href="#" class="btn btn-primary">Apply Now</a>
-                        </div>
-                    </div>
+                
+                <div class="text-center mt-5" data-aos="fade-up" data-aos-delay="600">
+                    <p class="mb-3">Still have questions?</p>
+                    <a href="contact.php" class="btn btn-outline-primary px-4">Contact Support</a>
                 </div>
             </div>
         </div>
     </section>
 
-    <section class="container py-5">
-        <h2 class="text-center mb-5" data-aos="fade-up">Frequently Asked Questions</h2>
-        <div class="accordion" id="faqAccordion">
-            <!-- Question 1 -->
-            <div class="accordion-item" data-aos="fade-up" data-aos-delay="100">
-                <h2 class="accordion-header" id="headingOne">
-                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                        How do I create a profile?
-                    </button>
-                </h2>
-                <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
-                    <div class="accordion-body">
-                        Creating a profile is easy! Just sign up, fill in your details, and start exploring opportunities.
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Question 2 -->
-            <div class="accordion-item" data-aos="fade-up" data-aos-delay="200">
-                <h2 class="accordion-header" id="headingTwo">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                        Is the platform free to use?
-                    </button>
-                </h2>
-                <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
-                    <div class="accordion-body">
-                        Yes, our platform is completely free for students and professionals. Employers may have premium options.
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Question 3 -->
-            <div class="accordion-item" data-aos="fade-up" data-aos-delay="300">
-                <h2 class="accordion-header" id="headingThree">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                        How can I find job opportunities?
-                    </button>
-                </h2>
-                <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
-                    <div class="accordion-body">
-                        Students can find jobs and internships in their field of study by browsing through our job listings. Set up alerts to never miss an opportunity!
-                    </div>
-                </div>
-            </div>
-
-            <!-- Question 4 -->
-            <div class="accordion-item" data-aos="fade-up" data-aos-delay="400">
-                <h2 class="accordion-header" id="headingFour">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
-                        Can I post a job as an employer?
-                    </button>
-                </h2>
-                <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#faqAccordion">
-                    <div class="accordion-body">
-                        Yes, employers can post job listings, view candidate profiles, and contact potential candidates directly through the platform. Premium features may offer more visibility.
-                    </div>
-                </div>
-            </div>
-
-            <!-- Question 5 -->
-            <div class="accordion-item" data-aos="fade-up" data-aos-delay="500">
-                <h2 class="accordion-header" id="headingFive">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
-                        Can professionals access career guidance and mentoring?
-                    </button>
-                </h2>
-                <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#faqAccordion">
-                    <div class="accordion-body">
-                        Yes, professionals can network with other industry experts, access mentoring sessions, and share their knowledge to help others grow in their careers.
-                    </div>
-                </div>
-            </div>
-
-            <!-- Question 6 -->
-            <div class="accordion-item" data-aos="fade-up" data-aos-delay="600">
-                <h2 class="accordion-header" id="headingSix">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSix" aria-expanded="false" aria-controls="collapseSix">
-                        How do I update my profile information?
-                    </button>
-                </h2>
-                <div id="collapseSix" class="accordion-collapse collapse" aria-labelledby="headingSix" data-bs-parent="#faqAccordion">
-                    <div class="accordion-body">
-                        To update your profile, simply log in, go to your account settings, and make changes to your information, such as job preferences, skills, and contact details.
-                    </div>
-                </div>
-            </div>
-
-            <!-- Question 7 -->
-            <div class="accordion-item" data-aos="fade-up" data-aos-delay="700">
-                <h2 class="accordion-header" id="headingSeven">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSeven" aria-expanded="false" aria-controls="collapseSeven">
-                        How do I get notifications for job updates?
-                    </button>
-                </h2>
-                <div id="collapseSeven" class="accordion-collapse collapse" aria-labelledby="headingSeven" data-bs-parent="#faqAccordion">
-                    <div class="accordion-body">
-                        You can set up job alerts based on your preferences (role, location, etc.) so you receive notifications via email when new job opportunities match your criteria.
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Question 8 -->
-            <div class="accordion-item" data-aos="fade-up" data-aos-delay="800">
-                <h2 class="accordion-header" id="headingEight">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEight" aria-expanded="false" aria-controls="collapseEight">
-                        How can I contact support if I need help?
-                    </button>
-                </h2>
-                <div id="collapseEight" class="accordion-collapse collapse" aria-labelledby="headingEight" data-bs-parent="#faqAccordion">
-                    <div class="accordion-body">
-                        If you need assistance, you can contact our support team through the help section of the platform or by sending an email to support@ourplatform.com.
-                    </div>
-                </div>
+    <!-- CTA Section -->
+    <section class="cta-section text-white">
+        <div class="container text-center">
+            <h2 class="display-5 fw-bold mb-4" data-aos="fade-up">Ready to Transform Your Career?</h2>
+            <p class="lead mb-5 opacity-75" data-aos="fade-up" data-aos-delay="100">Join thousands of professionals and companies achieving their goals with Career Quest.</p>
+            <div class="d-flex justify-content-center gap-3" data-aos="fade-up" data-aos-delay="200">
+                <a href="#" class="btn btn-light btn-lg px-5" data-bs-toggle="modal" data-bs-target="#signupModal">
+                    Get Started <i class="fas fa-arrow-right ms-2"></i>
+                </a>
+                <a href="#" class="btn btn-outline-light btn-lg px-5">
+                    Learn More <i class="fas fa-info-circle ms-2"></i>
+                </a>
             </div>
         </div>
     </section>
 
+    <!-- Floating Action Button -->
+    <a href="#" class="fab animate__animated animate__bounceIn" data-bs-toggle="modal" data-bs-target="#signupModal">
+        <i class="fas fa-user-plus"></i>
+    </a>
 
-    <!-- Call-to-Action Banner -->
-    <section class="bg-dark text-white text-center py-5">
-        <div class="container">
-            <h2 data-aos="fade-up">Ready to Take the Next Step?</h2>
-            <p class="lead" data-aos="fade-up" data-aos-delay="100">Join thousands of professionals and companies achieving their goals.</p>
-            <a href="#" class="btn btn-light btn-lg" data-aos="fade-up" data-aos-delay="200">Sign Up Now</a>
-        </div>
-    </section>
-
-    
     <!-- Role Selection Modal -->
-    <section>
-        <div class="modal fade" id="signupModal" tabindex="-1" aria-labelledby="roleSelectionModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header border-0 pb-0">
-                        <div class="w-100 text-center">
-                            <h3 class="modal-title fw-bold display-6" id="roleSelectionModalLabel">Get Started</h3>
-                            <p class="text-muted">Create an Account to Get Started</p>
-                        </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal fade" id="signupModal" tabindex="-1" aria-labelledby="roleSelectionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header border-0 pb-0">
+                    <div class="w-100 text-center">
+                        <h3 class="modal-title fw-bold display-6" id="roleSelectionModalLabel">Join Career Quest</h3>
+                        <p class="text-muted">Select your role to get started</p>
                     </div>
-                    <div class="modal-body">
-                        <div class="row g-4">
-                            <!-- Student Role -->
-                            <div class="col-12">
-                                <a href="views/register_student.php" class="card role-card h-100 text-decoration-none bg-gradient-primary-hover">
-                                    <div class="card-body d-flex align-items-center gap-4 py-4">
-                                        <div class="icon-container bg-white bg-opacity-25 p-3 rounded-circle">
-                                            <i class="fas fa-user-graduate fa-2x text-white"></i>
-                                        </div>
-                                        <div class="text-start">
-                                            <h4 class="text-white mb-1">Applicant</h4>
-                                            <p class="text-white text-opacity-75 mb-0">Find jobs, internships, and career guidance</p>
-                                        </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <!-- Student Role -->
+                        <div class="col-12">
+                            <a href="views/register_student.php" class="card role-card h-100 text-decoration-none text-white" style="background: var(--gradient-primary);">
+                                <div class="card-body d-flex align-items-center gap-4 py-4">
+                                    <div class="icon-container bg-white bg-opacity-25 p-3 rounded-circle">
+                                        <i class="fas fa-user-graduate fa-2x"></i>
                                     </div>
-                                </a>
-                            </div>
+                                    <div class="text-start">
+                                        <h4 class="mb-1">Applicant</h4>
+                                        <p class="opacity-75 mb-0">Find jobs, internships, and career guidance</p>
+                                    </div>
+                                    <i class="fas fa-arrow-right ms-auto opacity-50"></i>
+                                </div>
+                            </a>
+                        </div>
 
-                            <!-- Employer Role -->
-                            <div class="col-12">
-                                <a href="views/register_employer.php" class="card role-card h-100 text-decoration-none bg-gradient-success-hover">
-                                    <div class="card-body d-flex align-items-center gap-4 py-4">
-                                        <div class="icon-container bg-white bg-opacity-25 p-3 rounded-circle">
-                                            <i class="fas fa-briefcase fa-2x text-white"></i>
-                                        </div>
-                                        <div class="text-start">
-                                            <h4 class="text-white mb-1">Employer</h4>
-                                            <p class="text-white text-opacity-75 mb-0">Post jobs and find qualified candidates</p>
-                                        </div>
+                        <!-- Employer Role -->
+                        <div class="col-12">
+                            <a href="views/register_employer.php" class="card role-card h-100 text-decoration-none text-white" style="background: var(--gradient-secondary);">
+                                <div class="card-body d-flex align-items-center gap-4 py-4">
+                                    <div class="icon-container bg-white bg-opacity-25 p-3 rounded-circle">
+                                        <i class="fas fa-briefcase fa-2x"></i>
                                     </div>
-                                </a>
-                            </div>
-
-                            <!-- Professional Role 
-                            <div class="col-12">
-                                <a href="views/register_professional.php" class="card role-card h-100 text-decoration-none bg-gradient-info-hover">
-                                    <div class="card-body d-flex align-items-center gap-4 py-4">
-                                        <div class="icon-container bg-white bg-opacity-25 p-3 rounded-circle">
-                                            <i class="fas fa-user-tie fa-2x text-white"></i>
-                                        </div>
-                                        <div class="text-start">
-                                            <h4 class="text-white mb-1">Professional</h4>
-                                            <p class="text-white text-opacity-75 mb-0">Network, mentor, and access opportunities</p>
-                                        </div>
+                                    <div class="text-start">
+                                        <h4 class="mb-1">Employer</h4>
+                                        <p class="opacity-75 mb-0">Post jobs and find qualified candidates</p>
                                     </div>
-                                </a>
-                            </div>
-                            -->
+                                    <i class="fas fa-arrow-right ms-auto opacity-50"></i>
+                                </div>
+                            </a>
                         </div>
                     </div>
-                    <div class="modal-footer border-0 pt-0">
-                        <p class="text-muted small text-center w-100 mb-0">
-                            Already have an account? 
-                            <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal"  class="text-decoration-none">Sign In</a>
-                        </p>
-                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <p class="text-muted small text-center w-100 mb-0">
+                        Already have an account? 
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal" class="text-decoration-none fw-bold">Sign In</a>
+                    </p>
                 </div>
             </div>
         </div>
+    </div>
 
-
-        <!-- Login Modal -->
-        <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header border-0 pb-0">
-                        <div class="w-100 text-center">
-                            <h3 class="modal-title fw-bold display-6" id="loginModalLabel">Welcome Aboard</h3>
-                            <p class="text-muted">Log in to Your Account</p>
-                        </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <!-- Login Modal -->
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header border-0 pb-0">
+                    <div class="w-100 text-center">
+                        <h3 class="modal-title fw-bold display-6" id="loginModalLabel">Welcome Back</h3>
+                        <p class="text-muted">Sign in to your account</p>
                     </div>
-                    <div class="modal-body">
-                        <div class="row g-4">
-                            <!-- Student Login -->
-                            <div class="col-12">
-                                <a href="auth/login_student.php" class="card role-card h-100 text-decoration-none bg-gradient-primary-hover">
-                                    <div class="card-body d-flex align-items-center gap-4 py-4">
-                                        <div class="icon-container bg-white bg-opacity-25 p-3 rounded-circle">
-                                            <i class="fas fa-user-graduate fa-2x text-white"></i>
-                                        </div>
-                                        <div class="text-start">
-                                            <h4 class="text-white mb-1">Applicant</h4>
-                                            <p class="text-white text-opacity-75 mb-0">Access jobs, internships, and career resources</p>
-                                        </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <!-- Student Login -->
+                        <div class="col-12">
+                            <a href="auth/login_student.php" class="card role-card h-100 text-decoration-none text-white" style="background: var(--gradient-primary);">
+                                <div class="card-body d-flex align-items-center gap-4 py-4">
+                                    <div class="icon-container bg-white bg-opacity-25 p-3 rounded-circle">
+                                        <i class="fas fa-user-graduate fa-2x"></i>
                                     </div>
-                                </a>
-                            </div>
+                                    <div class="text-start">
+                                        <h4 class="mb-1">Applicant</h4>
+                                        <p class="opacity-75 mb-0">Access jobs and career resources</p>
+                                    </div>
+                                    <i class="fas fa-arrow-right ms-auto opacity-50"></i>
+                                </div>
+                            </a>
+                        </div>
 
-                            <!-- Employer Login -->
-                            <div class="col-12">
-                                <a href="auth/login_employer.php" class="card role-card h-100 text-decoration-none bg-gradient-success-hover">
-                                    <div class="card-body d-flex align-items-center gap-4 py-4">
-                                        <div class="icon-container bg-white bg-opacity-25 p-3 rounded-circle">
-                                            <i class="fas fa-briefcase fa-2x text-white"></i>
-                                        </div>
-                                        <div class="text-start">
-                                            <h4 class="text-white mb-1">Employer</h4>
-                                            <p class="text-white text-opacity-75 mb-0">Post jobs and find qualified candidates</p>
-                                        </div>
+                        <!-- Employer Login -->
+                        <div class="col-12">
+                            <a href="auth/login_employer.php" class="card role-card h-100 text-decoration-none text-white" style="background: var(--gradient-secondary);">
+                                <div class="card-body d-flex align-items-center gap-4 py-4">
+                                    <div class="icon-container bg-white bg-opacity-25 p-3 rounded-circle">
+                                        <i class="fas fa-briefcase fa-2x"></i>
                                     </div>
-                                </a>
-                            </div>
-
-                            <!-- Professional Login
-                            <div class="col-12">
-                                <a href="auth/login_user.php" class="card role-card h-100 text-decoration-none bg-gradient-info-hover">
-                                    <div class="card-body d-flex align-items-center gap-4 py-4">
-                                        <div class="icon-container bg-white bg-opacity-25 p-3 rounded-circle">
-                                            <i class="fas fa-user-tie fa-2x text-white"></i>
-                                        </div>
-                                        <div class="text-start">
-                                            <h4 class="text-white mb-1">Professional</h4>
-                                            <p class="text-white text-opacity-75 mb-0">Connect, mentor, and explore opportunities</p>
-                                        </div>
+                                    <div class="text-start">
+                                        <h4 class="mb-1">Employer</h4>
+                                        <p class="opacity-75 mb-0">Manage your job postings</p>
                                     </div>
-                                </a>
-                            </div>
-                             -->
+                                    <i class="fas fa-arrow-right ms-auto opacity-50"></i>
+                                </div>
+                            </a>
                         </div>
                     </div>
-                    <div class="modal-footer border-0 pt-0">
-                        <p class="text-muted small text-center w-100 mb-0">
-                            Don't have an account? 
-                            <a href="#" data-bs-toggle="modal" data-bs-target="#signupModal" class="text-decoration-none">Sign Up</a>
-                        </p>
-                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <p class="text-muted small text-center w-100 mb-0">
+                        Don't have an account? 
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#signupModal" class="text-decoration-none fw-bold">Sign Up</a>
+                    </p>
                 </div>
             </div>
         </div>
-    </section>
-
+    </div>
 
     <?php include 'includes/footer.php'; ?>
 
-    <!-- Bootstrap JS and AOS -->
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
     <script>
-        AOS.init();
-    </script>
+        // Initialize AOS
+        AOS.init({
+            duration: 800,
+            easing: 'ease-in-out',
+            once: true
+        });
 
-
-    <script>
-        // Function to get URL parameters
-        function getQueryParam(param) {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get(param);
-        }
-
-        // Check if "openSignupModal" is set in the URL
-        if (getQueryParam("openloginModal") === "true") {
-            document.addEventListener("DOMContentLoaded", function () {
-                var signupModal = new bootstrap.Modal(document.getElementById("loginModal"));
-                signupModal.show();
-
-                // Remove the query parameter after opening the modal
-                history.replaceState(null, "", window.location.pathname);
+        // CountUp Animation
+        document.addEventListener('DOMContentLoaded', function() {
+            const countups = document.querySelectorAll('.countup');
+            
+            countups.forEach(countup => {
+                const target = parseInt(countup.getAttribute('data-count'));
+                const duration = 2000;
+                const start = 0;
+                const increment = target / (duration / 16);
+                let current = start;
+                
+                const updateCount = () => {
+                    current += increment;
+                    if (current < target) {
+                        countup.textContent = Math.floor(current);
+                        requestAnimationFrame(updateCount);
+                    } else {
+                        countup.textContent = target;
+                    }
+                };
+                
+                const observer = new IntersectionObserver((entries) => {
+                    if (entries[0].isIntersecting) {
+                        updateCount();
+                        observer.unobserve(countup);
+                    }
+                });
+                
+                observer.observe(countup);
             });
-        }
-    </script>
 
-    <script>
-        // Function to get URL parameters
-        function getQueryParam(param) {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get(param);
-        }
+            // Modal transition handling
+            const signupModal = document.getElementById('signupModal');
+            const loginModal = document.getElementById('loginModal');
+            
+            if (signupModal && loginModal) {
+                signupModal.addEventListener('hidden.bs.modal', function () {
+                    if (document.body.classList.contains('modal-open')) {
+                        document.body.classList.remove('modal-open');
+                        document.body.style.paddingRight = '';
+                        document.body.style.overflow = '';
+                    }
+                });
+                
+                loginModal.addEventListener('hidden.bs.modal', function () {
+                    if (document.body.classList.contains('modal-open')) {
+                        document.body.classList.remove('modal-open');
+                        document.body.style.paddingRight = '';
+                        document.body.style.overflow = '';
+                    }
+                });
+            }
 
-        // Check if "openSignupModal" is set in the URL
-        if (getQueryParam("opensignupModal") === "true") {
-            document.addEventListener("DOMContentLoaded", function () {
-                var signupModal = new bootstrap.Modal(document.getElementById("signupModal"));
-                signupModal.show();
+            // Check URL for modal triggers
+            function getQueryParam(param) {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get(param);
+            }
 
-                // Remove the query parameter after opening the modal
+            if (getQueryParam("openloginModal") === "true") {
+                const loginModal = new bootstrap.Modal(document.getElementById("loginModal"));
+                loginModal.show();
                 history.replaceState(null, "", window.location.pathname);
-            });
-        }
-    </script>
+            }
 
-    <script>
-        // Store selected role in localStorage when a card is clicked
+            if (getQueryParam("opensignupModal") === "true") {
+                const signupModal = new bootstrap.Modal(document.getElementById("signupModal"));
+                signupModal.show();
+                history.replaceState(null, "", window.location.pathname);
+            }
+
+            // Add loading state to buttons
+            document.querySelectorAll('a[href="#"], button').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    if (this.getAttribute('href') === '#') {
+                        e.preventDefault();
+                        const originalText = this.innerHTML;
+                        this.innerHTML = 'Loading <span class="loading-spinner"></span>';
+                        
+                        // Simulate loading
+                        setTimeout(() => {
+                            this.innerHTML = originalText;
+                        }, 1500);
+                    }
+                });
+            });
+
+            // Smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const targetId = this.getAttribute('href');
+                    if (targetId === '#') return;
+                    
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        window.scrollTo({
+                            top: targetElement.offsetTop - 80,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+        });
+
+        // Store selected role in localStorage
         document.querySelectorAll('.role-card').forEach(card => {
             card.addEventListener('click', function() {
                 const role = this.querySelector('h4').textContent.toLowerCase();
@@ -754,21 +1146,34 @@ $successRate = ($jobsPosted > 0) ? round(($filledJobs / $jobsPosted) * 100) : 0;
             });
         });
 
-        // Highlight the previously selected role when the modal opens
-        document.addEventListener('DOMContentLoaded', function () {
+        // Highlight selected role when modal opens
+        document.addEventListener('DOMContentLoaded', function() {
             const chosenRole = localStorage.getItem('chosenRole');
             if (chosenRole) {
-                // Highlight the corresponding role card
                 document.querySelectorAll('.role-card').forEach(card => {
                     if (card.querySelector('h4').textContent.toLowerCase() === chosenRole) {
                         card.classList.add('active');
-                    } else {
-                        card.classList.remove('active');
                     }
                 });
             }
         });
-    </script>
 
+        // Animate elements on scroll
+        gsap.registerPlugin(ScrollTrigger);
+        
+        gsap.utils.toArray('.animate-on-scroll').forEach(element => {
+            gsap.from(element, {
+                scrollTrigger: {
+                    trigger: element,
+                    start: "top 80%",
+                    toggleActions: "play none none none"
+                },
+                opacity: 0,
+                y: 50,
+                duration: 0.8,
+                ease: "power2.out"
+            });
+        });
+    </script>
 </body>
 </html>
