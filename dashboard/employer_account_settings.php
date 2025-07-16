@@ -613,7 +613,7 @@ $company_logo = !empty($employer['company_logo']) ? '../Uploads/' . $employer['c
         </div>
     </div>
 
-    <?php include '../includes/employer_footer.php'; ?>
+    <?php include '../includes/stud_footer.php'; ?>
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
