@@ -74,7 +74,7 @@ if ($employerData) {
 }
 
 // Profile picture handling
-$profilePicture = $employerData['profile_picture'] ?? '';
+$profilePicture = $employerData['picture_file'] ?? '';
 if (!empty($profilePicture) && file_exists('../uploads/' . $profilePicture)) {
     $profile_pic = '../uploads/' . $profilePicture;
 } else {
