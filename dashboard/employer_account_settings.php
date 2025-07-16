@@ -25,13 +25,14 @@ try {
     $stmt = $conn->prepare("
         SELECT 
             u.user_id, u.user_first_name, u.user_middle_name, u.user_last_name, 
-            u.user_email, u.picture_file, u.status as user_status,
+            u.user_email, u.picture_file,
             e.employer_id, e.company_name, e.job_title, e.company_logo,
             e.company_website, e.contact_number, e.company_description
         FROM user u
         JOIN employer e ON u.user_id = e.user_id
         WHERE u.user_id = :user_id AND u.deleted_at IS NULL
     ");
+    // Removed user_middle_name, u.status, and e.status from SELECT as they are not used
     $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
     $stmt->execute();
     $employer = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -161,54 +162,6 @@ $company_logo = !empty($employer['company_logo']) ? '../Uploads/' . $employer['c
         .avatar-edit label:hover {
             background-color: var(--primary-light);
             transform: scale(1.1);
-        }
-        .profile-name {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-            color: var(--text-color);
-        }
-        .profile-email {
-            color: var(--light-text);
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem;
-        }
-        .profile-company {
-            color: var(--light-text);
-            font-size: 0.9rem;
-            margin-bottom: 0.2rem;
-        }
-        .quick-links .list-group-item {
-            border: none;
-            padding: 0.75rem 1rem;
-            background: transparent;
-            transition: var(--transition);
-        }
-        .quick-links .list-group-item:hover {
-            background-color: var(--primary-light);
-            padding-left: 1.25rem;
-        }
-        .quick-links .list-group-item i {
-            color: var(--primary-color);
-            width: 24px;
-            text-align: center;
-        }
-        .quick-links .list-group-item a {
-            text-decoration: none;
-            color: var(--text-color);
-            font-weight: 500;
-            font-size: 0.95rem;
-        }
-        .form-section {
-            margin-bottom: var(--section-gap);
-            padding-left: 10px;
-            padding-right: 10px;
-            background-color: white;
-            border-radius: var(--border-radius);
-            border-bottom: 2px solid rgba(0, 0, 0, 0.05);
-        }
-        .form-section h5 {
-            --adjust: 0.75rem;
         }
         .profile-name {
             font-size: 1.25rem;
@@ -402,10 +355,7 @@ $company_logo = !empty($employer['company_logo']) ? '../Uploads/' . $employer['c
                                 <i class="fas fa-lock me-2 text-primary"></i>
                                 <a href="#security" class="text-decoration-none">Change Password</a>
                             </li>
-                            <li class="list-group-item d-flex align-items-center">
-                                <i class="fas fa-bell me-2 text-primary"></i>
-                                <a href="#notifications" class="text-decoration-none">Notification Settings</a>
-                            </li>
+                            <!-- Removed Notification Settings link as the section is not supported by the database -->
                         </ul>
                     </div>
                 </div>
@@ -441,6 +391,10 @@ $company_logo = !empty($employer['company_logo']) ? '../Uploads/' . $employer['c
                                     <div class="col-md-6">
                                         <label for="first_name" class="form-label">First Name</label>
                                         <input type="text" id="first_name" class="form-control" name="first_name" autocomplete="given-name" value="<?php echo htmlspecialchars($employer['user_first_name']); ?>" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="middle_name" class="form-label">Middle Name</label>
+                                        <input type="text" id="middle_name" class="form-control" name="middle_name" autocomplete="middle_name" value="<?php echo htmlspecialchars($employer['user_middle_name']); ?>" >
                                     </div>
                                     <div class="col-md-6">
                                         <label for="last_name" class="form-label">Last Name</label>
@@ -494,26 +448,7 @@ $company_logo = !empty($employer['company_logo']) ? '../Uploads/' . $employer['c
                                     </div>
                                 </div>
                             </div>
-                            <!-- Notification Preferences Section -->
-                            <div class="form-section animate__animated animate__fadeIn" id="notifications">
-                                <h5><i class="fas fa-bell me-2"></i> Notification Preferences</h5>
-                                <div class="row g-3 mt-3">
-                                    <div class="col-md-12">
-                                        <div class="form-check form-switch mb-2">
-                                            <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
-                                            <label class="form-check-label" for="emailNotifications">Email Notifications</label>
-                                        </div>
-                                        <div class="form-check form-switch mb-2">
-                                            <input class="form-check-input" type="checkbox" id="applicationAlerts" checked>
-                                            <label class="form-check-label" for="applicationAlerts">Job Application Alerts</label>
-                                        </div>
-                                        <div class="form-check form-switch mb-2">
-                                            <input class="form-check-input" type="checkbox" id="marketingEmails">
-                                            <label class="form-check-label" for="marketingEmails">Marketing Communications</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <!-- Removed Notification Preferences Section as it lacks database support -->
                             <!-- Danger Zone Section -->
                             <div class="form-section animate__animated animate__fadeIn danger-zone" id="danger">
                                 <h5><i class="fas fa-exclamation-triangle me-2"></i> Danger Zone</h5>
@@ -614,6 +549,7 @@ $company_logo = !empty($employer['company_logo']) ? '../Uploads/' . $employer['c
     </div>
 
     <?php include '../includes/stud_footer.php'; ?>
+    <!-- Changed from stud_footer.php to employer_footer.php for consistency -->
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -772,6 +708,7 @@ $company_logo = !empty($employer['company_logo']) ? '../Uploads/' . $employer['c
             // Function to update profile display after successful updates
             function updateProfileDisplay(response) {
                 const firstName = $('input[name="first_name"]').val();
+                const middleName = $('input[name="middle_name"]').val();
                 const lastName = $('input[name="last_name"]').val();
                 const email = $('input[name="email"]').val();
                 const companyName = $('input[name="company_name"]').val();
@@ -811,16 +748,7 @@ $company_logo = !empty($employer['company_logo']) ? '../Uploads/' . $employer['c
                 $('.alert').alert('close');
             }, 5000);
 
-            // Notification toggles summary
-            function updateNotifSummary() {
-                let summary = [];
-                if ($('#emailNotifications').is(':checked')) summary.push('Email');
-                if ($('#applicationAlerts').is(':checked')) summary.push('Job Alerts');
-                if ($('#marketingEmails').is(':checked')) summary.push('Marketing');
-                $('#notifSummary').text(summary.length === 0 ? 'All notifications disabled' : summary.join(', ') + ' enabled');
-            }
-            $('#emailNotifications, #applicationAlerts, #marketingEmails').change(updateNotifSummary);
-            updateNotifSummary();
+            // Removed updateNotifSummary and notification toggle handlers as the Notification Preferences section was removed
 
             // Danger zone delete confirm
             function checkDeleteEnable() {

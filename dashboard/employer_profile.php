@@ -103,7 +103,7 @@ try {
 
 // Set profile picture - prioritize user's profile picture over company logo
 $profile_picture = !empty($employer['picture_file']) ? '../uploads/' . $employer['picture_file'] : 
-                  (!empty($employer['company_logo']) ? '../uploads/' . $employer['company_logo'] : '/skillmatch-main/skillmatch-main/uploads/default.png');
+                  (!empty($employer['company_logo']) ? '../uploads/' . $employer['company_logo'] : '../uploads/default.png');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -115,45 +115,56 @@ $profile_picture = !empty($employer['picture_file']) ? '../uploads/' . $employer
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Animate.css for animations -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Custom CSS -->
     <style>
         :root {
-            --primary-color: #4361ee;
+            --primary: #4361ee;
             --primary-light: #e0e7ff;
-            --secondary-color: #f8f9fa;
-            --dark-color: #1e293b;
-            --text-color: #334155;
-            --light-text: #64748b;
-            --accent-color: #3a0ca3;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
-            --danger-color: #ef4444;
-            --border-radius: 12px;
-            --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --primary-dark: #3a0ca3;
+            --secondary: #6c757d;
+            --success: #28a745;
+            --info: #17a2b8;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --white: #ffffff;
+            --gray-100: #f8f9fa;
+            --gray-200: #e9ecef;
+            --gray-300: #dee2e6;
+            --gray-400: #ced4da;
+            --gray-500: #adb5bd;
+            --gray-600: #6c757d;
+            --gray-700: #495057;
+            --gray-800: #343a40;
+            --gray-900: #212529;
+            --border-radius: 0.375rem;
+            --border-radius-lg: 0.5rem;
+            --box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            --box-shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            --transition: all 0.3s ease;
         }
-        
+
         body {
-            background-color: var(--secondary-color);
-            color: var(--text-color);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f7fb;
+            color: var(--gray-800);
             line-height: 1.6;
-          
         }
-        
+
         .profile-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-            color: white;
-            border-radius: var(--border-radius);
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: var(--white);
+            border-radius: var(--border-radius-lg);
             padding: 2.5rem;
             margin-bottom: 2rem;
             position: relative;
             overflow: hidden;
             box-shadow: var(--box-shadow);
         }
-        
+
         .profile-header::before {
             content: '';
             position: absolute;
@@ -164,7 +175,7 @@ $profile_picture = !empty($employer['picture_file']) ? '../uploads/' . $employer
             background: rgba(255, 255, 255, 0.1);
             border-radius: 50%;
         }
-        
+
         .profile-header::after {
             content: '';
             position: absolute;
@@ -175,7 +186,7 @@ $profile_picture = !empty($employer['picture_file']) ? '../uploads/' . $employer
             background: rgba(255, 255, 255, 0.05);
             border-radius: 50%;
         }
-        
+
         .profile-picture {
             width: 150px;
             height: 150px;
@@ -187,133 +198,122 @@ $profile_picture = !empty($employer['picture_file']) ? '../uploads/' . $employer
             position: relative;
             transition: var(--transition);
         }
-        
+
         .profile-picture:hover {
             transform: scale(1.05);
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
         }
-        
+
         .profile-name {
             font-size: 2rem;
             font-weight: 700;
             margin-bottom: 0.5rem;
             line-height: 1.2;
         }
-        
+
         .profile-title {
             font-size: 1.1rem;
             margin-bottom: 1.25rem;
             opacity: 0.9;
             font-weight: 500;
         }
-        
+
         .profile-meta {
             display: flex;
             flex-wrap: wrap;
             gap: 1.5rem;
             margin-bottom: 1.5rem;
         }
-        
+
         .profile-meta-item {
             display: flex;
             align-items: center;
             gap: 0.5rem;
             font-size: 0.9rem;
         }
-        
+
         .profile-meta-item i {
             font-size: 1rem;
             opacity: 0.8;
         }
-        
-        .card-profile {
+
+        .card {
             border: none;
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--box-shadow-sm);
             margin-bottom: 1.5rem;
             transition: var(--transition);
-            background-color: white;
+            background-color: var(--white);
             overflow: hidden;
         }
-        
-        .card-profile:hover {
+
+        .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            box-shadow: var(--box-shadow);
         }
-        
-        .card-header-profile {
-            background-color: white;
+
+        .card-header {
+            background-color: var(--white);
             border-bottom: 1px solid rgba(0, 0, 0, 0.05);
             font-size: 1.1rem;
             font-weight: 600;
             padding: 1rem 1.5rem;
-            color: var(--dark-color);
+            color: var(--dark);
         }
-        
-        .card-body-profile {
+
+        .card-body {
             padding: 1.5rem;
         }
-        
+
         .info-item {
             margin-bottom: 1.25rem;
         }
-        
+
         .info-label {
-            color: var(--light-text);
+            color: var(--gray-600);
             font-size: 0.85rem;
             margin-bottom: 0.25rem;
             font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        
+
         .info-value {
             font-size: 1rem;
-            color: var(--text-color);
+            color: var(--gray-800);
         }
-        
-        .btn-primary-profile {
-            background-color: var(--primary-color);
+
+        .btn-primary {
+            background-color: var(--primary);
             border: none;
-            border-radius: 8px;
+            border-radius: var(--border-radius);
             font-weight: 600;
             padding: 0.75rem 1.5rem;
             transition: var(--transition);
             box-shadow: 0 4px 6px -1px rgba(67, 97, 238, 0.3);
         }
-        
-        .btn-primary-profile:hover {
-            background-color: var(--accent-color);
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
             transform: translateY(-2px);
             box-shadow: 0 10px 15px -3px rgba(67, 97, 238, 0.3);
         }
-        
+
         .btn-outline-primary {
-            border-radius: 8px;
+            border-radius: var(--border-radius);
             font-weight: 500;
             padding: 0.75rem 1.5rem;
         }
-        
-        .progress {
-            height: 8px;
-            border-radius: 4px;
-            background-color: #e2e8f0;
-        }
-        
-        .progress-bar {
-            background-color: var(--primary-color);
-            border-radius: 4px;
-        }
-        
+
         .section-title {
             font-size: 1.25rem;
             font-weight: 600;
             margin-bottom: 1.25rem;
-            color: var(--dark-color);
+            color: var(--dark);
             position: relative;
             padding-bottom: 0.75rem;
         }
-        
+
         .section-title::after {
             content: '';
             position: absolute;
@@ -321,25 +321,25 @@ $profile_picture = !empty($employer['picture_file']) ? '../uploads/' . $employer
             left: 0;
             width: 50px;
             height: 3px;
-            background-color: var(--primary-color);
+            background-color: var(--primary);
             border-radius: 3px;
         }
-        
+
         .application-card {
-            border-left: 4px solid var(--primary-color);
+            border-left: 4px solid var(--primary);
             transition: var(--transition);
             margin-bottom: 1rem;
-            border-radius: 4px;
-            background-color: white;
+            border-radius: var(--border-radius);
+            background-color: var(--white);
             padding: 1rem;
         }
-        
+
         .application-card:hover {
             transform: translateX(5px);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--box-shadow-sm);
         }
-        
-        .status-badge {
+
+        .badge {
             padding: 0.35rem 0.75rem;
             border-radius: 20px;
             font-size: 0.75rem;
@@ -347,157 +347,108 @@ $profile_picture = !empty($employer['picture_file']) ? '../uploads/' . $employer
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        
-        .status-pending {
-            background-color: var(--warning-color);
-            color: white;
+
+        .bg-pending {
+            background-color: var(--warning);
+            color: var(--dark);
         }
-        
-        .status-accepted {
-            background-color: var(--success-color);
-            color: white;
+
+        .bg-approved {
+            background-color: var(--success);
+            color: var(--white);
         }
-        
-        .status-rejected {
-            background-color: var(--danger-color);
-            color: white;
+
+        .bg-rejected {
+            background-color: var(--danger);
+            color: var(--white);
         }
-        
+
+        .bg-under-review {
+            background-color: var(--info);
+            color: var(--white);
+        }
+
+        .bg-interview-scheduled {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .bg-offered {
+            background-color: var(--success);
+            color: var(--white);
+        }
+
+        .bg-withdrawn {
+            background-color: var(--secondary);
+            color: var(--white);
+        }
+
         .action-buttons {
             display: flex;
             gap: 0.75rem;
             flex-wrap: wrap;
             margin-top: 1rem;
         }
-        
+
         .floating-alert {
             position: fixed;
             top: 20px;
             right: 20px;
             z-index: 1000;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
+            box-shadow: var(--box-shadow);
+            border-radius: var(--border-radius);
             border-left: 4px solid;
             animation: slideInRight 0.3s forwards, fadeOut 0.5s 4.5s forwards;
         }
-        
+
         @keyframes slideInRight {
             from { transform: translateX(100%); }
             to { transform: translateX(0); }
         }
-        
+
         @keyframes fadeOut {
             from { opacity: 1; }
             to { opacity: 0; }
         }
-        
-        .modal-content {
-            border-radius: var(--border-radius);
-            border: none;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-        }
-        
-        .modal-header {
-            border-bottom: none;
-            padding: 1.5rem;
-        }
-        
-        .modal-body {
-            padding: 1.5rem;
-        }
-        
-        .modal-footer {
-            border-top: none;
-            padding: 1rem 1.5rem;
-        }
-        
-        .form-control, .form-select {
-            border-radius: 8px;
-            padding: 0.75rem 1rem;
-            border: 1px solid #e2e8f0;
-            transition: var(--transition);
-        }
-        
-        .form-control:focus, .form-select:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
-        }
-        
-        .file-upload {
-            position: relative;
-            margin-bottom: 1rem;
-        }
-        
-        .file-upload-label {
-            display: block;
-            padding: 1.5rem;
-            border: 2px dashed #e2e8f0;
-            border-radius: 8px;
-            text-align: center;
-            cursor: pointer;
-            transition: var(--transition);
-            background-color: #f8fafc;
-        }
-        
-        .file-upload-label:hover {
-            border-color: var(--primary-color);
-            background-color: rgba(67, 97, 238, 0.05);
-        }
-        
-        .file-upload-label i {
-            font-size: 2rem;
-            color: var(--primary-color);
-            margin-bottom: 0.5rem;
-        }
-        
-        .file-upload-input {
-            position: absolute;
-            left: 0;
-            top: 0;
-            opacity: 0;
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
-        }
-        
+
         .avatar-edit {
             position: absolute;
             right: 10px;
             bottom: 10px;
             z-index: 2;
         }
-        
+
         .avatar-edit input {
             display: none;
         }
-        
+
         .avatar-edit label {
             display: inline-block;
             width: 40px;
             height: 40px;
             margin-bottom: 0;
             border-radius: 50%;
-            background: white;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            background: var(--white);
+            border: 1px solid var(--gray-300);
+            box-shadow: var(--box-shadow-sm);
             cursor: pointer;
             text-align: center;
             line-height: 40px;
-            color: var(--primary-color);
+            color: var(--primary);
             transition: var(--transition);
         }
-        
+
         .avatar-edit label:hover {
-            background-color: var(--primary-color);
-            color: white;
+            background-color: var(--primary);
+            color: var(--white);
         }
-        
+
         .social-links {
             display: flex;
             gap: 0.75rem;
             margin-top: 1rem;
         }
-        
+
         .social-link {
             display: flex;
             align-items: center;
@@ -505,30 +456,30 @@ $profile_picture = !empty($employer['picture_file']) ? '../uploads/' . $employer
             width: 36px;
             height: 36px;
             border-radius: 50%;
-            background-color: #f1f5f9;
-            color: var(--light-text);
+            background-color: rgba(255, 255, 255, 0.2);
+            color: var(--white);
             transition: var(--transition);
         }
-        
+
         .social-link:hover {
-            background-color: var(--primary-color);
-            color: white;
+            background-color: rgba(255, 255, 255, 0.3);
+            color: var(--white);
             transform: translateY(-2px);
         }
-        
+
         .job-card {
-            border-radius: var(--border-radius);
+            border-radius: var(--border-radius-lg);
             overflow: hidden;
             transition: var(--transition);
             margin-bottom: 1.5rem;
-            border: 1px solid rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--gray-200);
         }
-        
+
         .job-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--box-shadow);
         }
-        
+
         .job-status-badge {
             position: absolute;
             top: 15px;
@@ -538,34 +489,59 @@ $profile_picture = !empty($employer['picture_file']) ? '../uploads/' . $employer
             font-size: 0.75rem;
             font-weight: 600;
         }
-        
-        .job-status-pending {
-            background-color: var(--warning-color);
-            color: white;
-        }
-        
-        .job-status-approved {
-            background-color: var(--success-color);
-            color: white;
-        }
-        
-        .job-status-rejected {
-            background-color: var(--danger-color);
-            color: white;
-        }
-        
-        .job-status-paused {
-            background-color: var(--light-text);
-            color: white;
-        }
-        
+
         .job-flagged {
             position: absolute;
             top: 15px;
             left: 15px;
-            color: var(--danger-color);
+            color: var(--danger);
         }
-        
+
+        .stat-card {
+            text-align: center;
+            padding: 1.5rem;
+            border-radius: var(--border-radius-lg);
+            background-color: var(--white);
+            box-shadow: var(--box-shadow-sm);
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--box-shadow);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--gray-600);
+        }
+
+        .text-primary {
+            color: var(--primary) !important;
+        }
+
+        .text-success {
+            color: var(--success) !important;
+        }
+
+        .text-warning {
+            color: var(--warning) !important;
+        }
+
+        .text-danger {
+            color: var(--danger) !important;
+        }
+
+        .bg-primary-light {
+            background-color: var(--primary-light);
+        }
+
         @media (max-width: 768px) {
             .profile-header {
                 padding: 1.5rem;
@@ -595,155 +571,15 @@ $profile_picture = !empty($employer['picture_file']) ? '../uploads/' . $employer
                 gap: 0.5rem;
             }
             
-            .btn-primary-profile, .btn-outline-primary {
+            .btn {
                 width: 100%;
                 text-align: center;
             }
         }
-        .application-card {
-            border-left: 4px solid var(--primary-color);
-            transition: var(--transition);
-            margin-bottom: 1rem;
-            border-radius: 4px;
-            background-color: white;
-            padding: 1rem;
-        }
-        
-        .application-card:hover {
-            transform: translateX(5px);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-        
-        .status-badge {
-            padding: 0.35rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .status-pending {
-            background-color: var(--warning-color);
-            color: white;
-        }
-        
-        .status-accepted {
-            background-color: var(--success-color);
-            color: white;
-        }
-        
-        .status-rejected {
-            background-color: var(--danger-color);
-            color: white;
-        }
-        
-        .status-under-review {
-            background-color: var(--primary-color);
-            color: white;
-        }
-        
-        .status-interview-scheduled {
-            background-color: var(--primary-color);
-            color: white;
-        }
-        
-        .status-interview {
-            background-color: var(--primary-color);
-            color: white;
-        }
-        
-        .status-offered {
-            background-color: var(--success-color);
-            color: white;
-        }
-        
-        .status-accepted {
-            background-color: var(--success-color);
-            color: white;
-        }
-        
-        .status-rejected {
-            background-color: var(--danger-color);
-            color: white;
-        }
-        
-        .status-withdrawn {
-            background-color: var(--light-text);
-            color: white;
-        }
-        
-        .job-status-badge {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            padding: 0.35rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .job-status-approved {
-            background-color: var(--success-color);
-            color: white;
-        }
-        
-        .job-status-pending {
-            background-color: var(--warning-color);
-            color: white;
-        }
-        
-        .job-status-rejected {
-            background-color: var(--danger-color);
-            color: white;
-        }
-        
-        .job-flagged {
-            position: absolute;
-            top: 1rem;
-            left: 1rem;
-            color: var(--danger-color);
-            font-size: 1.2rem;
-        }
-        
-        .action-buttons {
-            display: flex;
-            gap: 0.75rem;
-            flex-wrap: wrap;
-            margin-top: 1rem;
-        }
-        
-        .social-links {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-        
-        .social-link {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.2);
-            color: white;
-            text-decoration: none;
-            transition: var(--transition);
-        }
-        
-        .social-link:hover {
-            background-color: rgba(255, 255, 255, 0.3);
-            color: white;
-            transform: translateY(-2px);
-        }
     </style>
 </head>
-<body >
-    
-    <div class="container py-4 animate__animated animate__fadeIn">
+<body>
+    <div class="container py-4">
         <!-- Profile Header -->
         <div class="profile-header">
             <div class="row align-items-center">
@@ -774,13 +610,6 @@ $profile_picture = !empty($employer['picture_file']) ? '../uploads/' . $employer
                         <?php endif; ?>
                     </div>
                     <div class="profile-meta">
-                        <?php if (!empty($employer['user_first_name'])): ?>
-                        <div class="profile-meta-item">
-                            <i class="fas fa-user"></i>
-                            <?php echo htmlspecialchars($employer['user_first_name'] . ' ' . $employer['user_last_name']); ?>
-                        </div>
-                        <?php endif; ?>
-                        
                         <?php if (!empty($employer['user_email'])): ?>
                         <div class="profile-meta-item">
                             <i class="fas fa-envelope"></i>
@@ -795,10 +624,17 @@ $profile_picture = !empty($employer['picture_file']) ? '../uploads/' . $employer
                         </div>
                         <?php endif; ?>
                         
-                        <?php if (!empty($employer['status'])): ?>
+                        <?php if (!empty($employer['company_website'])): ?>
+                        <div class="profile-meta-item">
+                            <i class="fas fa-globe"></i>
+                            <?php echo htmlspecialchars($employer['company_website']); ?>
+                        </div>
+                        <?php endif; ?>
+                        
+                        <?php if (!empty($employer['user_status'])): ?>
                         <div class="profile-meta-item">
                             <i class="fas fa-badge-check"></i>
-                            <?php echo htmlspecialchars($employer['status']); ?>
+                            <?php echo htmlspecialchars($employer['user_status']); ?>
                         </div>
                         <?php endif; ?>
                     </div>
@@ -816,14 +652,6 @@ $profile_picture = !empty($employer['picture_file']) ? '../uploads/' . $employer
                             <i class="fas fa-briefcase me-1"></i> Manage Jobs
                         </a>
                     </div>
-                    
-                    <div class="social-links">
-                        <?php if (!empty($employer['company_website'])): ?>
-                        <a href="<?php echo htmlspecialchars($employer['company_website']); ?>" class="social-link" target="_blank">
-                            <i class="fas fa-globe"></i>
-                        </a>
-                        <?php endif; ?>
-                    </div>
                 </div>
             </div>
         </div>
@@ -832,54 +660,34 @@ $profile_picture = !empty($employer['picture_file']) ? '../uploads/' . $employer
             <!-- Left Column - Profile Details -->
             <div class="col-lg-5">
                 <!-- About Section -->
-                <div class="card card-profile">
-                    <div class="card-header-profile">
+                <div class="card">
+                    <div class="card-header">
                         <i class="fas fa-user-circle me-2"></i> About
                     </div>
-                    <div class="card-body-profile">
-                        <?php if (!empty($employer['user_first_name'])): ?>
+                    <div class="card-body">
+                        <?php if (!empty($employer['company_name'])): ?>
                         <div class="info-item">
-                            <div class="info-label">Full Name</div>
+                            <div class="info-label">Company Name</div>
                             <div class="info-value">
-                                <?php echo htmlspecialchars($employer['user_first_name'] . ' ' . $employer['user_last_name']); ?>
+                                <?php echo htmlspecialchars($employer['company_name']); ?>
                             </div>
                         </div>
                         <?php endif; ?>
                         
                         <?php if (!empty($employer['job_title'])): ?>
                         <div class="info-item">
-                            <div class="info-label">Job Title</div>
+                            <div class="info-label">Your Job Title</div>
                             <div class="info-value">
                                 <?php echo htmlspecialchars($employer['job_title']); ?>
                             </div>
                         </div>
                         <?php endif; ?>
                         
-                        <?php if (!empty($employer['contact_number'])): ?>
+                        <?php if (!empty($employer['company_description'])): ?>
                         <div class="info-item">
-                            <div class="info-label">Phone</div>
+                            <div class="info-label">Company Description</div>
                             <div class="info-value">
-                                <?php echo htmlspecialchars($employer['contact_number']); ?>
-                            </div>
-                        </div>
-                        <?php endif; ?>
-                        
-                        <?php if (!empty($employer['user_email'])): ?>
-                        <div class="info-item">
-                            <div class="info-label">Email</div>
-                            <div class="info-value">
-                                <?php echo htmlspecialchars($employer['user_email']); ?>
-                            </div>
-                        </div>
-                        <?php endif; ?>
-                        
-                        <?php if (!empty($employer['status'])): ?>
-                        <div class="info-item">
-                            <div class="info-label">Account Status</div>
-                            <div class="info-value">
-                                <span class="badge bg-<?php echo $employer['status'] === 'Active' ? 'success' : 'warning'; ?>">
-                                    <?php echo htmlspecialchars($employer['status']); ?>
-                                </span>
+                                <?php echo htmlspecialchars($employer['company_description']); ?>
                             </div>
                         </div>
                         <?php endif; ?>
@@ -887,34 +695,48 @@ $profile_picture = !empty($employer['picture_file']) ? '../uploads/' . $employer
                 </div>
                 
                 <!-- Company Stats Section -->
-                <div class="card card-profile">
-                    <div class="card-header-profile">
+                <div class="card">
+                    <div class="card-header">
                         <i class="fas fa-chart-bar me-2"></i> Company Statistics
                     </div>
-                    <div class="card-body-profile">
-                        <div class="info-item">
-                            <div class="info-value fw-bold text-primary" id="jobs-posted"><?php echo $job_stats['total_jobs'] ?? 0; ?></div>
-                            <div class="info-label">Total Jobs Posted</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-value fw-bold text-success" id="applications-received"><?php echo $app_stats['total_applications'] ?? 0; ?></div>
-                            <div class="info-label">Applications Received</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="info-value fw-bold text-warning" id="interviews-scheduled"><?php echo $interview_stats['total_interviews'] ?? 0; ?></div>
-                            <div class="info-label">Interviews Scheduled</div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="stat-card">
+                                    <div class="stat-value text-primary"><?php echo $job_stats['total_jobs'] ?? 0; ?></div>
+                                    <div class="stat-label">Total Jobs Posted</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="stat-card">
+                                    <div class="stat-value text-success"><?php echo $app_stats['total_applications'] ?? 0; ?></div>
+                                    <div class="stat-label">Applications Received</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="stat-card">
+                                    <div class="stat-value text-warning"><?php echo $interview_stats['total_interviews'] ?? 0; ?></div>
+                                    <div class="stat-label">Interviews Scheduled</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="stat-card">
+                                    <div class="stat-value text-info"><?php echo $job_stats['active_jobs'] ?? 0; ?></div>
+                                    <div class="stat-label">Active Jobs</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Quick Actions -->
-                <div class="card card-profile">
-                    <div class="card-header-profile">
+                <div class="card">
+                    <div class="card-header">
                         <i class="fas fa-bolt me-2"></i> Quick Actions
                     </div>
-                    <div class="card-body-profile">
+                    <div class="card-body">
                         <div class="d-grid gap-2">
-                            <a href="../dashboard/employer_post_job.php" class="btn btn-primary-profile btn-sm">
+                            <a href="../dashboard/employer_post_job.php" class="btn btn-primary btn-sm">
                                 <i class="fas fa-plus me-1"></i> Post New Job
                             </a>
                             <a href="employer_account_settings.php" class="btn btn-outline-primary btn-sm">
@@ -932,47 +754,41 @@ $profile_picture = !empty($employer['picture_file']) ? '../uploads/' . $employer
             <div class="col-lg-7">
                 <!-- Quick Stats -->
                 <div class="row mb-4">
-                    <div class="col-md-4">
-                        <div class="card card-profile h-100">
-                            <div class="card-body-profile text-center">
-                                <div class="info-value fw-bold text-primary" id="active-jobs"><?php echo $job_stats['active_jobs'] ?? 0; ?></div>
-                                <div class="info-label">Active Jobs</div>
-                            </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="stat-card bg-primary-light">
+                            <div class="stat-value text-primary"><?php echo $job_stats['active_jobs'] ?? 0; ?></div>
+                            <div class="stat-label">Active Jobs</div>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="card card-profile h-100">
-                            <div class="card-body-profile text-center">
-                                <div class="info-value fw-bold text-success" id="pending-applications"><?php echo $app_stats['pending_applications'] ?? 0; ?></div>
-                                <div class="info-label">Pending Applications</div>
-                            </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="stat-card bg-primary-light">
+                            <div class="stat-value text-success"><?php echo $app_stats['pending_applications'] ?? 0; ?></div>
+                            <div class="stat-label">Pending Applications</div>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="card card-profile h-100">
-                            <div class="card-body-profile text-center">
-                                <div class="info-value fw-bold text-warning" id="upcoming-interviews"><?php echo $interview_stats['upcoming_interviews'] ?? 0; ?></div>
-                                <div class="info-label">Upcoming Interviews</div>
-                            </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="stat-card bg-primary-light">
+                            <div class="stat-value text-warning"><?php echo $interview_stats['upcoming_interviews'] ?? 0; ?></div>
+                            <div class="stat-label">Upcoming Interviews</div>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Recent Applications -->
-                <div class="card card-profile">
-                    <div class="card-header-profile d-flex justify-content-between align-items-center">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         <div>
                             <i class="fas fa-briefcase me-2"></i> Recent Applications
                         </div>
-                        <a href="manage_applications.php" class="btn btn-sm btn-outline-primary">View All</a>
+                        <a href="../dashboard/employer_applications.php" class="btn btn-sm btn-primary">View All</a>
                     </div>
-                    <div class="card-body-profile">
+                    <div class="card-body">
                         <?php if (!empty($applications)): ?>
                             <?php foreach($applications as $app): ?>
                             <div class="application-card">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <h6 class="mb-0"><?php echo htmlspecialchars($app['job_title']); ?></h6>
-                                    <span class="status-badge status-<?php echo htmlspecialchars(strtolower(str_replace(' ', '-', $app['status']))); ?>">
+                                    <span class="badge bg-<?php echo strtolower(str_replace(' ', '-', $app['status'])); ?>">
                                         <?php echo htmlspecialchars($app['status']); ?>
                                     </span>
                                 </div>
@@ -980,13 +796,16 @@ $profile_picture = !empty($employer['picture_file']) ? '../uploads/' . $employer
                                 <div class="text-muted small">Applied on <?php echo date('M j, Y', strtotime($app['applied_date'])); ?></div>
                                 
                                 <div class="action-buttons mt-2">
+                                         <!--
                                     <a href="employer_applications.php?application_id=<?php echo $app['application_id']; ?>" class="btn btn-sm btn-outline-primary">
                                         <i class="fas fa-eye me-1"></i> View
-                                    </a>
+                                    </a>    -->
                                     <?php if ($app['status'] === 'Pending' || $app['status'] === 'Under Review'): ?>
+                                    <!--
                                     <a href="employer_applications.php?application_id=<?php echo $app['application_id']; ?>" class="btn btn-sm btn-outline-success">
                                         <i class="fas fa-calendar-alt me-1"></i> Schedule Interview
                                     </a>
+                                     -->
                                     <?php endif; ?>
                                 </div>
                             </div>
@@ -996,7 +815,7 @@ $profile_picture = !empty($employer['picture_file']) ? '../uploads/' . $employer
                                 <i class="fas fa-briefcase fa-3x text-muted mb-3"></i>
                                 <h5>No Applications Yet</h5>
                                 <p class="text-muted">Applications to your job postings will appear here</p>
-                                <a href="../dashboard/employer_post_job.php" class="btn btn-primary-profile btn-sm">
+                                <a href="../dashboard/employer_post_job.php" class="btn btn-primary btn-sm">
                                     <i class="fas fa-plus me-1"></i> Post a Job
                                 </a>
                             </div>
@@ -1005,14 +824,14 @@ $profile_picture = !empty($employer['picture_file']) ? '../uploads/' . $employer
                 </div>
                 
                 <!-- Active Job Postings -->
-                <div class="card card-profile">
-                    <div class="card-header-profile d-flex justify-content-between align-items-center">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         <div>
                             <i class="fas fa-list-alt me-2"></i> Active Job Postings
                         </div>
-                        <a href="manage_jobs.php" class="btn btn-sm btn-outline-primary">View All</a>
+                        <a href="../dashboard/employer_jobs.php" class="btn btn-sm btn-primary">View All</a>
                     </div>
-                    <div class="card-body-profile">
+                    <div class="card-body">
                         <?php if (!empty($jobs)): ?>
                             <?php foreach($jobs as $job): ?>
                             <div class="job-card card mb-3 position-relative">
@@ -1022,7 +841,7 @@ $profile_picture = !empty($employer['picture_file']) ? '../uploads/' . $employer
                                     </span>
                                 <?php endif; ?>
                                 
-                                <span class="job-status-badge job-status-<?php echo strtolower($job['moderation_status']); ?>">
+                                <span class="badge job-status-badge bg-<?php echo strtolower($job['moderation_status']); ?>">
                                     <?php echo htmlspecialchars($job['moderation_status']); ?>
                                 </span>
                                 
@@ -1050,16 +869,21 @@ $profile_picture = !empty($employer['picture_file']) ? '../uploads/' . $employer
                                     </p>
                                     
                                     <div class="action-buttons mt-3">
+                                        <!--
                                         <a href="employer_jobs.php?job_id=<?php echo $job['job_id']; ?>" class="btn btn-sm btn-outline-primary">
                                             <i class="fas fa-eye me-1"></i> View
                                         </a>
+                                        
                                         <a href="employer_post_job.php?edit=<?php echo $job['job_id']; ?>" class="btn btn-sm btn-outline-secondary">
                                             <i class="fas fa-edit me-1"></i> Edit
                                         </a>
+                                        -->
                                         <?php if ($job['moderation_status'] === 'Approved'): ?>
+                                             <!--
                                         <a href="employer_applications.php?job_id=<?php echo $job['job_id']; ?>" class="btn btn-sm btn-outline-success">
                                             <i class="fas fa-users me-1"></i> View Applicants
                                         </a>
+                                         -->
                                         <?php endif; ?>
                                     </div>
                                 </div>
@@ -1070,7 +894,7 @@ $profile_picture = !empty($employer['picture_file']) ? '../uploads/' . $employer
                                 <i class="fas fa-list-alt fa-3x text-muted mb-3"></i>
                                 <h5>No Active Job Postings</h5>
                                 <p class="text-muted">You haven't posted any jobs yet</p>
-                                <a href="../dashboard/employer_post_job.php" class="btn btn-primary-profile btn-sm">
+                                <a href="../dashboard/employer_post_job.php" class="btn btn-primary btn-sm">
                                     <i class="fas fa-plus me-1"></i> Post a Job
                                 </a>
                             </div>
@@ -1078,7 +902,6 @@ $profile_picture = !empty($employer['picture_file']) ? '../uploads/' . $employer
                     </div>
                 </div>
             </div>
-        </div>
         </div>
     </div>
 
@@ -1178,88 +1001,6 @@ $profile_picture = !empty($employer['picture_file']) ? '../uploads/' . $employer
                     }
                 }, 5000);
             }
-        });
-
-        function renderJobs(jobs) {
-            let jobsHtml = '';
-            if (jobs && jobs.length > 0) {
-                jobs.forEach(job => {
-                    jobsHtml += `
-                        <div class="job-card card mb-3 position-relative">
-                            ${job.flagged ? `<span class="job-flagged"><i class="fas fa-flag" title="This job has been flagged"></i></span>` : ''}
-                            <span class="job-status-badge job-status-${job.moderation_status.toLowerCase()}">${job.moderation_status}</span>
-                            <div class="card-body">
-                                <h5 class="card-title">${job.title}</h5>
-                                ${job.location ? `<p class="card-text mb-1"><i class="fas fa-map-marker-alt text-muted me-1"></i>${job.location}</p>` : ''}
-                                ${job.salary ? `<p class="card-text mb-1"><i class="fas fa-money-bill-wave text-muted me-1"></i>$${parseFloat(job.salary).toFixed(2)}</p>` : ''}
-                                <p class="card-text text-muted small mt-2">Posted ${new Date(job.posted_at).toLocaleDateString()}</p>
-                                <div class="action-buttons mt-3">
-                                    <a href="view_job.php?id=${job.job_id}" class="btn btn-sm btn-outline-primary"><i class="fas fa-eye me-1"></i> View</a>
-                                    <a href="edit_job.php?id=${job.job_id}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit me-1"></i> Edit</a>
-                                    ${job.moderation_status === 'Approved' ? `<a href="manage_applications.php?job_id=${job.job_id}" class="btn btn-sm btn-outline-success"><i class="fas fa-users me-1"></i> View Applicants</a>` : ''}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
-            } else {
-                jobsHtml = `
-                    <div class="text-center py-4">
-                        <i class="fas fa-list-alt fa-3x text-muted mb-3"></i>
-                        <h5>No Active Job Postings</h5>
-                        <p class="text-muted">You haven't posted any jobs yet</p>
-                        <a href="post_job.php" class="btn btn-primary-profile btn-sm">
-                            <i class="fas fa-plus me-1"></i> Post a Job
-                        </a>
-                    </div>
-                `;
-            }
-            document.querySelector('.jobs-section').innerHTML = jobsHtml;
-        }
-
-        function renderStats(stats) {
-            document.getElementById('jobs-posted').innerText = stats.totalJobPostings;
-            document.getElementById('applications-received').innerText = stats.totalApplicationsReceived;
-            document.getElementById('interviews-scheduled').innerText = stats.totalInterviewsScheduled;
-        }
-
-        function renderApplications(applications) {
-            let appsHtml = '';
-            if (applications && applications.length > 0) {
-                applications.forEach(app => {
-                    appsHtml += `
-                        <div class="application-card">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h6 class="mb-0">${app.job_title}</h6>
-                                <span class="status-badge status-${app.status.toLowerCase()}">${app.status}</span>
-                            </div>
-                            <div class="text-muted small mb-2">${app.stud_first_name} ${app.stud_last_name}</div>
-                            <div class="text-muted small">Applied on ${new Date(app.applied_date).toLocaleDateString()}</div>
-                            <div class="action-buttons mt-2">
-                                <a href="view_application.php?id=${app.application_id}" class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-eye me-1"></i> View
-                                </a>
-                                ${(app.status === 'Pending' || app.status === 'Under Review') ? `<a href="schedule_interview.php?application_id=${app.application_id}" class="btn btn-sm btn-outline-success"><i class="fas fa-calendar-alt me-1"></i> Schedule Interview</a>` : ''}
-                            </div>
-                        </div>
-                    `;
-                });
-            } else {
-                appsHtml = `
-                    <div class="text-center py-4">
-                        <i class="fas fa-briefcase fa-3x text-muted mb-3"></i>
-                        <h5>No Applications Yet</h5>
-                        <p class="text-muted">Applications to your job postings will appear here</p>
-                    </div>
-                `;
-            }
-            document.querySelector('.applications-section').innerHTML = appsHtml;
-        }
-
-        // Profile data is now loaded directly from PHP
-        document.addEventListener('DOMContentLoaded', function() {
-            // Any additional client-side functionality can be added here
-            console.log('Employer profile loaded successfully');
         });
     </script>
 </body>
