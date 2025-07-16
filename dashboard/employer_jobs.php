@@ -1183,13 +1183,18 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
 
 <!-- ✅ Then your custom script -->
 <script>
-if (!$.fn.DataTable.isDataTable('#jobsTable')) {
-    $('#jobsTable').DataTable({
-        responsive: true,
-        order: [[6, 'desc']],
-        pageLength: 10 // Optional: Set default page length
-    });
-}
+document.addEventListener('DOMContentLoaded', function() {
+    const table = $('#jobsTable');
+    const hasDataRows = table.find('tbody tr').length > 0 && table.find('tbody tr td:not([colspan])').length > 0;
+
+    if (hasDataRows && !$.fn.DataTable.isDataTable('#jobsTable')) {
+        table.DataTable({
+            responsive: true,
+            order: [[6, 'desc']],
+            pageLength: 10
+        });
+    }
+});
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -1204,16 +1209,26 @@ if (!$.fn.DataTable.isDataTable('#jobsTable')) {
         if (this.checked) {
             cardView.style.display = 'none';
             tableView.style.display = 'block';
-            // Initialize DataTable if not already initialized
-            if (!$.fn.DataTable.isDataTable('#jobsTable')) {
-                $('#jobsTable').DataTable({
+            
+            // Initialize DataTable only if not already initialized and table has data
+            const table = $('#jobsTable');
+            const hasDataRows = table.find('tbody tr').length > 0 && table.find('tbody tr td:not([colspan])').length > 0;
+
+            if (hasDataRows && !$.fn.DataTable.isDataTable('#jobsTable')) {
+                table.DataTable({
                     responsive: true,
-                    order: [[6, 'desc']] // Sort by posted date by default
+                    order: [[6, 'desc']],
+                    pageLength: 10
                 });
             }
         } else {
             cardView.style.display = 'block';
             tableView.style.display = 'none';
+            
+            // Destroy DataTable if initialized to avoid memory leaks
+            if ($.fn.DataTable.isDataTable('#jobsTable')) {
+                table.DataTable().destroy();
+            }
         }
     });
     
