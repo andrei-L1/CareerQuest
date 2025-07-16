@@ -594,11 +594,16 @@ include '../includes/stud_navbar.php';
                                         <input type="text" class="form-control" name="institution" 
                                                value="<?= htmlspecialchars($student['institution'] ?? '') ?>">
                                     </div>
+                                    <?php
+                                    // Determine if the graduation year field should be disabled
+                                    $isStudent = !empty($student['is_student']) && $student['is_student'];
+                                    ?>
                                     <div class="col-md-6">
                                         <label class="form-label">Expected Graduation Year</label>
                                         <input type="number" class="form-control" name="graduation_yr" 
                                                min="<?= date('Y') ?>" max="<?= date('Y') + 10 ?>"
-                                               value="<?= htmlspecialchars($student['graduation_yr'] ?? '') ?>">
+                                               value="<?= htmlspecialchars($student['graduation_yr'] ?? '') ?>"
+                                               <?= $isStudent ? '' : 'readonly style="background-color:#e9ecef;pointer-events:none;"' ?>>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Course</label>

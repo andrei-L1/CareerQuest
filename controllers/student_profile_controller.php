@@ -35,7 +35,8 @@ try {
             course.course_title, 
             bio, 
             profile_picture, 
-            resume_file 
+            resume_file,
+            is_student
         FROM student 
         LEFT JOIN course ON student.course_id = course.course_id
         WHERE stud_id = :stud_id
