@@ -152,23 +152,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute();
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
             if (!$user) {
-                throw new Exception("Failed to retrieve user ID.");
-            }
-            $user_id = $user['user_id'];
+                    throw new Exception("Failed to retrieve user ID.");
+                }
+                $user_id = $user['user_id'];
 
-            // Insert into specialized table (employer/professional)
-            $table = ($user_type === 'Employer') ? 'employer' : 'professional';
-            $stmt = $conn->prepare("INSERT INTO $table (user_id) VALUES (:user_id)");
-            $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
-            $stmt->execute();
+                // Insert into specialized table (employer/professional)
+                $table = ($user_type === 'Employer') ? 'employer' : 'professional';
+                $stmt = $conn->prepare("INSERT INTO $table (user_id) VALUES (:user_id)");
+                $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+                $stmt->execute();
 
-            $entity_id = $user_id;
-        } elseif ($entity === 'student') {
-            $institution = trim($_POST['institution'] ?? '');
-            $status = 'active';
-            if (empty($institution)) {
-                throw new Exception("Institution field is required.");
-            }
+                $entity_id = $user_id;
+            } elseif ($entity === 'student') {
+                $institution = trim($_POST['institution'] ?? '');
+                $status = 'active';
+
+                if ($is_student && empty($institution)) {
+                    throw new Exception("Institution field is required for students.");
+                }
+
 
             // Insert into `student` table
             $stmt = $conn->prepare("

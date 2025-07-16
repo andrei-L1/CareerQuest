@@ -477,7 +477,7 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
                 
                 <div class="form-group" id="institutionGroup" style="display: none;">
                     <i class="fas fa-school form-icon"></i>
-                    <input type="text" name="institution" class="form-control" placeholder=" " id="institution" required>
+                    <input type="text" name="institution" class="form-control" placeholder=" " id="institution">
                     <label for="institution" class="form-label">Institution</label>
                 </div>
                 <div class="form-group" id="graduationGroup" style="display: none;">
