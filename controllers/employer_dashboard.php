@@ -84,7 +84,7 @@ try {
     $company_description = htmlspecialchars($employer['company_description'] ?? '');
     
     // Use company logo if available, otherwise fall back to user profile picture
-    $profile_picture = !empty($employer['company_logo']) ? htmlspecialchars($employer['company_logo']) 
+    $profile_picture = !empty($employer['picture_file']) ? htmlspecialchars($employer['picture_file']) 
                      : (!empty($employer['picture_file']) ? htmlspecialchars($employer['picture_file']) 
                      : 'default.png');
 
