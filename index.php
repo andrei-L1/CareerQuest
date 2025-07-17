@@ -49,6 +49,48 @@ $filledJobsQuery = "SELECT COUNT(*) AS filled_jobs FROM job_posting WHERE modera
 $filledJobsResult = $conn->query($filledJobsQuery);
 $filledJobs = ($filledJobsResult && $row = $filledJobsResult->fetch(PDO::FETCH_ASSOC)) ? $row['filled_jobs'] : 0;
 $successRate = ($jobsPosted > 0) ? round(($filledJobs / $jobsPosted) * 100) : 0;
+
+
+// Query to fetch featured jobs
+try {
+    $query = "
+        SELECT 
+            jp.job_id,
+            jp.title,
+            jp.description,
+            jp.location,
+            jp.salary,
+            jp.posted_at,
+            jp.expires_at,
+            jt.job_type_title,
+            e.company_name
+        FROM 
+            job_posting jp
+            INNER JOIN employer e ON jp.employer_id = e.employer_id
+            INNER JOIN job_type jt ON jp.job_type_id = jt.job_type_id
+        WHERE 
+            jp.moderation_status = 'Approved'
+            AND (jp.expires_at IS NULL OR jp.expires_at > NOW())
+            AND jp.deleted_at IS NULL
+        ORDER BY jp.posted_at DESC
+        LIMIT 3
+    ";
+    $stmt = $conn->prepare($query);
+    $stmt->execute();
+    $jobs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    error_log("Database error: " . $e->getMessage());
+    $jobs = [];
+}
+function formatSalary($salary) {
+    if ($salary === null) {
+        return 'Not Specified';
+    }
+    if ($salary < 1000) { // Assuming low values are hourly rates
+        return '$' . number_format($salary, 2) . '/hr';
+    }
+    return '$' . number_format($salary / 1000, 0) . 'k - $' . number_format(($salary / 1000) + 30, 0) . 'k';
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -703,7 +745,7 @@ $successRate = ($jobsPosted > 0) ? round(($filledJobs / $jobsPosted) * 100) : 0;
         </div>
     </section>
 
-    <!-- Featured Jobs -->
+
     <section class="bg-light">
         <div class="container">
             <div class="d-flex justify-content-between align-items-center mb-5">
@@ -712,88 +754,45 @@ $successRate = ($jobsPosted > 0) ? round(($filledJobs / $jobsPosted) * 100) : 0;
                     <p class="text-muted" data-aos="fade-up" data-aos-delay="100">Browse our latest job openings</p>
                 </div>
                 <div data-aos="fade-up" data-aos-delay="200">
-                    <a href="#" class="btn btn-outline-primary">View All Jobs <i class="fas fa-arrow-right ms-2"></i></a>
+                    <a href="all_jobs.php" class="btn btn-outline-primary">View All Jobs <i class="fas fa-arrow-right ms-2"></i></a>
                 </div>
             </div>
             
             <div class="row g-4">
-                <!-- Job 1 -->
-                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="100">
-                    <div class="card job-card h-100">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                <div>
-                                    <span class="job-type">Full-time</span>
+                <?php if (!empty($jobs)): ?>
+                    <?php foreach ($jobs as $index => $job): ?>
+                        <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="<?php echo 100 * ($index + 1); ?>">
+                            <div class="card job-card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <div>
+                                            <span class="job-type"><?php echo htmlspecialchars($job['job_type_title']); ?></span>
+                                        </div>
+                                        <div>
+                                            <i class="far fa-bookmark text-primary"></i>
+                                        </div>
+                                    </div>
+                                    <h4 class="card-title"><?php echo htmlspecialchars($job['title']); ?></h4>
+                                    <p class="text-muted mb-3"><?php echo htmlspecialchars($job['company_name']); ?></p>
+                                    <div class="d-flex align-items-center mb-3">
+                                        <i class="fas fa-map-marker-alt text-muted me-2"></i>
+                                        <span class="text-muted"><?php echo htmlspecialchars($job['location'] ?: 'Not Specified'); ?></span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="badge bg-primary bg-opacity-10 text-primary"><?php echo formatSalary($job['salary']); ?></span>
+                                        <a href="auth/login_student.php?id=<?php echo $job['job_id']; ?>" class="btn btn-sm btn-primary">Apply Now</a>
+                                    </div>
                                 </div>
-                                <div>
-                                    <i class="far fa-bookmark text-primary"></i>
-                                </div>
-                            </div>
-                            <h4 class="card-title">Senior Software Engineer</h4>
-                            <p class="text-muted mb-3">Tech Solutions Inc.</p>
-                            <div class="d-flex align-items-center mb-3">
-                                <i class="fas fa-map-marker-alt text-muted me-2"></i>
-                                <span class="text-muted">San Francisco, CA or Remote</span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="badge bg-primary bg-opacity-10 text-primary">$120k - $150k</span>
-                                <a href="#" class="btn btn-sm btn-primary">Apply Now</a>
                             </div>
                         </div>
-                    </div>
-                </div>
-                
-                <!-- Job 2 -->
-                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="200">
-                    <div class="card job-card h-100">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                <div>
-                                    <span class="job-type">Internship</span>
-                                </div>
-                                <div>
-                                    <i class="far fa-bookmark text-primary"></i>
-                                </div>
-                            </div>
-                            <h4 class="card-title">Marketing Intern</h4>
-                            <p class="text-muted mb-3">Global Brands LLC</p>
-                            <div class="d-flex align-items-center mb-3">
-                                <i class="fas fa-map-marker-alt text-muted me-2"></i>
-                                <span class="text-muted">New York, NY</span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="badge bg-primary bg-opacity-10 text-primary">$25/hr</span>
-                                <a href="#" class="btn btn-sm btn-primary">Apply Now</a>
-                            </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="col-12 text-center">
+                        <div class="alert alert-info">
+                            No featured job opportunities available at the moment.
                         </div>
                     </div>
-                </div>
-                
-                <!-- Job 3 -->
-                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="300">
-                    <div class="card job-card h-100">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                <div>
-                                    <span class="job-type">Contract</span>
-                                </div>
-                                <div>
-                                    <i class="far fa-bookmark text-primary"></i>
-                                </div>
-                            </div>
-                            <h4 class="card-title">UX/UI Designer</h4>
-                            <p class="text-muted mb-3">Creative Minds Agency</p>
-                            <div class="d-flex align-items-center mb-3">
-                                <i class="fas fa-map-marker-alt text-muted me-2"></i>
-                                <span class="text-muted">Remote</span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="badge bg-primary bg-opacity-10 text-primary">$50 - $70/hr</span>
-                                <a href="#" class="btn btn-sm btn-primary">Apply Now</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <?php endif; ?>
             </div>
         </div>
     </section>

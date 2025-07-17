@@ -65,7 +65,7 @@
                         <span class="nav-link-underline"></span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg py-2" aria-labelledby="moreDropdown">
-                        <li><a class="dropdown-item d-flex align-items-center py-2 px-3" href="/about.php"><i class="fas fa-info-circle me-2 text-primary"></i> About Us</a></li>
+                        <li><a class="dropdown-item d-flex align-items-center py-2 px-3" href="more/about.php"><i class="fas fa-info-circle me-2 text-primary"></i> About Us</a></li>
                         <li><a class="dropdown-item d-flex align-items-center py-2 px-3" href="/contact.php"><i class="fas fa-envelope me-2 text-primary"></i> Contact</a></li>
                         <li><a class="dropdown-item d-flex align-items-center py-2 px-3" href="/blog.php"><i class="fas fa-newspaper me-2 text-primary"></i> Blog</a></li>
                         <li><hr class="dropdown-divider mx-3 my-1"></li>
