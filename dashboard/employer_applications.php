@@ -1187,79 +1187,76 @@ require '../controllers/update_due_interviews.php';
 
         
         // Render applicants for pipeline view
-            function renderPipelineApplicants(applicants, status = '') {
-                if (applicants.length === 0) {
-                    return `
-                        <div class="text-center py-3 text-muted">
-                            <i class="fas fa-user-slash mb-2"></i>
-                            <div class="small">No applicants</div>
-                        </div>
-                    `;
-                }
-
-                return applicants.map(applicant => `
-                    <div class="application-card p-3 mb-2 ${toClassName(applicant.application_status)}" 
-                        draggable="true" 
-                        data-applicant-id="${applicant.application_id || applicant.stud_id}">
-                            
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div class="d-flex align-items-center">
-                                <div class="applicant-avatar-wrapper me-2">
-                                    ${applicant.profile_picture ? `
-                                        <img src="../uploads/${applicant.profile_picture}"
-                                            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-                                            alt="Profile"
-                                            class="applicant-avatar">
-                                    ` : ''}
-                                    <div class="applicant-default-icon" style="${applicant.profile_picture ? 'display:none;' : ''}">
-                                        <i class="fas fa-user"></i>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div class="applicant-name">${applicant.name}</div>
-                                    <div class="applicant-title small text-muted">${applicant.jobTitle}</div>
-                                </div>
-                            </div>
-                            <div class="dropdown dropdown-actions">
-                                <button class="btn-action" type="button" data-bs-toggle="dropdown">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="#" onclick="viewApplicantDetails(${applicant.stud_id})"><i class="fas fa-eye me-2"></i>View Profile</a></li>
-                                    <li>
-                                        <a class="dropdown-item" href="#" onclick="viewResume(${applicant.stud_id}, '${applicant.resume_file || ''}')">
-                                            <i class="fas fa-file-pdf me-2"></i> View Resume
-                                        </a>
-                                    </li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <a class="dropdown-item text-danger" href="#" 
-                                            onclick="confirmRemove(${applicant.application_id}, '${applicant.stud_email}')">
-                                            <i class="fas fa-trash me-2"></i>Remove
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="match-score ${getMatchScoreClass(applicant.match_score)} small">
-                                ${applicant.match_score || 'N/A'}% match
-                            </span>
-                            <span class="text-muted small">${formatDate(applicant.applied_at)}</span>
-                        </div>
-
-                        ${status === 'Under Review' ? `
-                            <div class="text-center mt-2">
-                                <button class="btn btn-sm btn-outline-primary" onclick="scheduleInterview(${applicant.application_id}, '${applicant.stud_email}')">
-                                    <i class="fas fa-calendar-alt me-1"></i> Schedule Interview
-                                </button>
-                            </div>
-                        ` : ''}
-
+        function renderPipelineApplicants(applicants, status = '') {
+            if (applicants.length === 0) {
+                return `
+                    <div class="text-center py-3 text-muted">
+                        <i class="fas fa-user-slash mb-2"></i>
+                        <div class="small">No applicants</div>
                     </div>
-                `).join('');
+                `;
             }
+
+            return applicants.map(applicant => `
+                <div class="application-card p-3 mb-2 ${toClassName(applicant.application_status)}" 
+                    draggable="true" 
+                    data-applicant-id="${applicant.application_id}" 
+                    data-email="${applicant.email}">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="d-flex align-items-center">
+                            <div class="applicant-avatar-wrapper me-2">
+                                ${applicant.profile_picture ? `
+                                    <img src="../Uploads/${applicant.profile_picture}"
+                                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                                        alt="Profile"
+                                        class="applicant-avatar">
+                                ` : ''}
+                                <div class="applicant-default-icon" style="${applicant.profile_picture ? 'display:none;' : ''}">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="applicant-name">${applicant.name}</div>
+                                <div class="applicant-title small text-muted">${applicant.jobTitle}</div>
+                            </div>
+                        </div>
+                        <div class="dropdown dropdown-actions">
+                            <button class="btn-action" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#" onclick="viewApplicantDetails(${applicant.stud_id})"><i class="fas fa-eye me-2"></i>View Profile</a></li>
+                                <li>
+                                    <a class="dropdown-item" href="#" onclick="viewResume(${applicant.stud_id}, '${applicant.resume_file || ''}')">
+                                        <i class="fas fa-file-pdf me-2"></i> View Resume
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="#" 
+                                    onclick="confirmRemove(${applicant.application_id}, '${applicant.email}')">
+                                        <i class="fas fa-trash me-2"></i>Remove
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="match-score ${getMatchScoreClass(applicant.match_score)} small">
+                            ${applicant.match_score || 'N/A'}% match
+                        </span>
+                        <span class="text-muted small">${formatDate(applicant.applied_at)}</span>
+                    </div>
+                    ${applicant.application_status.toLowerCase() === 'under review' ? `
+                        <div class="text-center mt-2">
+                            <button class="btn btn-sm btn-outline-primary" onclick="scheduleInterview(${applicant.application_id}, '${applicant.email}')">
+                                <i class="fas fa-calendar-alt me-1"></i> Schedule Interview
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
         function confirmRemove(applicationId, studentEmail) {
             Swal.fire({
                 title: 'Reject Application?',
@@ -1332,7 +1329,6 @@ require '../controllers/update_due_interviews.php';
 
 
         function scheduleInterview(applicationId, studentEmail) {
-            // Create a modal dialog for interview scheduling
             const modalHtml = `
                 <div class="modal fade" id="scheduleInterviewModal" tabindex="-1" aria-labelledby="scheduleInterviewModalLabel" aria-hidden="true">
                     <div class="modal-dialog">
@@ -1376,14 +1372,10 @@ require '../controllers/update_due_interviews.php';
                 </div>
             `;
 
-            // Add modal to DOM
             document.body.insertAdjacentHTML('beforeend', modalHtml);
-            
-            // Show the modal
             const modal = new bootstrap.Modal(document.getElementById('scheduleInterviewModal'));
             modal.show();
 
-            // Handle confirm button click
             document.getElementById('confirmSchedule').addEventListener('click', async function() {
                 const form = document.getElementById('interviewForm');
                 if (!form.checkValidity()) {
@@ -1400,35 +1392,28 @@ require '../controllers/update_due_interviews.php';
                     notes: document.getElementById('notes').value
                 };
 
+                console.log('Scheduling interview:', interviewData);
+
                 const confirmBtn = this;
                 confirmBtn.disabled = true;
-                confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Scheduling...';
+                confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Scheduling...';
 
                 try {
                     const response = await fetch('../controllers/employer_schedule_interview.php', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(interviewData)
                     });
 
-                    // First check if response is OK (status 200-299)
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
+                    if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
 
-                    // Check if response has content
                     const text = await response.text();
-                    if (!text) {
-                        throw new Error('Empty response from server');
-                    }
+                    if (!text) throw new Error('Empty response');
 
-                    // Try to parse JSON
                     const result = JSON.parse(text);
+                    console.log('Response:', result);
 
                     if (result.success) {
-                        // Show success message
                         Swal.fire({
                             icon: 'success',
                             title: 'Interview Scheduled',
@@ -1436,24 +1421,19 @@ require '../controllers/update_due_interviews.php';
                             timer: 3000,
                             showConfirmButton: false
                         });
-
-                        // Close modal and refresh or update UI as needed
                         modal.hide();
                         document.getElementById('scheduleInterviewModal').remove();
-                        
-                        // Optionally refresh the application list or update the status
-                        if (typeof loadApplications === 'function') {
-                            loadApplications();
-                        }
+                        loadJobApplications();
+                        loadApplicationStats(); // Added to update stat cards
                     } else {
-                        throw new Error(result.message || 'Failed to schedule interview');
+                        throw new Error(result.message || 'Failed to schedule');
                     }
                 } catch (error) {
                     console.error('Error:', error);
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: error.message || 'An error occurred while scheduling the interview'
+                        text: error.message
                     });
                 } finally {
                     confirmBtn.disabled = false;
@@ -1461,7 +1441,6 @@ require '../controllers/update_due_interviews.php';
                 }
             });
 
-            // Clean up modal when closed
             document.getElementById('scheduleInterviewModal').addEventListener('hidden.bs.modal', function() {
                 this.remove();
             });
@@ -1509,7 +1488,7 @@ require '../controllers/update_due_interviews.php';
                     e.preventDefault();
                     const draggingCard = document.querySelector('.dragging');
                     if (draggingCard) {
-                        const applicantId = draggingCard.getAttribute('data-applicant-id'); // Use getAttribute
+                        const applicantId = draggingCard.getAttribute('data-applicant-id');
                         const newStatus = stage.dataset.status;
 
                         if (!applicantId) {
@@ -1594,6 +1573,27 @@ require '../controllers/update_due_interviews.php';
                     statusBadge.className = `status-badge ${getStatusBadgeClass(newStatus)}`;
                     statusBadge.textContent = formatStatusLabel(newStatus);
                 }
+
+                // Update the Schedule Interview button visibility
+                let scheduleButtonContainer = card.querySelector('.text-center.mt-2');
+                if (newStatus.toLowerCase() === 'under review') {
+                    // Add the button if it doesn't exist
+                    if (!scheduleButtonContainer) {
+                        scheduleButtonContainer = document.createElement('div');
+                        scheduleButtonContainer.className = 'text-center mt-2';
+                        card.appendChild(scheduleButtonContainer);
+                    }
+                    scheduleButtonContainer.innerHTML = `
+                        <button class="btn btn-sm btn-outline-primary" onclick="scheduleInterview(${applicantId}, '${card.dataset.email || ''}')">
+                            <i class="fas fa-calendar-alt me-1"></i> Schedule Interview
+                        </button>
+                    `;
+                } else {
+                    // Remove the button if it exists
+                    if (scheduleButtonContainer) {
+                        scheduleButtonContainer.remove();
+                    }
+                }
             }
 
             showToast('Status updated successfully', 'success');
@@ -1618,12 +1618,13 @@ require '../controllers/update_due_interviews.php';
                     ${applicants.map(applicant => `
                         <div class="col-md-6 col-lg-4 col-xl-3">
                             <div class="application-card p-3 ${toClassName(applicant.application_status)}" 
-                                 data-applicant-id="${applicant.stud_id}">
+                                data-applicant-id="${applicant.application_id}" 
+                                data-email="${applicant.email}">
                                 <div class="d-flex justify-content-between mb-3">
                                     <div class="d-flex align-items-center">
                                         <div class="applicant-avatar-wrapper me-3">
                                             ${applicant.profile_picture ? `
-                                                <img src="../uploads/${applicant.profile_picture}"
+                                                <img src="../Uploads/${applicant.profile_picture}"
                                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
                                                     alt="Profile"
                                                     class="applicant-avatar">
@@ -1652,15 +1653,13 @@ require '../controllers/update_due_interviews.php';
                                                 </a>
                                             </li>   
                                             <li><hr class="dropdown-divider"></li>
-                                            <?php //<li><a class="dropdown-item text-success" href="#" onclick="updateStatus(${applicant.stud_id}, 'accepted')"><i class="fas fa-check me-2"></i> Accept</a></li>?>
-                                           <li>
-                                                <a class="dropdown-item text-danger" href="#" onclick="confirmRemove(${applicant.application_id}, 'rejected')">
+                                            <li>
+                                                <a class="dropdown-item text-danger" href="#" onclick="confirmRemove(${applicant.application_id}, '${applicant.email}')">
                                                     <i class="fas fa-times me-2"></i> Reject
                                                 </a>
                                             </li>
                                             <li><hr class="dropdown-divider"></li>
                                             <li><a class="dropdown-item" href="/skillmatch/dashboard/messages.php"><i class="fas fa-envelope me-2"></i> Message</a></li>
-
                                         </ul>
                                     </div>
                                 </div>
@@ -1674,8 +1673,8 @@ require '../controllers/update_due_interviews.php';
                                     </div>
                                     <div class="progress" style="height: 8px;">
                                         <div class="progress-bar ${getMatchScoreClass(applicant.match_score)}" 
-                                             role="progressbar" 
-                                             style="width: ${applicant.match_score || 0}%">
+                                            role="progressbar" 
+                                            style="width: ${applicant.match_score || 0}%">
                                         </div>
                                     </div>
                                 </div>
@@ -1701,6 +1700,14 @@ require '../controllers/update_due_interviews.php';
                                         ` : ''}
                                     </div>
                                 </div>
+                                
+                                ${applicant.application_status.toLowerCase() === 'under review' ? `
+                                    <div class="text-center mt-2">
+                                        <button class="btn btn-sm btn-outline-primary" onclick="scheduleInterview(${applicant.application_id}, '${applicant.email}')">
+                                            <i class="fas fa-calendar-alt me-1"></i> Schedule Interview
+                                        </button>
+                                    </div>
+                                ` : ''}
                             </div>
                         </div>
                     `).join('')}
@@ -1809,7 +1816,7 @@ require '../controllers/update_due_interviews.php';
                                             <div class="card-body">
                                                 <h5 class="card-title" style="color: #495057;"><i class="fas fa-envelope me-2" style="color: #6c757d;"></i>Contact</h5>
                                                 <ul class="list-unstyled" style="color: #6c757d;">
-                                                    <li class="mb-2"><strong style="color: #495057;">Email:</strong> ${applicant.stud_email}</li>
+                                                    <li class="mb-2"><strong style="color: #495057;">Email:</strong> ${applicant.email}</li>
                                                     ${applicant.phone ? `<li class="mb-2"><strong style="color: #495057;">Phone:</strong> ${applicant.phone}</li>` : ''}
                                                     ${applicant.address ? `<li><strong style="color: #495057;">Location:</strong> ${applicant.address}</li>` : ''}
                                                 </ul>
