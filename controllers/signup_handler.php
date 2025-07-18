@@ -1,17 +1,15 @@
 <?php
 require '../config/dbcon.php';
-
-// Start session for CSRF and rate-limiting
 session_start();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         // Enable error reporting (disable in production)
-        error_reporting(E_ALL);
-        ini_set('display_errors', 1);
+        //error_reporting(E_ALL);
+        //ini_set('display_errors', 1);
 
         // === CSRF Protection ===
-        if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
             throw new Exception("Invalid CSRF token.");
         }
 
@@ -20,6 +18,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception("Please wait 10 seconds before trying again.");
         }
         $_SESSION['last_registration_time'] = time();
+
+        // === OTP Verification Check ===
+        if (!isset($_SESSION['email_verified']) || !$_SESSION['email_verified'] || 
+            !isset($_SESSION['verified_email']) || $_SESSION['verified_email'] !== strtolower(trim($_POST['email']))) {
+            throw new Exception("Email verification required. Please verify your email with OTP.");
+        }
 
         // === Input Validation ===
         $entity = $_POST['entity'] ?? null;
@@ -44,8 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (strlen($password) < 6) {
             throw new Exception("Password must be at least 6 characters.");
         }
-        if (!preg_match('/[A-Z]/', $password) || !preg_match('/[0-9]/', $password)) {
-            throw new Exception("Password must contain at least one uppercase letter and one number.");
+        if (!preg_match('/[A-Z]/', $password) || !preg_match('/[^a-zA-Z0-9]/', $password)) {
+            throw new Exception("Password must contain at least one uppercase letter and one special character.");
         }
 
         // Name validation (letters and spaces only)
@@ -53,15 +57,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $middle_name = !empty(trim($_POST['middle_name'] ?? '')) ? trim($_POST['middle_name']) : null;
         $last_name = trim($_POST['last_name'] ?? '');
 
-        if (!preg_match('/^[a-zA-Z\s]+$/', $first_name) || !preg_match('/^[a-zA-Z\s]*$/', $middle_name) || !preg_match('/^[a-zA-Z\s]+$/', $last_name)) {
+        if (!preg_match('/^[a-zA-Z\s]+$/', $first_name) || 
+            ($middle_name && !preg_match('/^[a-zA-Z\s]*$/', $middle_name)) || 
+            !preg_match('/^[a-zA-Z\s]+$/', $last_name)) {
             throw new Exception("Names can only contain letters and spaces.");
         }
 
         if (!$email || empty($password) || empty($first_name) || empty($last_name)) {
             throw new Exception("All required fields must be filled.");
         }
-        
-
 
         $grad_year = $_POST['graduation_yr'] ?? null;
         if ($entity === 'student' && !empty($grad_year)) {
@@ -72,12 +76,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $edu_background = $_POST['edu_background'] ?? null;
 
-        if($entity === 'student'){
+        if ($entity === 'student') {
             $is_student = false;
             if ($edu_background === 'College Student') {
                 $is_student = true;
             } elseif ($edu_background === 'Graduate Student') {
-                $is_student = false;
+                $is_student = true;
             } elseif ($edu_background === 'Not a Student') {
                 $is_student = false;
             } elseif ($edu_background === 'Professional') {
@@ -85,32 +89,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 throw new Exception("Invalid educational background selected.");
             }
-
         }
 
         // === Check for Existing Email ===
         if ($entity === "student") {
             $checkEmailStmt = $conn->prepare("SELECT stud_email FROM student WHERE stud_email = :email");
-
         } elseif ($entity === "professional" || $entity === "employer") {
             $checkEmailStmt = $conn->prepare("SELECT user_email FROM user WHERE user_email = :email");
         } else {
             throw new Exception("Invalid entity type.");
         }
 
-
         $checkEmailStmt->bindParam(':email', $email, PDO::PARAM_STR);
         $checkEmailStmt->execute();
 
-        
         if ($checkEmailStmt->rowCount() > 0) {
             throw new Exception("Email already exists. Use a different email.");
         }
 
-
         // === Hash Password ===
         $hashed_password = password_hash($password, PASSWORD_ARGON2ID);
-        $conn->beginTransaction();  
+        $conn->beginTransaction();
 
         // === Insert Data Based on Entity ===
         if ($entity === 'employer' || $entity === 'professional') {
@@ -127,7 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception("Invalid role_id provided.");
             }
 
-            $user_type = $role['role_title']; 
+            $user_type = $role['role_title'];
 
             // Insert into `user` table
             $stmt = $conn->prepare("
@@ -143,7 +142,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':middle_name' => $middle_name,
                 ':last_name' => $last_name,
                 ':active' => $status
-                
             ]);
 
             // Fetch user_id
@@ -152,33 +150,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute();
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
             if (!$user) {
-                    throw new Exception("Failed to retrieve user ID.");
-                }
-                $user_id = $user['user_id'];
+                throw new Exception("Failed to retrieve user ID.");
+            }
+            $entity_id = $user['user_id'];
 
-                // Insert into specialized table (employer/professional)
-                $table = ($user_type === 'Employer') ? 'employer' : 'professional';
-                $stmt = $conn->prepare("INSERT INTO $table (user_id) VALUES (:user_id)");
-                $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
-                $stmt->execute();
+            // Insert into specialized table (employer/professional)
+            $table = ($user_type === 'Employer') ? 'employer' : 'professional';
+            $stmt = $conn->prepare("INSERT INTO $table (user_id) VALUES (:user_id)");
+            $stmt->bindParam(':user_id', $entity_id, PDO::PARAM_INT);
+            $stmt->execute();
 
-                $entity_id = $user_id;
-            } elseif ($entity === 'student') {
-                $institution = trim($_POST['institution'] ?? '');
-                $status = 'active';
+        } elseif ($entity === 'student') {
+            $institution = trim($_POST['institution'] ?? '');
+            $status = 'active';
 
-                if ($is_student && empty($institution)) {
-                    throw new Exception("Institution field is required for students.");
-                }
-
+            if ($is_student && empty($institution)) {
+                throw new Exception("Institution field is required for students.");
+            }
 
             // Insert into `student` table
             $stmt = $conn->prepare("
-                INSERT INTO student (stud_email, stud_password, stud_first_name, stud_middle_name, stud_last_name, institution, `status` ,edu_background, is_student, graduation_yr) 
+                INSERT INTO student (stud_email, stud_password, stud_first_name, stud_middle_name, stud_last_name, institution, `status`, edu_background, is_student, graduation_yr) 
                 VALUES (:email, :password, :first_name, :middle_name, :last_name, :institution, :active, :edu_background, :is_student, :grad_year)
             ");
             $stmt->execute([
-        
                 ':email' => $email,
                 ':password' => $hashed_password,
                 ':first_name' => $first_name,
@@ -212,11 +207,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':entity_id' => $entity_id
         ]);
 
-        $conn->commit(); 
+        $conn->commit();
+
+        // Clear OTP session data after successful registration
+        unset($_SESSION['otp_data']);
+        unset($_SESSION['email_verified']);
+        unset($_SESSION['verified_email']);
 
         // Log successful registration
         error_log("New registration: $email ($entity)");
-        
+
         switch ($entity) {
             case 'student':
                 $redirect_page = "../auth/login_student.php";
@@ -224,33 +224,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             case 'professional':
                 $redirect_page = "../auth/login_user.php";
                 break;
-            case 'employer': 
+            case 'employer':
                 $redirect_page = "../auth/login_employer.php";
                 break;
             default:
-                $redirect_page = "../index.php"; // Fallback case
+                $redirect_page = "../index.php";
         }
-        
-        header("Location: $redirect_page?success=" . urlencode("Registration successful! You can now log in."));
 
+        header("Location: $redirect_page?success=" . urlencode("Registration successful! You can now log in."));
         exit();
-        
+
     } catch (Exception $e) {
         if ($conn->inTransaction()) {
             $conn->rollBack();
         }
-        
+
         error_log("Registration Error: " . $e->getMessage());
-        
-        // Determine redirect page dynamically
+
         $redirect_page = match($entity) {
             'student' => '../views/register_student.php',
             'professional' => '../views/register_professional.php',
             'employer' => '../views/register_employer.php',
             default => '../index.php'
         };
-        
+
         header("Location: $redirect_page?message=" . urlencode("Error: " . $e->getMessage()));
         exit();
     }
 }
+?>

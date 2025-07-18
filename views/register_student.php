@@ -1,5 +1,7 @@
 <?php 
+if(session_status() === PHP_SESSION_NONE) {
 session_start();
+}
 $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 ?>
 
@@ -335,6 +337,57 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
         .is-invalid + .form-label {
             color: var(--error-color) !important;
         }
+
+        /* OTP Input Styles */
+        .otp-container {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+            justify-content: center;
+        }
+        
+        .otp-input {
+            width: 3rem;
+            height: 3.5rem;
+            text-align: center;
+            font-size: 1.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            transition: var(--transition);
+        }
+        
+        .otp-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        .resend-otp {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.875rem;
+        }
+        
+        .resend-otp a {
+            color: var(--primary-color);
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        .resend-otp a:hover {
+            text-decoration: underline;
+        }
+        
+        .resend-otp .countdown {
+            color: var(--light-text);
+        }
+        
+        .timer-text {
+            color: var(--light-text);
+            font-size: 0.875rem;
+            text-align: center;
+            margin-top: 0.5rem;
+        }
     </style>
 </head>
 <body>
@@ -357,9 +410,8 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
                 <script>
                     setTimeout(function() {
                         document.getElementById('message').style.display = 'none';
-                        // Remove the message from the URL
                         history.replaceState(null, null, location.pathname);
-                    }, 5000); // 5000 milliseconds = 5 seconds
+                    }, 5000);
                 </script>
             <?php endif; ?>
 
@@ -371,9 +423,8 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
                 <script>
                     setTimeout(function() {
                         document.getElementById('success').style.display = 'none';
-                        // Remove the success from the URL
                         history.replaceState(null, null, location.pathname);
-                    }, 5000); // 5000 milliseconds = 5 seconds
+                    }, 5000);
                 </script>
             <?php endif; ?>
             
@@ -399,7 +450,6 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
                     <label for="last_name" class="form-label">Last Name</label>
                 </div>
                 
-
                 <input type="hidden" id="entity" name="entity" value="student">
                 <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
                 
@@ -415,7 +465,7 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
                 
                 <div class="form-group">
                     <i class="fas fa-envelope form-icon"></i>
-                    <input type="email" name="email" class="form-control" placeholder=" " required>
+                    <input type="email" name="email" id="email" class="form-control" placeholder=" " required>
                     <label for="email" class="form-label">Email Address</label>
                 </div>
                 
@@ -452,15 +502,54 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
                     <button type="button" class="btn btn-outline-secondary flex-grow-1" onclick="prevStep(1)">
                         <i class="fas fa-arrow-left"></i> Back
                     </button>
-                    <button type="button" id="nextStep3" class="btn btn-primary flex-grow-1" onclick="nextStep(3)" disabled>
+                    <button type="button" id="nextStep3" class="btn btn-primary flex-grow-1" onclick="verifyEmailBeforeProceeding()" disabled>
                         <span>Continue</span>
                         <i class="fas fa-arrow-right"></i>
                     </button>
                 </div>
             </div>
 
-            <!-- Step 3: Additional Information -->
+            <!-- Step 3: OTP Verification -->
             <div id="step-3" class="d-none">
+                <h5 class="step-title">Verify Your Email</h5>
+                
+                <div class="alert-message alert-success">
+                    <i class="fas fa-info-circle"></i>
+                    <span>We've sent a 6-digit verification code to <span id="displayEmail"></span>. Please check your inbox.</span>
+                </div>
+                
+                <div class="otp-container">
+                    <input type="text" class="otp-input" maxlength="1" data-index="1" autocomplete="off">
+                    <input type="text" class="otp-input" maxlength="1" data-index="2" autocomplete="off">
+                    <input type="text" class="otp-input" maxlength="1" data-index="3" autocomplete="off">
+                    <input type="text" class="otp-input" maxlength="1" data-index="4" autocomplete="off">
+                    <input type="text" class="otp-input" maxlength="1" data-index="5" autocomplete="off">
+                    <input type="text" class="otp-input" maxlength="1" data-index="6" autocomplete="off">
+                </div>
+                
+                <input type="hidden" id="otp" name="otp">
+                <input type="hidden" id="otp_timestamp" name="otp_timestamp">
+                
+                <div class="timer-text" id="timer">Code expires in <span id="countdown">300</span> seconds</div>
+                
+                <div class="resend-otp">
+                    Didn't receive the code? <a href="#" id="resendOtp">Resend OTP</a>
+                    <span class="countdown d-none">in <span id="resendCountdown">60</span>s</span>
+                </div>
+                
+                <div class="d-flex justify-content-between gap-3 mt-3">
+                    <button type="button" class="btn btn-outline-secondary flex-grow-1" onclick="prevStep(2)">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <button type="button" class="btn btn-primary flex-grow-1" onclick="validateOtp()">
+                        <span>Verify</span>
+                        <i class="fas fa-check"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 4: Additional Information -->
+            <div id="step-4" class="d-none">
                 <h5 class="step-title">Education Details</h5>
                 
                 <div class="form-group">
@@ -487,7 +576,7 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
                 </div>
                 
                 <div class="d-flex justify-content-between gap-3 mt-3">
-                    <button type="button" class="btn btn-outline-secondary flex-grow-1" onclick="prevStep(2)">
+                    <button type="button" class="btn btn-outline-secondary flex-grow-1" onclick="prevStep(3)">
                         <i class="fas fa-arrow-left"></i> Back
                     </button>
                     <button type="submit" class="btn btn-success flex-grow-1">
@@ -513,6 +602,332 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
     <script>
         AOS.init();
         
+        // OTP Verification Functions
+        let otpResendTimer;
+        let otpExpiryTimer;
+        let canResendOtp = true;
+        
+        function verifyEmailBeforeProceeding() {
+            if (!validateStep(2)) return;
+            
+            const email = document.getElementById('email').value.trim();
+            const entity = document.getElementById('entity').value; // Get entity value
+            
+            // Show loading state
+            const nextButton = document.getElementById('nextStep3');
+            const originalText = nextButton.innerHTML;
+            nextButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Sending OTP...';
+            nextButton.disabled = true;
+            
+            // Send email and entity to server for OTP generation
+            fetch('../controllers/send_otp.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `email=${encodeURIComponent(email)}&entity=${encodeURIComponent(entity)}&csrf_token=${encodeURIComponent('<?= $_SESSION['csrf_token'] ?>')}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show OTP step
+                    document.getElementById('displayEmail').textContent = email;
+                    nextStep(3);
+                    
+                    // Start OTP expiry timer
+                    startOtpTimer();
+                } else {
+                    alert('Failed to send OTP: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while sending OTP');
+            })
+            .finally(() => {
+                nextButton.innerHTML = originalText;
+                nextButton.disabled = false;
+            });
+        }
+        
+        function startOtpTimer() {
+            let seconds = 300; // 5 minutes
+            const timerElement = document.getElementById('countdown');
+            
+            clearInterval(otpExpiryTimer);
+            otpExpiryTimer = setInterval(() => {
+                seconds--;
+                timerElement.textContent = seconds;
+                
+                if (seconds <= 0) {
+                    clearInterval(otpExpiryTimer);
+                    document.getElementById('timer').innerHTML = 'The verification code has expired.';
+                    document.getElementById('timer').classList.add('text-danger');
+                }
+            }, 1000);
+        }
+        
+        function startResendTimer() {
+            let seconds = 60;
+            const resendLink = document.getElementById('resendOtp');
+            const countdownElement = document.getElementById('resendCountdown');
+            const countdownContainer = document.querySelector('.resend-otp .countdown');
+            
+            resendLink.style.display = 'none';
+            countdownContainer.classList.remove('d-none');
+            countdownElement.textContent = seconds;
+            
+            clearInterval(otpResendTimer);
+            otpResendTimer = setInterval(() => {
+                seconds--;
+                countdownElement.textContent = seconds;
+                
+                if (seconds <= 0) {
+                    clearInterval(otpResendTimer);
+                    resendLink.style.display = 'inline';
+                    countdownContainer.classList.add('d-none');
+                    canResendOtp = true;
+                }
+            }, 1000);
+        }
+        
+        function validateOtp() {
+            const otpInputs = document.querySelectorAll('.otp-input');
+            let otp = '';
+            
+            otpInputs.forEach(input => {
+                otp += input.value;
+            });
+            
+            if (otp.length !== 6) {
+                alert('Please enter the complete 6-digit OTP code');
+                return;
+            }
+            
+            // Verify OTP with server
+            fetch('../controllers/verify_otp.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `otp=${encodeURIComponent(otp)}&csrf_token=${encodeURIComponent('<?= $_SESSION['csrf_token'] ?>')}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Store verified status and proceed to next step
+                    document.getElementById('otp').value = otp;
+                    document.getElementById('otp_timestamp').value = data.timestamp;
+                    nextStep(4);
+                } else {
+                    alert('OTP verification failed: ' + data.message);
+                    // Clear OTP inputs
+                    otpInputs.forEach(input => {
+                        input.value = '';
+                    });
+                    // Focus on first OTP input
+                    otpInputs[0].focus();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while verifying OTP');
+            });
+        }
+        
+        // OTP input auto-focus and navigation
+        document.addEventListener('DOMContentLoaded', () => {
+            const otpInputs = document.querySelectorAll('.otp-input');
+            
+            otpInputs.forEach((input, index) => {
+                // Handle paste event
+                input.addEventListener('paste', (e) => {
+                    e.preventDefault();
+                    const pasteData = e.clipboardData.getData('text');
+                    if (/^\d{6}$/.test(pasteData)) {
+                        for (let i = 0; i < 6; i++) {
+                            if (otpInputs[i]) {
+                                otpInputs[i].value = pasteData[i];
+                            }
+                        }
+                        otpInputs[5].focus();
+                    }
+                });
+                
+                // Handle input event
+                input.addEventListener('input', (e) => {
+                    if (input.value.length === 1) {
+                        if (index < otpInputs.length - 1) {
+                            otpInputs[index + 1].focus();
+                        } else {
+                            input.blur();
+                        }
+                    }
+                });
+                
+                // Handle backspace
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && input.value.length === 0 && index > 0) {
+                        otpInputs[index - 1].focus();
+                    }
+                });
+            });
+            
+            // Resend OTP handler
+            document.getElementById('resendOtp').addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                if (!canResendOtp) return;
+                
+                canResendOtp = false;
+                startResendTimer();
+                
+                // Resend OTP request
+                const email = document.getElementById('email').value.trim();
+                
+                fetch('../controllers/send_otp.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `email=${encodeURIComponent(email)}&resend=true&csrf_token=${encodeURIComponent('<?= $_SESSION['csrf_token'] ?>')}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Reset OTP expiry timer
+                        clearInterval(otpExpiryTimer);
+                        startOtpTimer();
+                        
+                        // Update UI
+                        document.getElementById('timer').classList.remove('text-danger');
+                        document.getElementById('timer').innerHTML = 'Code expires in <span id="countdown">300</span> seconds';
+                        
+                        // Clear OTP inputs
+                        document.querySelectorAll('.otp-input').forEach(input => {
+                            input.value = '';
+                        });
+                        document.querySelector('.otp-input').focus();
+                    } else {
+                        alert('Failed to resend OTP: ' + data.message);
+                        canResendOtp = true;
+                        clearInterval(otpResendTimer);
+                        document.getElementById('resendOtp').style.display = 'inline';
+                        document.querySelector('.resend-otp .countdown').classList.add('d-none');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while resending OTP');
+                    canResendOtp = true;
+                    clearInterval(otpResendTimer);
+                    document.getElementById('resendOtp').style.display = 'inline';
+                    document.querySelector('.resend-otp .countdown').classList.add('d-none');
+                });
+            });
+        });
+        
+        // Previous functions remain the same with updated step numbers
+        function nextStep(nextStepNumber) {
+            const currentStepNumber = nextStepNumber - 1;
+            if (currentStepNumber > 0 && !validateStep(currentStepNumber)) {
+                return;
+            }
+            
+            document.querySelectorAll('[id^="step-"]').forEach(el => {
+                el.classList.add('d-none');
+            });
+            document.getElementById(`step-${nextStepNumber}`).classList.remove('d-none');
+            
+            // Update progress bar (now 4 steps, each 25%)
+            const progressPercentage = nextStepNumber * 25;
+            document.getElementById('progressBar').style.width = `${progressPercentage}%`;
+            document.getElementById('progressBar').setAttribute('aria-valuenow', progressPercentage);
+            
+            // Focus on first input in the new step
+            document.querySelector(`#step-${nextStepNumber} input`)?.focus();
+        }
+
+        function prevStep(step) {
+            document.querySelectorAll('[id^="step-"]').forEach(el => {
+                el.classList.add('d-none');
+            });
+            document.getElementById(`step-${step}`).classList.remove('d-none');
+            
+            // Update progress bar
+            const progressPercentage = step * 25;
+            document.getElementById('progressBar').style.width = `${progressPercentage}%`;
+            document.getElementById('progressBar').setAttribute('aria-valuenow', progressPercentage);
+            
+            // Clear OTP timers if going back from OTP step
+            if (step < 3) {
+                clearInterval(otpExpiryTimer);
+                clearInterval(otpResendTimer);
+            }
+        }
+
+        function validateStep(currentStep) {
+            let isValid = true;
+            
+            if (currentStep == 1) {
+                const required = ['first_name', 'last_name'];
+                
+                required.forEach(field => {
+                    const input = document.querySelector(`[name="${field}"]`);
+                    if (!input.value.trim()) {
+                        input.classList.add('is-invalid');
+                        isValid = false;
+                    } else {
+                        input.classList.remove('is-invalid');
+                    }
+                });
+            }
+            else if (currentStep == 2) {
+                // Validate email
+                const emailInput = document.querySelector('[name="email"]');
+                if (!emailInput.value.trim()) {
+                    emailInput.classList.add('is-invalid');
+                    isValid = false;
+                } else if (!/^\S+@\S+\.\S+$/.test(emailInput.value.trim())) {
+                    emailInput.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    emailInput.classList.remove('is-invalid');
+                }
+                
+                // Validate password
+                if (!validatePassword()) {
+                    isValid = false;
+                }
+                
+                // Validate password confirmation
+                const confirmPassword = document.getElementById("confirm_password");
+                if (confirmPassword.value.trim() !== document.getElementById("password").value.trim()) {
+                    confirmPassword.classList.add('is-invalid');
+                    document.getElementById("confirmPasswordHelp").classList.remove('d-none');
+                    isValid = false;
+                } else {
+                    confirmPassword.classList.remove('is-invalid');
+                    document.getElementById("confirmPasswordHelp").classList.add('d-none');
+                }
+            }
+            else if (currentStep == 3) {
+                // OTP validation is handled separately in validateOtp()
+                return true;
+            }
+            else if (currentStep == 4) {
+                const edu = document.querySelector('[name="edu_background"]');
+                if (!edu.value) {
+                    edu.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    edu.classList.remove('is-invalid');
+                }
+            }
+            
+            return isValid;
+        }
+
         function validatePassword() {
             const passwordField = document.getElementById("password");
             const confirmPasswordField = document.getElementById("confirm_password");
@@ -595,147 +1010,29 @@ $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
             passwordField.addEventListener("focus", () => {
                 passwordChecklist.style.display = "block";
             });
-        });
-
-        function nextStep(nextStepNumber) {
-            const currentStepNumber = nextStepNumber - 1;
-            if (!validateStep(currentStepNumber)) {
-                return; // Don't proceed if validation fails
-            }
             
-            document.querySelectorAll('[id^="step-"]').forEach(el => {
-                el.classList.add('d-none');
-            });
-            document.getElementById(`step-${nextStepNumber}`).classList.remove('d-none');
-            
-            // Update progress bar (since you have 3 steps, each step is 33%)
-            const progressPercentage = nextStepNumber * 33.33;
-            document.getElementById('progressBar').style.width = `${progressPercentage}%`;
-            document.getElementById('progressBar').setAttribute('aria-valuenow', progressPercentage);
-            
-            // Focus on first input in the new step
-            document.querySelector(`#step-${nextStepNumber} input`)?.focus();
-        }
-
-        function prevStep(step) {
-            document.querySelectorAll('[id^="step-"]').forEach(el => {
-                el.classList.add('d-none');
-            });
-            document.getElementById(`step-${step}`).classList.remove('d-none');
-            
-            // Update progress bar
-            const progressPercentage = step * 33.33;
-            document.getElementById('progressBar').style.width = `${progressPercentage}%`;
-            document.getElementById('progressBar').setAttribute('aria-valuenow', progressPercentage);
-        }
-
-        function validateStep(currentStep) {
-            let isValid = true;
-            
-            if (currentStep == 1) {
-                const required = ['first_name', 'last_name'];
-                
-                required.forEach(field => {
-                    const input = document.querySelector(`[name="${field}"]`);
-                    if (!input.value.trim()) {
-                        input.classList.add('is-invalid');
-                        isValid = false;
-                    } else {
-                        input.classList.remove('is-invalid');
-                    }
-                });
-            }
-            else if (currentStep == 2) {
-                // Validate email
-                const emailInput = document.querySelector('[name="email"]');
-                if (!emailInput.value.trim()) {
-                    emailInput.classList.add('is-invalid');
-                    isValid = false;
-                } else if (!/^\S+@\S+\.\S+$/.test(emailInput.value.trim())) {
-                    emailInput.classList.add('is-invalid');
-                    isValid = false;
-                } else {
-                    emailInput.classList.remove('is-invalid');
-                }
-                
-                // Validate password
-                if (!validatePassword()) {
-                    isValid = false;
-                }
-                
-                // Validate password confirmation
-                const confirmPassword = document.getElementById("confirm_password");
-                if (confirmPassword.value.trim() !== document.getElementById("password").value.trim()) {
-                    confirmPassword.classList.add('is-invalid');
-                    document.getElementById("confirmPasswordHelp").classList.remove('d-none');
-                    isValid = false;
-                } else {
-                    confirmPassword.classList.remove('is-invalid');
-                    document.getElementById("confirmPasswordHelp").classList.add('d-none');
-                }
-            }
-
-            else if (currentStep == 3) {
-                const edu = document.querySelector('[name="edu_background"]');
-                if (!edu.value) {
-                    edu.classList.add('is-invalid');
-                    isValid = false;
-                } else {
-                    edu.classList.remove('is-invalid');
-                }
-            }
-            
-            return isValid;
-        }
-
-        document.addEventListener("DOMContentLoaded", () => {
+            // Education background change handler
             const eduSelect = document.getElementById("edu_background");
             const institutionGroup = document.getElementById("institutionGroup");
             const graduationGroup = document.getElementById("graduationGroup");
-            const form = document.getElementById("signupForm");
-
+            
             function toggleInstitutionField() {
-            if (eduSelect.value === "College Student" || eduSelect.value === "Graduate Student") {
-                institutionGroup.style.display = "block";
-                document.getElementById("institution").setAttribute("required", "required");
-                graduationGroup.style.display = "block";
-                document.getElementById("expected_graduation").setAttribute("required", "required");
-            } else {
-                institutionGroup.style.display = "none";
-                document.getElementById("institution").removeAttribute("required");
-                graduationGroup.style.display = "none";
-                document.getElementById("expected_graduation").removeAttribute("required");
-            }
-            }
-
-            eduSelect.addEventListener("change", toggleInstitutionField);
-
-            toggleInstitutionField();
-
-            form.addEventListener("keydown", function(event) {
-            if (event.key === "Enter") {
-                const target = event.target;
-                const tag = target.tagName.toLowerCase();
-
-                // Skip for textarea or button
-                if (tag === "textarea" || tag === "button") return;
-
-                event.preventDefault(); // Prevent default form submission
-
-                // Get all focusable form elements
-                const focusable = Array.from(form.querySelectorAll("input, select, button, textarea"))
-                .filter(el => !el.disabled && el.offsetParent !== null);
-
-                const index = focusable.indexOf(target);
-                const next = focusable[index + 1];
-
-                if (next) {
-                next.focus();
+                if (eduSelect.value === "College Student" || eduSelect.value === "Graduate Student") {
+                    institutionGroup.style.display = "block";
+                    document.getElementById("institution").setAttribute("required", "required");
+                    graduationGroup.style.display = "block";
+                    document.getElementById("graduation_yr").setAttribute("required", "required");
+                } else {
+                    institutionGroup.style.display = "none";
+                    document.getElementById("institution").removeAttribute("required");
+                    graduationGroup.style.display = "none";
+                    document.getElementById("graduation_yr").removeAttribute("required");
                 }
             }
-            });
+            
+            eduSelect.addEventListener("change", toggleInstitutionField);
+            toggleInstitutionField();
         });
-
     </script>
 </body>
 </html>
