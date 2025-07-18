@@ -321,9 +321,9 @@ CREATE TABLE IF NOT EXISTS report (
     resolution ENUM('approved', 'edited', 'deleted') DEFAULT NULL,
     resolved_at TIMESTAMP NULL,
     reported_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    moderator_id INT,  -- Moderator is a user
+    moderator_id INT,
     FOREIGN KEY (reported_by) REFERENCES actor(actor_id),
-    FOREIGN KEY (moderator_id) REFERENCES user(user_id)
+    FOREIGN KEY (moderator_id) REFERENCES actor(actor_id)
 );
 
 CREATE TABLE IF NOT EXISTS interviews (

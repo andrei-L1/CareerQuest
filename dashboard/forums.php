@@ -190,6 +190,24 @@ $query = "SELECT f.forum_id, f.title, fm.role
 $stmt = $conn->prepare($query);
 $stmt->execute([$currentUser['actor_id']]);
 $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+
+
+// Check moderator status
+$isSystemModerator = false;
+$isForumModerator = false;
+if ($currentUser['entity_type'] === 'user' && in_array($currentUser['role'], ['Admin', 'Moderator'])) {
+    $isSystemModerator = true;
+}
+if ($selectedForumId) {
+    $query = "SELECT role FROM forum_membership WHERE forum_id = ? AND actor_id = ? AND role IN ('Moderator', 'Admin') AND status = 'Active'";
+    $stmt = $conn->prepare($query);
+    $stmt->execute([$selectedForumId, $currentUser['actor_id']]);
+    if ($stmt->fetch(PDO::FETCH_ASSOC)) {
+        $isForumModerator = true;
+    }
+}
+$isModerator = $isSystemModerator || $isForumModerator;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -722,6 +740,19 @@ $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
             outline: 2px solid var(--primary-color);
             outline-offset: 2px;
         }
+        .report-btn {
+            color: var(--secondary-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            transition: var(--transition);
+        }
+        .report-btn:hover {
+            color: var(--danger-color);
+        }
+        .report-btn i {
+            margin-right: 0.4rem;
+        }
     </style>
 </head>
 <body>
@@ -770,6 +801,14 @@ $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <span class="badge bg-danger ms-auto">3</span>
                             </a>
                         </li>
+                        <?php if ($isModerator): ?>
+                            <li class="nav-item">
+                                <a href="../forum/manage_reports.php" class="d-flex align-items-center" aria-label="Manage Reports">
+                                    <i class="bi bi-flag"></i>
+                                    <span>Manage Reports</span>
+                                </a>
+                            </li>
+                        <?php endif; ?>
                     </ul>
                 </div>
                 
@@ -936,13 +975,23 @@ $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <div class="post-footer">
                                         <div class="post-actions">
                                             <a href="#" class="like-btn" data-post-id="<?php echo $post['post_id']; ?>" 
-                                               aria-label="Like Post (<?php echo $post['up_count']; ?> likes)">
+                                            aria-label="Like Post (<?php echo $post['up_count']; ?> likes)">
                                                 <i class="bi bi-hand-thumbs-up"></i> Like (<span class="like-count"><?php echo $post['up_count']; ?></span>)
                                             </a>
                                             <a href="../forum/post.php?post_id=<?php echo $post['post_id']; ?>" 
-                                               aria-label="View Comments (<?php echo $post['comment_count']; ?> comments)">
+                                            aria-label="View Comments (<?php echo $post['comment_count']; ?> comments)">
                                                 <i class="bi bi-chat"></i> Comments (<?php echo $post['comment_count']; ?>)
                                             </a>
+                                            <?php if (!$isModerator): ?>
+                                                <a href="#" class="report-btn" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#reportModal" 
+                                                data-content-type="post" 
+                                                data-content-id="<?php echo $post['post_id']; ?>" 
+                                                aria-label="Report Post">
+                                                    <i class="bi bi-flag"></i> Report
+                                                </a>
+                                            <?php endif; ?>
                                         </div>
                                         <div class="post-views">
                                             <i class="bi bi-eye"></i> <?php echo $post['view_count']; ?> views
@@ -1009,6 +1058,32 @@ $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <?php endif; ?>
                 <?php endif; ?>
             </div>
+            <!-- Report Content Modal -->
+            <div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="reportModalLabel">Report Content</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form id="reportForm">
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="reportReason" class="form-label">Reason for Report <span class="text-danger">*</span></label>
+                                    <textarea class="form-control" id="reportReason" name="reason" rows="4" required aria-describedby="reportReasonHelp"></textarea>
+                                    <div id="reportReasonHelp" class="form-text">Please explain why you are reporting this content.</div>
+                                </div>
+                                <input type="hidden" name="content_type" id="reportContentType">
+                                <input type="hidden" name="content_id" id="reportContentId">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-danger">Submit Report</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- New Forum Modal -->
@@ -1051,6 +1126,22 @@ $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
         <script>
+        // Toast notification function (defined globally)
+            function showToast(message, type = 'success') {
+                const toastContainer = document.querySelector('.toast-container');
+                const toast = document.createElement('div');
+                toast.className = `toast toast-${type} show`;
+                toast.innerHTML = `
+                    <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                    <span>${message}</span>
+                `;
+                toastContainer.appendChild(toast);
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
+
             document.addEventListener('DOMContentLoaded', function() {
                 // Initialize Bootstrap tooltips for sidebar-nav
                 const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
@@ -1134,21 +1225,46 @@ $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     });
                 });
 
-                // Toast notification function
-                function showToast(message, type = 'success') {
-                    const toastContainer = document.querySelector('.toast-container');
-                    const toast = document.createElement('div');
-                    toast.className = `toast toast-${type} show`;
-                    toast.innerHTML = `
-                        <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
-                        <span>${message}</span>
-                    `;
-                    toastContainer.appendChild(toast);
-                    setTimeout(() => {
-                        toast.classList.remove('show');
-                        setTimeout(() => toast.remove(), 300);
-                    }, 3000);
-                }
+                // Report button handler
+                document.querySelectorAll('.report-btn').forEach(button => {
+                    button.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const contentType = this.dataset.contentType;
+                        const contentId = this.dataset.contentId;
+                        document.getElementById('reportContentType').value = contentType;
+                        document.getElementById('reportContentId').value = contentId;
+                    });
+                });
+
+                // Report form submission
+                document.getElementById('reportForm').addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const form = this;
+                    const formData = new FormData(form);
+                    const submitButton = form.querySelector('button[type="submit"]');
+                    submitButton.classList.add('disabled');
+                    
+                    fetch('../forum/report_content.php', {
+                        method: 'POST',
+                        body: new URLSearchParams(formData)
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        submitButton.classList.remove('disabled');
+                        if (data.success) {
+                            showToast('Report submitted successfully!', 'success');
+                            bootstrap.Modal.getInstance(document.getElementById('reportModal')).hide();
+                            form.reset();
+                        } else {
+                            showToast(data.message || 'Failed to submit report.', 'error');
+                        }
+                    })
+                    .catch(err => {
+                        submitButton.classList.remove('disabled');
+                        showToast('An error occurred.', 'error');
+                        console.error('Error:', err);
+                    });
+                });
             });
         </script>
 </body>

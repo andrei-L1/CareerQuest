@@ -25,7 +25,8 @@ $query = "SELECT fp.*,
                  f.title AS forum_title,
                  f.forum_id,
                  CONCAT(COALESCE(u.user_first_name, s.stud_first_name), ' ', COALESCE(u.user_last_name, s.stud_last_name)) AS poster_name,
-                 COALESCE(u.picture_file, s.profile_picture) AS poster_picture
+                 COALESCE(u.picture_file, s.profile_picture) AS poster_picture,
+                 a.actor_id AS poster_actor_id
           FROM forum_post fp
           JOIN forum f ON fp.forum_id = f.forum_id
           LEFT JOIN actor a ON fp.poster_id = a.actor_id
@@ -50,7 +51,8 @@ $stmt->execute([$post_id]);
 // Get comments for this post
 $query = "SELECT fc.*, 
                  CONCAT(COALESCE(u.user_first_name, s.stud_first_name), ' ', COALESCE(u.user_last_name, s.stud_last_name)) AS commenter_name,
-                 COALESCE(u.picture_file, s.profile_picture) AS commenter_picture
+                 COALESCE(u.picture_file, s.profile_picture) AS commenter_picture,
+                 a.actor_id AS commenter_actor_id
           FROM forum_comment fc
           LEFT JOIN actor a ON fc.commenter_id = a.actor_id
           LEFT JOIN user u ON (a.entity_type = 'user' AND a.entity_id = u.user_id)
@@ -66,13 +68,24 @@ if (isset($_SESSION['user_id'])) {
     $currentUser = [
         'entity_type' => 'user',
         'entity_id' => $_SESSION['user_id'],
-        'name' => $_SESSION['user_first_name'] ?? 'User'
+        'name' => $_SESSION['user_first_name'] ?? 'User',
+        'role' => 'Unknown'
     ];
+
+    // Fetch role for moderator check
+    $query = "SELECT r.role_title FROM user u LEFT JOIN role r ON u.role_id = r.role_id WHERE u.user_id = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->execute([$currentUser['entity_id']]);
+    $userDetails = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($userDetails) {
+        $currentUser['role'] = $userDetails['role_title'];
+    }
 } else {
     $currentUser = [
         'entity_type' => 'student',
         'entity_id' => $_SESSION['stud_id'],
-        'name' => $_SESSION['stud_first_name'] ?? 'Student'
+        'name' => $_SESSION['stud_first_name'] ?? 'Student',
+        'role' => 'Student'
     ];
 }
 
@@ -90,6 +103,19 @@ if (!$actor) {
     $currentUser['actor_id'] = $conn->lastInsertId();
 } else {
     $currentUser['actor_id'] = $actor['actor_id'];
+}
+
+// Check moderator status
+$isModerator = false;
+if ($currentUser['entity_type'] === 'user' && in_array($currentUser['role'], ['Admin', 'Moderator'])) {
+    $isModerator = true;
+} else {
+    $query = "SELECT role FROM forum_membership WHERE forum_id = ? AND actor_id = ? AND role IN ('Moderator', 'Admin') AND status = 'Active'";
+    $stmt = $conn->prepare($query);
+    $stmt->execute([$post['forum_id'], $currentUser['actor_id']]);
+    if ($stmt->fetch(PDO::FETCH_ASSOC)) {
+        $isModerator = true;
+    }
 }
 
 // Handle comment submission
@@ -361,6 +387,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment'])) {
             transform: scale(1.1);
         }
 
+        .report-btn {
+            color: var(--secondary-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            transition: var(--transition);
+        }
+
+        .report-btn:hover {
+            color: var(--danger-color);
+        }
+
+        .report-btn i {
+            margin-right: 0.4rem;
+        }
+
         .empty-state {
             text-align: center;
             padding: 2rem;
@@ -477,7 +519,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment'])) {
         }
 
         /* Accessibility */
-        .like-btn:focus, .btn-primary:focus, .btn-outline-secondary:focus {
+        .like-btn:focus, .btn-primary:focus, .btn-outline-secondary:focus, .report-btn:focus {
             outline: 2px solid var(--primary-color);
             outline-offset: 2px;
         }
@@ -525,7 +567,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment'])) {
                                     <?php endif; ?>
                                 </div>
                                 <div>
-                                    <p class="username mb-0 text-white"><?php echo htmlspecialchars($post['poster_name']); ?></p>
+                                    <p class="username mb-0 text-white"><?php echo htmlspecialchars($post['poster_name']); ?>
+                                        <?php if (!$isModerator && $currentUser['actor_id'] != $post['poster_actor_id']): ?>
+                                            <a href="#" class="report-btn" 
+                                               data-bs-toggle="modal" 
+                                               data-bs-target="#reportModal" 
+                                               data-content-type="user" 
+                                               data-content-id="<?php echo $post['poster_actor_id']; ?>" 
+                                               aria-label="Report User <?php echo htmlspecialchars($post['poster_name']); ?>">
+                                                <i class="bi bi-flag"></i>
+                                            </a>
+                                        <?php endif; ?>
+                                    </p>
                                     <span class="post-meta">Posted <?php echo date('M j, Y \a\t g:i a', strtotime($post['posted_at'])); ?></span>
                                 </div>
                             </div>
@@ -564,6 +617,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment'])) {
                                 <i class="bi bi-pencil"></i> Edit
                             </a>
                         <?php endif; ?>
+                        <?php if (!$isModerator): ?>
+                            <a href="#" class="report-btn" 
+                               data-bs-toggle="modal" 
+                               data-bs-target="#reportModal" 
+                               data-content-type="post" 
+                               data-content-id="<?php echo $post['post_id']; ?>" 
+                               aria-label="Report Post">
+                                <i class="bi bi-flag"></i> Report
+                            </a>
+                        <?php endif; ?>
                         <a href="../dashboard/forums.php?forum_id=<?php echo $post['forum_id']; ?>" 
                            class="btn btn-outline-secondary" aria-label="Back to Forum">
                             <i class="bi bi-arrow-left"></i> Back to Forum
@@ -592,10 +655,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment'])) {
                                     <?php endif; ?>
                                 </div>
                                 <div>
-                                    <p class="username mb-0"><?php echo htmlspecialchars($comment['commenter_name']); ?></p>
+                                    <p class="username mb-0"><?php echo htmlspecialchars($comment['commenter_name']); ?>
+                                        <?php if (!$isModerator && $currentUser['actor_id'] != $comment['commenter_actor_id']): ?>
+                                            <a href="#" class="report-btn" 
+                                               data-bs-toggle="modal" 
+                                               data-bs-target="#reportModal" 
+                                               data-content-type="user" 
+                                               data-content-id="<?php echo $comment['commenter_actor_id']; ?>" 
+                                               aria-label="Report User <?php echo htmlspecialchars($comment['commenter_name']); ?>">
+                                                <i class="bi bi-flag"></i>
+                                            </a>
+                                        <?php endif; ?>
+                                    </p>
                                     <span class="comment-meta"><?php echo date('M j, Y \a\t g:i a', strtotime($comment['commented_at'])); ?></span>
                                 </div>
                             </div>
+                            <?php if (!$isModerator): ?>
+                                <a href="#" class="report-btn" 
+                                   data-bs-toggle="modal" 
+                                   data-bs-target="#reportModal" 
+                                   data-content-type="comment" 
+                                   data-content-id="<?php echo $comment['comment_id']; ?>" 
+                                   aria-label="Report Comment">
+                                    <i class="bi bi-flag"></i> Report
+                                </a>
+                            <?php endif; ?>
                         </div>
                         <div class="comment-body">
                             <div class="comment-content">
@@ -628,6 +712,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment'])) {
                     </div>
                 </form>
             </div>
+            
+            <!-- Report Content Modal -->
+            <div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="reportModalLabel">Report Content</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form id="reportForm">
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="reportReason" class="form-label">Reason for Report <span class="text-danger">*</span></label>
+                                    <textarea class="form-control" id="reportReason" name="reason" rows="4" required aria-describedby="reportReasonHelp"></textarea>
+                                    <div id="reportReasonHelp" class="form-text">Please explain why you are reporting this content or user.</div>
+                                </div>
+                                <input type="hidden" name="content_type" id="reportContentType">
+                                <input type="hidden" name="content_id" id="reportContentId">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-danger">Submit Report</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -636,6 +747,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment'])) {
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Toast notification function (defined globally)
+        function showToast(message, type = 'success') {
+            const toastContainer = document.querySelector('.toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type} show`;
+            toast.innerHTML = `
+                <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                <span>${message}</span>
+            `;
+            toastContainer.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             // Like button handler with toast notification
             document.querySelectorAll('.like-btn').forEach(button => {
@@ -687,21 +814,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment'])) {
                 });
             });
 
-            // Toast notification function
-            function showToast(message, type = 'success') {
-                const toastContainer = document.querySelector('.toast-container');
-                const toast = document.createElement('div');
-                toast.className = `toast toast-${type} show`;
-                toast.innerHTML = `
-                    <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
-                    <span>${message}</span>
-                `;
-                toastContainer.appendChild(toast);
-                setTimeout(() => {
-                    toast.classList.remove('show');
-                    setTimeout(() => toast.remove(), 300);
-                }, 3000);
-            }
+            // Report button handler
+            document.querySelectorAll('.report-btn').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const contentType = this.dataset.contentType;
+                    const contentId = this.dataset.contentId;
+                    document.getElementById('reportContentType').value = contentType;
+                    document.getElementById('reportContentId').value = contentId;
+                    const modalTitle = contentType === 'user' ? 'Report User' : 'Report Content';
+                    document.getElementById('reportModalLabel').textContent = modalTitle;
+                });
+            });
+
+            // Report form submission
+            document.getElementById('reportForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const form = this;
+                const formData = new FormData(form);
+                const submitButton = form.querySelector('button[type="submit"]');
+                submitButton.classList.add('disabled');
+                
+                fetch('../forum/report_content.php', {
+                    method: 'POST',
+                    body: new URLSearchParams(formData)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    submitButton.classList.remove('disabled');
+                    if (data.success) {
+                        showToast('Report submitted successfully!', 'success');
+                        bootstrap.Modal.getInstance(document.getElementById('reportModal')).hide();
+                        form.reset();
+                    } else {
+                        showToast(data.message || 'Failed to submit report.', 'error');
+                    }
+                })
+                .catch(err => {
+                    submitButton.classList.remove('disabled');
+                    showToast('An error occurred.', 'error');
+                    console.error('Error:', err);
+                });
+            });
 
             // Smooth scrolling for anchor links
             document.querySelectorAll('a[href^="#"]').forEach(anchor => {
