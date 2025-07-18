@@ -4,7 +4,7 @@ function generateOTP($length = 6) {
     $otp = '';
     
     for ($i = 0; $i < $length; $i++) {
-        $otp .= $digits[rand(0, strlen($digits) - 1)];
+        $otp .= $digits[random_int(0, strlen($digits) - 1)];
     }
     
     return $otp;

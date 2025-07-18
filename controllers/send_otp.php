@@ -49,6 +49,11 @@ try {
         throw new Exception('Email already registered');
     }
 
+    // Rate limiting: Prevent rapid resend
+    if (isset($_SESSION['otp_data']['last_sent']) && (time() - $_SESSION['otp_data']['last_sent']) < 60) {
+        throw new Exception('Please wait before requesting another OTP.');
+    }
+
     // Generate OTP
     $otp = generateOTP(6);
     $otpHash = password_hash($otp, PASSWORD_DEFAULT);
@@ -60,45 +65,33 @@ try {
         'email' => $email,
         'entity' => $entity,
         'expiry' => $expiryTime,
-        'attempts' => 0
+        'attempts' => 0,
+        'last_sent' => time()
     ];
 
     // Send OTP via email
     $mail = new PHPMailer(true);
-    
-    try {
-        // SMTP Configuration
-        $mail->isSMTP();
-        $mail->Host = 'smtp.gmail.com';
-        $mail->SMTPAuth = true;
-        $mail->Username = 'careerquest93@gmail.com';
-        $mail->Password = 'bofq qhdz bdzp ixzo';
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port = 587;
+    $mail->isSMTP();
+    $mail->Host = 'smtp.gmail.com';
+    $mail->SMTPAuth = true;
+    $mail->Username = 'careerquest93@gmail.com'; 
+    $mail->Password = 'bofq qhdz bdzp ixzo';     
+    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+    $mail->Port = 587;
 
-        // Recipients
+    try {
         $mail->setFrom('no-reply@careerquest.com', 'Career Quest');
         $mail->addAddress($email);
-
-        // Content
         $mail->isHTML(true);
         $mail->Subject = 'Your Verification Code';
         $mail->Body = "
             <h2>Email Verification</h2>
             <p>Thank you for registering with Career Quest as an " . htmlspecialchars($entity, ENT_QUOTES, 'UTF-8') . ". Please use the following verification code to complete your registration:</p>
-            
-            <div style='font-size: 24px; font-weight: bold; letter-spacing: 2px; margin: 20px 0;'>
-                $otp
-            </div>
-            
+            <div style='font-size: 24px; font-weight: bold; letter-spacing: 2px; margin: 20px 0;'>$otp</div>
             <p>This code will expire in 5 minutes. If you didn't request this code, please ignore this email.</p>
-            
-            <p>Best regards,<br>
-            <strong>Career Quest Team</strong></p>
+            <p>Best regards,<br><strong>Career Quest Team</strong></p>
         ";
-
         $mail->AltBody = "Your verification code is: $otp\n\nThis code will expire in 5 minutes.";
-
         $mail->send();
         
         echo json_encode([
@@ -107,7 +100,7 @@ try {
             'timestamp' => time()
         ]);
     } catch (Exception $e) {
-        error_log("Email error: " . $e->getMessage());
+        error_log("Email error for $email at " . date('Y-m-d H:i:s') . ": " . $e->getMessage());
         throw new Exception('Failed to send OTP. Please try again.');
     }
 } catch (Exception $e) {
