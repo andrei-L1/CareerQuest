@@ -457,6 +457,16 @@
             });
         }
 
+        function formatSalary(job) {
+            if (job.salary_disclosure && job.min_salary && job.max_salary) {
+                return `₱${Number(job.min_salary).toLocaleString()} - ₱${Number(job.max_salary).toLocaleString()} per ${job.salary_type.toLowerCase()}`;
+            } else if (job.salary_disclosure && job.min_salary) {
+                return `₱${Number(job.min_salary).toLocaleString()} per ${job.salary_type.toLowerCase()}`;
+            } else {
+                return job.salary_type === 'Negotiable' ? 'Negotiable' : `Salary ${job.salary_type.toLowerCase()}`;
+            }
+        }
+
         // Function to render jobs as cards
         function renderJobs(jobs) {
             const container = $('#jobsContainer');
@@ -474,7 +484,7 @@
                 
                 const postedAgo = formatTimeDiff(new Date(job.posted_at));
                 const savedAgo = formatTimeDiff(new Date(job.saved_at));
-                const salaryDisplay = job.salary ? '$' + Number(job.salary).toLocaleString() : 'Not specified';
+                const salaryDisplay = formatSalary(job);
                 
                 const card = `
                     <div class="col-md-6 col-lg-4 mb-4" id="job-${job.job_id}">

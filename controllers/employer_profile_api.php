@@ -8,9 +8,19 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+if (!isset($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 require '../config/dbcon.php';
 
 header('Content-Type: application/json');
+
+// Validate CSRF token
+if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+    echo json_encode(['error' => 'Invalid CSRF token.']);
+    exit();
+}
 
 // Check if employer is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -104,7 +114,8 @@ function getRecentApplications($conn, $employer_id, $limit = 5) {
 
 function getActiveJobs($conn, $employer_id, $limit = 5) {
     $stmt = $conn->prepare("
-        SELECT jp.job_id, jp.title, jp.location, jp.salary, jp.posted_at, jp.moderation_status, jp.flagged
+        SELECT jp.job_id, jp.title, jp.location, jp.min_salary, jp.max_salary, jp.salary_type, jp.salary_disclosure, 
+               jp.posted_at, jp.moderation_status, jp.flagged, jp.expires_at
         FROM job_posting jp
         WHERE jp.employer_id = :employer_id AND jp.deleted_at IS NULL
         ORDER BY jp.posted_at DESC
@@ -116,6 +127,16 @@ function getActiveJobs($conn, $employer_id, $limit = 5) {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+function formatSalary($min_salary, $max_salary, $salary_type, $salary_disclosure) {
+    if ($salary_disclosure && $min_salary && $max_salary) {
+        return '₱' . number_format($min_salary) . ' - ₱' . number_format($max_salary) . ' per ' . strtolower($salary_type);
+    } elseif ($salary_disclosure && $min_salary) {
+        return '₱' . number_format($min_salary) . ' per ' . strtolower($salary_type);
+    } else {
+        return $salary_type === 'Negotiable' ? 'Negotiable' : 'Salary ' . strtolower($salary_type ?: 'Not Specified');
+    }
+}
+
 try {
     $employer = getEmployerData($conn, $user_id);
     $employer_id = $employer['employer_id'];
@@ -123,11 +144,23 @@ try {
     $applications = getRecentApplications($conn, $employer_id, 5);
     $jobs = getActiveJobs($conn, $employer_id, 5);
 
+    // Format salaries for jobs
+    foreach ($jobs as &$job) {
+        $job['salary_formatted'] = formatSalary(
+            $job['min_salary'] ?? null,
+            $job['max_salary'] ?? null,
+            $job['salary_type'] ?? null,
+            $job['salary_disclosure'] ?? false
+        );
+    }
+    unset($job); // Unset reference to avoid issues
+
     $response = [
         'employer' => $employer,
         'stats' => $stats,
         'applications' => $applications,
-        'jobs' => $jobs
+        'jobs' => $jobs,
+        'csrf_token' => $_SESSION['csrf_token']
     ];
     
     $jsonResponse = json_encode($response);

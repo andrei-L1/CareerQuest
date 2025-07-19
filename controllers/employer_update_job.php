@@ -21,10 +21,13 @@ $job_id = (int)$_POST['job_id'] ?? 0;
 $title = filter_var(trim($_POST['title'] ?? ''), FILTER_SANITIZE_STRING);
 $job_type_id = (int)$_POST['job_type_id'] ?? 0;
 $location = filter_var(trim($_POST['location'] ?? ''), FILTER_SANITIZE_STRING);
-$salary = !empty($_POST['salary']) ? (float)$_POST['salary'] : null;
+$min_salary = !empty($_POST['min_salary']) ? (float)$_POST['min_salary'] : null;
+$max_salary = !empty($_POST['max_salary']) ? (float)$_POST['max_salary'] : null;
+$salary_type = filter_var(trim($_POST['salary_type'] ?? 'Yearly'), FILTER_SANITIZE_STRING);
+$salary_disclosure = isset($_POST['salary_disclosure']) ? 1 : 0;
 $expires_at = !empty($_POST['expires_at']) ? $_POST['expires_at'] : null;
 $description = filter_var(trim($_POST['description'] ?? ''), FILTER_SANITIZE_STRING);
-$skills_json = $_POST['skills'] ?? '[]';
+$skills_json = $_POST['skills_data'] ?? '[]';
 
 // Log skills input for debugging
 error_log("Skills JSON received: " . $skills_json);
@@ -51,8 +54,19 @@ if (empty($location) || strlen($location) > 255) {
 if (empty($description)) {
     $errors[] = 'Job description is required.';
 }
-if ($salary !== null && ($salary < 0 || $salary > 9999999.99)) {
-    $errors[] = 'Salary must be between 0 and 9,999,999.99.';
+if ($salary_disclosure) {
+    if ($min_salary !== null && ($min_salary < 0 || $min_salary > 9999999.99)) {
+        $errors[] = 'Minimum salary must be between 0 and 9,999,999.99.';
+    }
+    if ($max_salary !== null && ($max_salary < 0 || $max_salary > 9999999.99)) {
+        $errors[] = 'Maximum salary must be between 0 and 9,999,999.99.';
+    }
+    if ($min_salary !== null && $max_salary !== null && $max_salary < $min_salary) {
+        $errors[] = 'Maximum salary must be greater than or equal to minimum salary.';
+    }
+    if (empty($salary_type) || !in_array($salary_type, ['Hourly', 'Weekly', 'Monthly', 'Yearly', 'Commission', 'Negotiable'])) {
+        $errors[] = 'Invalid salary type.';
+    }
 }
 if ($expires_at && strtotime($expires_at) <= time()) {
     $errors[] = 'Expiration date must be in the future.';
@@ -65,13 +79,12 @@ if (!is_array($skills)) {
 } elseif (!empty($skills)) {
     $valid_skill_ids = array_column(getAvailableSkills(), 'skill_id');
     foreach ($skills as $index => $skill) {
-        // Handle both 'id' and 'value' for backward compatibility
-        $skill_id = isset($skill['id']) ? $skill['id'] : (isset($skill['value']) ? $skill['value'] : null);
-        if (!$skill_id || !is_numeric($skill_id) || (int)$skill_id <= 0) {
-            error_log("Invalid skill at index $index: missing or invalid ID/value - " . json_encode($skill));
+        $skill_id = isset($skill['id']) ? (int)$skill['id'] : null;
+        if (!$skill_id || !is_numeric($skill_id) || $skill_id <= 0) {
+            error_log("Invalid skill at index $index: missing or invalid ID - " . json_encode($skill));
             continue; // Skip invalid skill
         }
-        if (!in_array((int)$skill_id, $valid_skill_ids)) {
+        if (!in_array($skill_id, $valid_skill_ids)) {
             error_log("Invalid skill ID {$skill_id} at index $index");
             $errors[] = "Skill ID {$skill_id} at index $index is not a valid skill.";
             continue;
@@ -81,7 +94,7 @@ if (!is_array($skills)) {
             $errors[] = "Invalid importance value '{$skill['importance']}' for skill ID {$skill_id} at index $index.";
             continue;
         }
-        $valid_skills[] = ['id' => (int)$skill_id, 'importance' => $skill['importance']]; // Normalize to 'id'
+        $valid_skills[] = ['id' => $skill_id, 'importance' => $skill['importance']];
     }
 }
 
@@ -107,10 +120,24 @@ try {
     // Update job details
     $stmt = $conn->prepare("
         UPDATE job_posting 
-        SET title = ?, job_type_id = ?, location = ?, salary = ?, description = ?, expires_at = ?, moderation_status = 'Pending'
+        SET title = ?, job_type_id = ?, location = ?, min_salary = ?, max_salary = ?, 
+            salary_type = ?, salary_disclosure = ?, description = ?, expires_at = ?, 
+            moderation_status = 'Pending'
         WHERE job_id = ? AND employer_id = ?
     ");
-    $stmt->execute([$title, $job_type_id, $location, $salary, $description, $expires_at, $job_id, $_SESSION['employer_id']]);
+    $stmt->execute([
+        $title,
+        $job_type_id,
+        $location,
+        $salary_disclosure ? $min_salary : null,
+        $salary_disclosure ? $max_salary : null,
+        $salary_type,
+        $salary_disclosure,
+        $description,
+        $expires_at,
+        $job_id,
+        $_SESSION['employer_id']
+    ]);
 
     // Update skills
     $stmt = $conn->prepare("UPDATE job_skill SET deleted_at = NOW() WHERE job_id = ?");

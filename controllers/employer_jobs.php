@@ -23,7 +23,7 @@ try {
     die("Database connection failed: " . $e->getMessage());
 }
 
-// Helper functions
+// Helper functions (unchanged)
 function getTimeAgo($date) {
     $time = strtotime($date);
     $time_difference = time() - $time;
@@ -80,7 +80,6 @@ function getStatusText($status, $expires_at) {
     return $status;
 }
 
-
 // Get employer ID
 $user_id = $_SESSION['user_id'];
 
@@ -127,8 +126,9 @@ $search_filter = isset($_GET['search']) ? trim($_GET['search']) : '';
 
 try {
     // Build base query
-    $query = "SELECT j.job_id, j.title, j.description, j.location, j.salary, j.posted_at, j.expires_at, 
-                     j.moderation_status, j.img_url, j.flagged,
+    $query = "SELECT j.job_id, j.title, j.description, j.location, 
+                     j.min_salary, j.max_salary, j.salary_type, j.salary_disclosure, 
+                     j.posted_at, j.expires_at, j.moderation_status, j.img_url, j.flagged,
                      t.job_type_title,
                      COUNT(DISTINCT a.application_id) AS applicant_count,
                      COUNT(DISTINCT CASE WHEN a.applied_at > DATE_SUB(NOW(), INTERVAL 7 DAY) THEN a.application_id END) AS new_applicants,
@@ -175,8 +175,9 @@ try {
     }
 
     // Complete the query with grouping
-    $query .= " GROUP BY j.job_id, j.title, j.description, j.location, j.salary, j.posted_at, 
-                        j.expires_at, j.moderation_status, j.img_url, j.flagged, t.job_type_title" ;
+    $query .= " GROUP BY j.job_id, j.title, j.description, j.location, 
+                        j.min_salary, j.max_salary, j.salary_type, j.salary_disclosure, 
+                        j.posted_at, j.expires_at, j.moderation_status, j.img_url, j.flagged, t.job_type_title";
 
     // Get total count for pagination
     $count_query = "SELECT COUNT(*) AS total FROM ($query) AS count_query";
@@ -241,11 +242,13 @@ try {
     $_SESSION['error'] = "An error occurred while fetching job data. Please try again later.";
 }
 
-
 function getJobDetails($job_id) {
     global $conn;
     $stmt = $conn->prepare("
-        SELECT j.*, jt.job_type_title 
+        SELECT j.job_id, j.title, j.description, j.location, 
+               j.min_salary, j.max_salary, j.salary_type, j.salary_disclosure, 
+               j.posted_at, j.expires_at, j.moderation_status, j.img_url, j.flagged,
+               jt.job_type_title 
         FROM job_posting j 
         LEFT JOIN job_type jt ON j.job_type_id = jt.job_type_id 
         WHERE j.job_id = ? AND j.employer_id = ? AND j.deleted_at IS NULL
@@ -307,7 +310,10 @@ function getJobs($employer_id, $page = 1, $per_page = 10, $status = '', $date = 
 
     $where = !empty($conditions) ? 'WHERE ' . implode(' AND ', $conditions) : '';
     $query = "
-        SELECT j.*, jt.job_type_title, 
+        SELECT j.job_id, j.title, j.description, j.location, 
+               j.min_salary, j.max_salary, j.salary_type, j.salary_disclosure, 
+               j.posted_at, j.expires_at, j.moderation_status, j.img_url, j.flagged,
+               jt.job_type_title, 
                (SELECT COUNT(*) FROM application_tracking a WHERE a.job_id = j.job_id AND a.deleted_at IS NULL) as applicant_count,
                (SELECT COUNT(*) FROM saved_jobs s WHERE s.job_id = j.job_id AND s.deleted_at IS NULL) as saved_count
         FROM job_posting j

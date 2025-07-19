@@ -10,14 +10,13 @@ if (!isset($_SESSION['stud_id'])) {
     exit();
 }
 
-
 class StudentJobController {
     private $db;
     private $studentId;
 
     public function __construct($dbConnection) {
         $this->db = $dbConnection;
-        $this->studentId = $_SESSION['stud_id']; // Get student ID from session
+        $this->studentId = $_SESSION['stud_id'];
     }
 
     public function handleRequest() {
@@ -51,7 +50,6 @@ class StudentJobController {
                     }
                     echo json_encode($this->unsaveJob($data['job_id']));
                     break;
-
                 default:
                     throw new Exception("Invalid action");
             }
@@ -64,7 +62,9 @@ class StudentJobController {
     private function getAllJobs() {
         $stmt = $this->db->prepare("
             SELECT jp.job_id, jp.title, e.company_name AS company, 
-                   jt.job_type_title, jp.description, jp.location, jp.salary, jp.posted_at, jp.expires_at,
+                   jt.job_type_title, jp.description, jp.location, 
+                   jp.min_salary, jp.max_salary, jp.salary_type, jp.salary_disclosure, 
+                   jp.posted_at, jp.expires_at,
                    (SELECT COUNT(*) 
                     FROM application_tracking at 
                     WHERE at.job_id = jp.job_id AND at.stud_id = :stud_id) AS has_applied,
@@ -79,8 +79,8 @@ class StudentJobController {
             LEFT JOIN skill_masterlist sm ON js.skill_id = sm.skill_id
             WHERE jp.deleted_at IS NULL 
               AND jp.moderation_status = 'Approved'
-              AND e.status = 'Active'  -- Only include job postings from active employers
-              AND (jp.expires_at >= CURDATE() OR jp.expires_at IS NULL)  -- Include jobs with no expiration date
+              AND e.status = 'Active'
+              AND (jp.expires_at >= CURDATE() OR jp.expires_at IS NULL)
             GROUP BY jp.job_id
             ORDER BY jp.posted_at DESC
         ");
@@ -88,11 +88,12 @@ class StudentJobController {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }    
-        
+    
     private function getRecommendedJobs($category = "") {
-        // Start with the basic query
         $query = "SELECT jp.job_id, jp.title, e.company_name as company, 
-                     jt.job_type_title, jp.description, jp.location, jp.salary, jp.posted_at, jp.expires_at,
+                     jt.job_type_title, jp.description, jp.location, 
+                     jp.min_salary, jp.max_salary, jp.salary_type, jp.salary_disclosure, 
+                     jp.posted_at, jp.expires_at,
                      ROUND(AVG(CASE 
                          WHEN ss.proficiency = 'Advanced' AND js.importance = 'High' THEN 100
                          WHEN ss.proficiency = 'Advanced' AND js.importance = 'Medium' THEN 80
@@ -123,7 +124,6 @@ class StudentJobController {
                     ORDER BY match_score DESC, jp.posted_at DESC
                     LIMIT 20";
     
-        // Prepare and execute the statement
         $stmt = $this->db->prepare($query);
         $stmt->bindParam(':stud_id', $this->studentId);
     
@@ -211,34 +211,6 @@ class StudentJobController {
         }
     }
     
-
-/*
-    private function calculateMatchScore($proficiency, $importance) {
-        // Define the proficiency mapping
-        $proficiencyMapping = [
-            'Advanced' => 3,
-            'Intermediate' => 2,
-            'Beginner' => 1
-        ];
-        
-        // Define the importance mapping
-        $importanceMapping = [
-            'High' => 3,
-            'Medium' => 2,
-            'Low' => 1
-        ];
-        
-        // Get numeric values for proficiency and importance
-        $proficiencyValue = isset($proficiencyMapping[$proficiency]) ? $proficiencyMapping[$proficiency] : 0;
-        $importanceValue = isset($importanceMapping[$importance]) ? $importanceMapping[$importance] : 0;
-        
-        // Calculate the match score
-        $matchScore = ($proficiencyValue / 3) * ($importanceValue / 3) * 100;
-        
-        return $matchScore;
-    }
-    */
-    
     private function getJobDetails($jobId) {
         $query = "SELECT jp.*, e.company_name, jt.job_type_title
                  FROM job_posting jp
@@ -303,10 +275,8 @@ class StudentJobController {
     
         if ($result) {
             if (is_null($result['deleted_at'])) {
-                // Already saved and active
                 return ['success' => false, 'message' => 'Job already saved'];
             } else {
-                // Restore soft-deleted entry
                 $restoreQuery = "UPDATE saved_jobs 
                                  SET deleted_at = NULL, saved_at = NOW() 
                                  WHERE saved_id = :saved_id";
@@ -359,13 +329,11 @@ class StudentJobController {
     
         return [
             'success' => $success,
-            'message' => $success ? 'Job unsaved successfully' : 'Failed to unsave job'
+            'message' => $success ? 'Job unsaved successfully' : 'Failed to unearth job'
         ];
     }
-    
 }
 
-// Create controller instance and handle request
 $controller = new StudentJobController($conn);
 $controller->handleRequest();
 ?>

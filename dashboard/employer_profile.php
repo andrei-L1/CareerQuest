@@ -1,6 +1,19 @@
 <?php
 require_once '../auth/auth_check_employer.php';
+require_once '../config/dbcon.php';
 include '../includes/employer_navbar.php';
+
+$csrf_token = bin2hex(random_bytes(32)); // Placeholder; implement your actual CSRF token logic
+
+function formatSalary($min_salary, $max_salary, $salary_type, $salary_disclosure) {
+    if ($salary_disclosure && $min_salary && $max_salary) {
+        return '₱' . number_format($min_salary) . ' - ₱' . number_format($max_salary) . ' per ' . strtolower($salary_type);
+    } elseif ($salary_disclosure && $min_salary) {
+        return '₱' . number_format($min_salary) . ' per ' . strtolower($salary_type);
+    } else {
+        return $salary_type === 'Negotiable' ? 'Negotiable' : 'Salary ' . strtolower($salary_type ?: 'Not Specified');
+    }
+}
 
 // Fetch additional employer data for the profile
 try {
@@ -80,8 +93,8 @@ try {
     
     // Fetch active job postings
     $jobs_stmt = $conn->prepare("
-        SELECT jp.job_id, jp.title, jp.location, jp.salary, jp.posted_at, 
-               jp.moderation_status, jp.flagged, jp.expires_at
+        SELECT jp.job_id, jp.title, jp.location, jp.min_salary, jp.max_salary, jp.salary_type, jp.salary_disclosure, 
+               jp.posted_at, jp.moderation_status, jp.flagged, jp.expires_at
         FROM job_posting jp
         WHERE jp.employer_id = :employer_id AND jp.deleted_at IS NULL
         ORDER BY jp.posted_at DESC
@@ -102,8 +115,8 @@ try {
 }
 
 // Set profile picture - prioritize user's profile picture over company logo
-$profile_picture = !empty($employer['picture_file']) ? '../uploads/' . $employer['picture_file'] : 
-                  (!empty($employer['company_logo']) ? '../uploads/' . $employer['company_logo'] : '../uploads/default.png');
+$profile_picture = !empty($employer['picture_file']) ? '../Uploads/' . $employer['picture_file'] : 
+                  (!empty($employer['company_logo']) ? '../Uploads/' . $employer['company_logo'] : '../Uploads/default.png');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -796,16 +809,13 @@ $profile_picture = !empty($employer['picture_file']) ? '../uploads/' . $employer
                                 <div class="text-muted small">Applied on <?php echo date('M j, Y', strtotime($app['applied_date'])); ?></div>
                                 
                                 <div class="action-buttons mt-2">
-                                         <!--
-                                    <a href="employer_applications.php?application_id=<?php echo $app['application_id']; ?>" class="btn btn-sm btn-outline-primary">
+                                    <a href="employer_applications.php?application_id=<?= htmlspecialchars($app['application_id']) ?>&csrf_token=<?= htmlspecialchars($csrf_token) ?>" class="btn btn-sm btn-outline-primary">
                                         <i class="fas fa-eye me-1"></i> View
-                                    </a>    -->
-                                    <?php if ($app['status'] === 'Pending' || $app['status'] === 'Under Review'): ?>
-                                    <!--
-                                    <a href="employer_applications.php?application_id=<?php echo $app['application_id']; ?>" class="btn btn-sm btn-outline-success">
-                                        <i class="fas fa-calendar-alt me-1"></i> Schedule Interview
                                     </a>
-                                     -->
+                                    <?php if ($app['status'] === 'Pending' || $app['status'] === 'Under Review'): ?>
+                                        <a href="employer_schedule_interview.php?application_id=<?= htmlspecialchars($app['application_id']) ?>&csrf_token=<?= htmlspecialchars($csrf_token) ?>" class="btn btn-sm btn-outline-success">
+                                            <i class="fas fa-calendar-alt me-1"></i> Schedule Interview
+                                        </a>
                                     <?php endif; ?>
                                 </div>
                             </div>
@@ -854,10 +864,15 @@ $profile_picture = !empty($employer['picture_file']) ? '../uploads/' . $employer
                                     </p>
                                     <?php endif; ?>
                                     
-                                    <?php if (!empty($job['salary'])): ?>
+                                    <?php if (!empty($job['min_salary']) || !empty($job['max_salary']) || !empty($job['salary_type'])): ?>
                                     <p class="card-text mb-1">
                                         <i class="fas fa-money-bill-wave text-muted me-1"></i>
-                                        $<?php echo number_format($job['salary'], 2); ?>
+                                        <?= htmlspecialchars(formatSalary(
+                                            $job['min_salary'] ?? null,
+                                            $job['max_salary'] ?? null,
+                                            $job['salary_type'] ?? null,
+                                            $job['salary_disclosure'] ?? false
+                                        )) ?>
                                     </p>
                                     <?php endif; ?>
                                     
@@ -869,21 +884,16 @@ $profile_picture = !empty($employer['picture_file']) ? '../uploads/' . $employer
                                     </p>
                                     
                                     <div class="action-buttons mt-3">
-                                        <!--
-                                        <a href="employer_jobs.php?job_id=<?php echo $job['job_id']; ?>" class="btn btn-sm btn-outline-primary">
+                                        <a href="employer_jobs.php?job_id=<?= htmlspecialchars($job['job_id']) ?>&csrf_token=<?= htmlspecialchars($csrf_token) ?>" class="btn btn-sm btn-outline-primary">
                                             <i class="fas fa-eye me-1"></i> View
                                         </a>
-                                        
-                                        <a href="employer_post_job.php?edit=<?php echo $job['job_id']; ?>" class="btn btn-sm btn-outline-secondary">
+                                        <a href="employer_post_job.php?edit=<?= htmlspecialchars($job['job_id']) ?>&csrf_token=<?= htmlspecialchars($csrf_token) ?>" class="btn btn-sm btn-outline-secondary">
                                             <i class="fas fa-edit me-1"></i> Edit
                                         </a>
-                                        -->
                                         <?php if ($job['moderation_status'] === 'Approved'): ?>
-                                             <!--
-                                        <a href="employer_applications.php?job_id=<?php echo $job['job_id']; ?>" class="btn btn-sm btn-outline-success">
-                                            <i class="fas fa-users me-1"></i> View Applicants
-                                        </a>
-                                         -->
+                                            <a href="employer_applications.php?job_id=<?= htmlspecialchars($job['job_id']) ?>&csrf_token=<?= htmlspecialchars($csrf_token) ?>" class="btn btn-sm btn-outline-success">
+                                                <i class="fas fa-users me-1"></i> View Applicants
+                                            </a>
                                         <?php endif; ?>
                                     </div>
                                 </div>
@@ -905,7 +915,7 @@ $profile_picture = !empty($employer['picture_file']) ? '../uploads/' . $employer
         </div>
     </div>
 
-    <?php include '../includes/stud_footer.php'; ?>
+    <?php include '../includes/employer_footer.php'; ?>
     
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -916,6 +926,7 @@ $profile_picture = !empty($employer['picture_file']) ? '../uploads/' . $employer
         document.addEventListener('DOMContentLoaded', function() {
             const profilePictureInput = document.getElementById('profilePictureInput');
             const profilePicture = document.querySelector('.profile-picture');
+            const csrfToken = '<?= htmlspecialchars($csrf_token) ?>';
             
             if (profilePictureInput) {
                 profilePictureInput.addEventListener('change', function(e) {
@@ -930,8 +941,8 @@ $profile_picture = !empty($employer['picture_file']) ? '../uploads/' . $employer
                         }
                         
                         // Validate file size (2MB limit)
-                        if (file.size > 2 * 1024 * 1024) {
-                            alert('File size must be less than 2MB');
+                        if (file.size > 10 * 1024 * 1024) {
+                            alert('File size must be less than 10MB');
                             return;
                         }
                         
@@ -939,6 +950,7 @@ $profile_picture = !empty($employer['picture_file']) ? '../uploads/' . $employer
                         const formData = new FormData();
                         formData.append('profile_picture', file);
                         formData.append('action', 'update_employer_profile');
+                        formData.append('csrf_token', csrfToken);
                         
                         // Show loading state
                         profilePicture.style.opacity = '0.7';

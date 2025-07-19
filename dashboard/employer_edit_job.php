@@ -184,6 +184,14 @@ $skill_map = array_column($skills, 'skill_id', 'skill_name');
             border: 1px solid var(--border-color);
         }
         
+        .form-check-input:disabled {
+            opacity: 0.6;
+        }
+        
+        .form-control:disabled, .form-select:disabled {
+            background-color: #e9ecef;
+        }
+        
         @media (max-width: 768px) {
             .dashboard-container {
                 padding: 1rem;
@@ -242,7 +250,7 @@ $skill_map = array_column($skills, 'skill_id', 'skill_name');
                         <option value="">Select job type</option>
                         <?php foreach ($job_types as $type): ?>
                             <option value="<?= $type['job_type_id'] ?>" 
-                                    <?= $type['job_type_id'] == $job['job_type_id'] ? 'selected' : '' ?>>
+                                    <?= $type['job_type_id'] == ($job['job_type_id'] ?? null) ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($type['job_type_title']) ?>
                             </option>
                         <?php endforeach; ?>
@@ -258,11 +266,43 @@ $skill_map = array_column($skills, 'skill_id', 'skill_name');
                 </div>
 
                 <div class="mb-3">
-                    <label for="salary" class="form-label">Salary (Optional)</label>
-                    <input type="number" class="form-control" id="salary" name="salary" 
-                           value="<?= $job['salary'] ? number_format($job['salary'], 2, '.', '') : '' ?>" 
-                           min="0" step="0.01" max="9999999.99">
-                    <div class="invalid-feedback">Please enter a valid salary (0 to 9,999,999.99).</div>
+                    <label class="form-label">Salary (Optional)</label>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="salaryDisclosure" name="salary_disclosure"
+                               <?= $job['salary_disclosure'] ? 'checked' : '' ?>>
+                        <label class="form-check-label" for="salaryDisclosure">Disclose salary publicly</label>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="minSalary" class="form-label">Minimum Salary</label>
+                            <input type="number" class="form-control" id="minSalary" name="min_salary" 
+                                   value="<?= $job['min_salary'] ? number_format($job['min_salary'], 2, '.', '') : '' ?>" 
+                                   min="0" step="0.01" max="9999999.99" 
+                                   <?= $job['salary_disclosure'] ? '' : 'disabled' ?>>
+                            <div class="invalid-feedback">Please enter a valid minimum salary (0 to 9,999,999.99).</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="maxSalary" class="form-label">Maximum Salary</label>
+                            <input type="number" class="form-control" id="maxSalary" name="max_salary" 
+                                   value="<?= $job['max_salary'] ? number_format($job['max_salary'], 2, '.', '') : '' ?>" 
+                                   min="0" step="0.01" max="9999999.99" 
+                                   <?= $job['salary_disclosure'] ? '' : 'disabled' ?>>
+                            <div class="invalid-feedback">Maximum salary must be greater than or equal to minimum salary.</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="salaryType" class="form-label">Salary Type</label>
+                            <select class="form-select" id="salaryType" name="salary_type" 
+                                    <?= $job['salary_disclosure'] ? '' : 'disabled' ?>>
+                                <option value="Hourly" <?= $job['salary_type'] === 'Hourly' ? 'selected' : '' ?>>Hourly</option>
+                                <option value="Weekly" <?= $job['salary_type'] === 'Weekly' ? 'selected' : '' ?>>Weekly</option>
+                                <option value="Monthly" <?= $job['salary_type'] === 'Monthly' ? 'selected' : '' ?>>Monthly</option>
+                                <option value="Yearly" <?= $job['salary_type'] === 'Yearly' ? 'selected' : '' ?>>Yearly</option>
+                                <option value="Commission" <?= $job['salary_type'] === 'Commission' ? 'selected' : '' ?>>Commission</option>
+                                <option value="Negotiable" <?= $job['salary_type'] === 'Negotiable' ? 'selected' : '' ?>>Negotiable</option>
+                            </select>
+                            <div class="invalid-feedback">Please select a salary type.</div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="mb-3">
@@ -306,12 +346,16 @@ $skill_map = array_column($skills, 'skill_id', 'skill_name');
             const expiresAtInput = document.getElementById('expiresAt');
             const skillsInput = document.getElementById('skills');
             const skillsDataInput = document.getElementById('skillsData');
+            const salaryDisclosureInput = document.getElementById('salaryDisclosure');
+            const minSalaryInput = document.getElementById('minSalary');
+            const maxSalaryInput = document.getElementById('maxSalary');
+            const salaryTypeInput = document.getElementById('salaryType');
             const skillMap = <?= json_encode($skill_map) ?>; // Map skill_name to skill_id
 
             // Initialize Tagify
             const tagify = new Tagify(skillsInput, {
                 whitelist: <?= json_encode($tagify_skills) ?>,
-                enforceWhitelist: true, // Only allow skills from whitelist
+                enforceWhitelist: true,
                 maxTags: 10,
                 dropdown: {
                     maxItems: 20,
@@ -346,9 +390,9 @@ $skill_map = array_column($skills, 'skill_id', 'skill_name');
                 transformTag: function(tagData) {
                     if (!tagData.value || parseInt(tagData.value) <= 0) {
                         console.warn('Invalid tag value (id):', tagData);
-                        return null; // Prevent adding invalid tags
+                        return null;
                     }
-                    tagData.importance = tagData.importance || 'Medium'; // Default importance
+                    tagData.importance = tagData.importance || 'Medium';
                     console.log('Transformed tag:', tagData);
                 },
                 placeholder: "Type to search skills..."
@@ -377,7 +421,6 @@ $skill_map = array_column($skills, 'skill_id', 'skill_name');
                     tagify.removeTags(tag);
                     return;
                 }
-                // Ensure importance is set
                 tag.importance = tag.importance || 'Medium';
                 console.log('Added tag:', tag);
                 updateSkillsData();
@@ -397,7 +440,7 @@ $skill_map = array_column($skills, 'skill_id', 'skill_name');
                 const tag = tagify.value.find(t => t.value === tagValue);
                 if (tag) {
                     tag.importance = newImportance;
-                    tagify.update(); // Update Tagify to reflect changes
+                    tagify.update();
                     updateSkillsData();
                     console.log('Importance updated for tag:', tag);
                 } else {
@@ -408,16 +451,75 @@ $skill_map = array_column($skills, 'skill_id', 'skill_name');
             // Initial update of skills data
             updateSkillsData();
 
-            // Client-side salary validation
-            $('#salary').on('input', function() {
-                const value = parseFloat(this.value);
-                if (isNaN(value) || value < 0 || value > 9999999.99) {
-                    this.classList.add('is-invalid');
-                } else {
-                    this.classList.remove('is-invalid');
-                    this.classList.add('is-valid');
+            // Toggle salary inputs based on disclosure
+            function toggleSalaryInputs() {
+                const isDisclosed = salaryDisclosureInput.checked;
+                minSalaryInput.disabled = !isDisclosed;
+                maxSalaryInput.disabled = !isDisclosed;
+                salaryTypeInput.disabled = !isDisclosed;
+                if (!isDisclosed) {
+                    minSalaryInput.value = '';
+                    maxSalaryInput.value = '';
+                    minSalaryInput.classList.remove('is-invalid', 'is-valid');
+                    maxSalaryInput.classList.remove('is-invalid', 'is-valid');
+                    salaryTypeInput.classList.remove('is-invalid', 'is-valid');
                 }
-            });
+            }
+
+            salaryDisclosureInput.addEventListener('change', toggleSalaryInputs);
+            toggleSalaryInputs(); // Initial state
+
+            // Client-side salary validation
+            function validateSalaries() {
+                const minSalary = parseFloat(minSalaryInput.value);
+                const maxSalary = parseFloat(maxSalaryInput.value);
+                const isDisclosed = salaryDisclosureInput.checked;
+
+                if (!isDisclosed) {
+                    minSalaryInput.classList.remove('is-invalid', 'is-valid');
+                    maxSalaryInput.classList.remove('is-invalid', 'is-valid');
+                    return true;
+                }
+
+                let isValid = true;
+
+                if (minSalaryInput.value && (isNaN(minSalary) || minSalary < 0 || minSalary > 9999999.99)) {
+                    minSalaryInput.classList.add('is-invalid');
+                    minSalaryInput.classList.remove('is-valid');
+                    isValid = false;
+                } else if (minSalaryInput.value) {
+                    minSalaryInput.classList.remove('is-invalid');
+                    minSalaryInput.classList.add('is-valid');
+                }
+
+                if (maxSalaryInput.value && (isNaN(maxSalary) || maxSalary < 0 || maxSalary > 9999999.99)) {
+                    maxSalaryInput.classList.add('is-invalid');
+                    maxSalaryInput.classList.remove('is-valid');
+                    isValid = false;
+                } else if (maxSalaryInput.value && minSalaryInput.value && maxSalary < minSalary) {
+                    maxSalaryInput.classList.add('is-invalid');
+                    maxSalaryInput.classList.remove('is-valid');
+                    isValid = false;
+                } else if (maxSalaryInput.value) {
+                    maxSalaryInput.classList.remove('is-invalid');
+                    maxSalaryInput.classList.add('is-valid');
+                }
+
+                if (!salaryTypeInput.value) {
+                    salaryTypeInput.classList.add('is-invalid');
+                    salaryTypeInput.classList.remove('is-valid');
+                    isValid = false;
+                } else {
+                    salaryTypeInput.classList.remove('is-invalid');
+                    salaryTypeInput.classList.add('is-valid');
+                }
+
+                return isValid;
+            }
+
+            minSalaryInput.addEventListener('input', validateSalaries);
+            maxSalaryInput.addEventListener('input', validateSalaries);
+            salaryTypeInput.addEventListener('change', validateSalaries);
 
             // AJAX form submission
             $('#editJobForm').on('submit', function(e) {
@@ -487,6 +589,17 @@ $skill_map = array_column($skills, 'skill_id', 'skill_name');
                     return;
                 }
 
+                // Validate salaries
+                if (!validateSalaries()) {
+                    $('.form-card').prepend(
+                        `<div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            Please correct the salary fields.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>`
+                    );
+                    return;
+                }
+
                 // Remove any existing alerts
                 $('.alert').remove();
 
@@ -519,7 +632,7 @@ $skill_map = array_column($skills, 'skill_id', 'skill_name');
             });
 
             // Clear invalid feedback on input for valid form elements
-            form.querySelectorAll('input:not([id="skills"]), select, textarea').forEach(input => {
+            form.querySelectorAll('input:not([id="skills"]):not([id="minSalary"]):not([id="maxSalary"]), select:not([id="salaryType"]), textarea').forEach(input => {
                 input.addEventListener('input', function() {
                     if (this.checkValidity && this.checkValidity()) {
                         this.classList.remove('is-invalid');

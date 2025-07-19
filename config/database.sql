@@ -120,16 +120,43 @@ CREATE TABLE IF NOT EXISTS job_posting (
     description TEXT,
     location VARCHAR(255),
     job_type_id INT,
-    salary DECIMAL(10, 2),
     img_url VARCHAR(255),
     posted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMP NULL DEFAULT NULL,
     deleted_at TIMESTAMP NULL,
     moderation_status ENUM('Pending', 'Approved', 'Rejected', 'Paused') DEFAULT 'Pending',
     flagged BOOLEAN DEFAULT FALSE,
+    min_salary DECIMAL(10,2) NULL COMMENT 'Minimum salary for the job, NULL if undisclosed',
+    max_salary DECIMAL(10,2) NULL COMMENT 'Maximum salary for the job, NULL if undisclosed',
+    salary_type ENUM('Hourly', 'Weekly', 'Monthly', 'Yearly', 'Commission', 'Negotiable') NOT NULL DEFAULT 'Yearly' COMMENT 'Type or period of compensation',
+    salary_disclosure BOOLEAN NOT NULL DEFAULT TRUE COMMENT 'Whether salary is publicly disclosed',
     FOREIGN KEY (employer_id) REFERENCES employer(employer_id),
-    FOREIGN KEY (job_type_id) REFERENCES job_type(job_type_id)
+    FOREIGN KEY (job_type_id) REFERENCES job_type(job_type_id),
+    CONSTRAINT check_salary_range CHECK (max_salary >= min_salary OR max_salary IS NULL OR min_salary IS NULL)
 );
+
+-- Add triggers
+DELIMITER //
+CREATE TRIGGER job_posting_salary_validation
+BEFORE INSERT ON job_posting
+FOR EACH ROW
+BEGIN
+    IF NEW.salary_disclosure = FALSE THEN
+        SET NEW.min_salary = NULL, NEW.max_salary = NULL;
+    END IF;
+END //
+DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER job_posting_salary_validation_update
+BEFORE UPDATE ON job_posting
+FOR EACH ROW
+BEGIN
+    IF NEW.salary_disclosure = FALSE THEN
+        SET NEW.min_salary = NULL, NEW.max_salary = NULL;
+    END IF;
+END //
+DELIMITER ;
 
 
 -- Table: job_skill

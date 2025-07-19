@@ -49,13 +49,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $description = $_POST['description'] ?? '';
         $location = $_POST['location'] ?? '';
         $job_type_id = $_POST['job_type_id'] ?? null;
-        $salary = isset($_POST['salary']) && $_POST['salary'] !== '' ? $_POST['salary'] : null;
+        $min_salary = isset($_POST['min_salary']) && $_POST['min_salary'] !== '' ? $_POST['min_salary'] : null;
+        $max_salary = isset($_POST['max_salary']) && $_POST['max_salary'] !== '' ? $_POST['max_salary'] : null;
+        $salary_type = $_POST['salary_type'] ?? 'Yearly';
+        $salary_disclosure = isset($_POST['salary_disclosure']) && $_POST['salary_disclosure'] === 'on' ? 1 : 0;
         $expires_at = isset($_POST['expires_at']) && $_POST['expires_at'] !== '' ? $_POST['expires_at'] : null;
 
         // Insert job posting
         $query = "INSERT INTO job_posting 
-                  (employer_id, title, description, location, job_type_id, salary, expires_at) 
-                  VALUES (:employer_id, :title, :description, :location, :job_type_id, :salary, :expires_at)";
+                  (employer_id, title, description, location, job_type_id, min_salary, max_salary, salary_type, salary_disclosure, expires_at) 
+                  VALUES (:employer_id, :title, :description, :location, :job_type_id, :min_salary, :max_salary, :salary_type, :salary_disclosure, :expires_at)";
         
         $stmt = $conn->prepare($query);
         $stmt->bindParam(':employer_id', $employer['employer_id'], PDO::PARAM_INT);
@@ -63,7 +66,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindParam(':description', $description);
         $stmt->bindParam(':location', $location);
         $stmt->bindParam(':job_type_id', $job_type_id);
-        $stmt->bindParam(':salary', $salary);
+        $stmt->bindParam(':min_salary', $min_salary);
+        $stmt->bindParam(':max_salary', $max_salary);
+        $stmt->bindParam(':salary_type', $salary_type);
+        $stmt->bindParam(':salary_disclosure', $salary_disclosure, PDO::PARAM_BOOL);
         $stmt->bindParam(':expires_at', $expires_at);
 
         $stmt->execute();

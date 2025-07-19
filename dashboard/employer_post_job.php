@@ -46,15 +46,34 @@ include '../includes/employer_navbar.php';
                     <input type="text" class="form-control" id="jobLocation" name="location" required>
                 </div>
                 <div class="col-md-6">
-                    <label for="jobSalary" class="form-label">Salary *</label>
-                    <div class="input-group">
-                        <span class="input-group-text">₱</span>
-                        <input type="number" class="form-control" id="jobSalary" name="salary" min="0" step="0.01">
-                    </div>
+                    <label for="jobSalaryType" class="form-label">Salary Type *</label>
+                    <select class="form-select" id="jobSalaryType" name="salary_type" required>
+                        <option value="Yearly">Yearly</option>
+                        <option value="Monthly">Monthly</option>
+                        <option value="Weekly">Weekly</option>
+                        <option value="Hourly">Hourly</option>
+                        <option value="Commission">Commission</option>
+                        <option value="Negotiable">Negotiable</option>
+                    </select>
                 </div>
                 <div class="col-md-6">
                     <label for="jobExpires" class="form-label">Expiration Date</label>
                     <input type="date" class="form-control" id="jobExpires" name="expires_at">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Salary Range</label>
+                    <div class="input-group">
+                        <span class="input-group-text">₱</span>
+                        <input type="number" class="form-control" id="jobMinSalary" name="min_salary" min="0" step="0.01" placeholder="Minimum">
+                        <input type="number" class="form-control" id="jobMaxSalary" name="max_salary" min="0" step="0.01" placeholder="Maximum">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label for="jobSalaryDisclosure" class="form-label">Disclose Salary</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="jobSalaryDisclosure" name="salary_disclosure" checked>
+                        <label class="form-check-label" for="jobSalaryDisclosure">Show salary on job posting</label>
+                    </div>
                 </div>
                 <div class="col-12">
                     <label for="jobDescription" class="form-label">Job Description *</label>
@@ -82,6 +101,17 @@ include '../includes/employer_navbar.php';
             loadJobTypes();
             loadSkills();
             document.getElementById("addJobForm").addEventListener("submit", handleJobFormSubmit);
+            // Disable salary inputs when disclosure is unchecked
+            document.getElementById("jobSalaryDisclosure").addEventListener("change", function() {
+                const minSalaryInput = document.getElementById("jobMinSalary");
+                const maxSalaryInput = document.getElementById("jobMaxSalary");
+                minSalaryInput.disabled = !this.checked;
+                maxSalaryInput.disabled = !this.checked;
+                if (!this.checked) {
+                    minSalaryInput.value = '';
+                    maxSalaryInput.value = '';
+                }
+            });
         });
 
         function loadJobTypes() {

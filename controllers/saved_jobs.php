@@ -3,8 +3,6 @@ header('Content-Type: application/json');
 require '../config/dbcon.php';
 require '../auth/auth_check_student.php';
 
-
-
 // Enable error reporting for development
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -32,6 +30,12 @@ function getSavedJobs($studentId, $page = 1, $perPage = 10, $sort = 'saved_at', 
         $validSortColumns = ['saved_at', 'posted_at', 'title', 'company_name', 'salary'];
         $sort = in_array($sort, $validSortColumns) ? $sort : 'saved_at';
         $order = strtoupper($order) === 'ASC' ? 'ASC' : 'DESC';
+        
+        // Use COALESCE for salary sorting to handle NULL max_salary
+        $sortColumn = $sort;
+        if ($sort === 'salary') {
+            $sortColumn = 'COALESCE(jp.max_salary, jp.min_salary)';
+        }
         
         // Calculate offset for pagination
         $offset = ($page - 1) * $perPage;
@@ -68,12 +72,13 @@ function getSavedJobs($studentId, $page = 1, $perPage = 10, $sort = 'saved_at', 
         // Get paginated results (including search filter)
         $query = "
             SELECT sj.saved_id, jp.job_id, jp.title, jp.description, jp.location, 
-                   jp.salary, jp.posted_at, sj.saved_at, e.company_name
+                   jp.min_salary, jp.max_salary, jp.salary_type, jp.salary_disclosure, 
+                   jp.posted_at, sj.saved_at, e.company_name
             FROM saved_jobs sj
             JOIN job_posting jp ON sj.job_id = jp.job_id
             JOIN employer e ON jp.employer_id = e.employer_id
             $whereConditions $searchCondition
-            ORDER BY $sort $order
+            ORDER BY $sortColumn $order
             LIMIT :limit OFFSET :offset
         ";
         

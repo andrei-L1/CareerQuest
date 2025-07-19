@@ -27,9 +27,7 @@ require '../auth/auth_check_student.php';
         }
         
         body {
-          /* background-color: #f5f7ff; */
             background-color: #f8f9fa;
-          /* \font-family: 'Poppins', sans-serif; */
         }
         
         .job-container {
@@ -37,10 +35,8 @@ require '../auth/auth_check_student.php';
             padding: 20px;
             max-width: 1400px;
             margin: 0 auto;
-        
         }
         
-        /* Header Styles */
         .page-header {
             display: flex;
             justify-content: space-between;
@@ -57,28 +53,6 @@ require '../auth/auth_check_student.php';
             font-size: 35px;
         }
         
-        /* Filter Section 
-        .filter-section {
-            background:rgba(252, 252, 252, 0.9);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: var(--card-shadow);
-            margin-bottom: 25px;
-        }
-        
-        .filter-row {
-            align-items: flex-end;
-        }
-        
-        .filter-label {
-            font-size: 0.85rem;
-            font-weight: 400;
-            color: #666;
-            margin-bottom: 5px;
-        }
-        */
-        
-        /* Job Cards */
         .job-card {
             border: 1px solid #e0e0e0;
             border-radius: 8px;
@@ -92,7 +66,6 @@ require '../auth/auth_check_student.php';
             height: 100%;
             position: relative;
         }
-
         
         .job-card:hover {
             box-shadow: 0 4px 12px rgba(0,0,0,0.12);
@@ -108,9 +81,7 @@ require '../auth/auth_check_student.php';
             font-size: 1.2rem;
             font-weight: 500;
             color: #2d3748;
-            
         }
-
         
         .company-name {
             color: #4a5568;
@@ -133,7 +104,6 @@ require '../auth/auth_check_student.php';
             gap: 5px;
             color: #4a5568;
             font-size: 0.9rem;
-
             padding: 3px 8px;
             border-radius: 4px;
             font-size: 0.8rem;
@@ -199,7 +169,6 @@ require '../auth/auth_check_student.php';
             color: var(--danger-color);
         }
         
-        /* Job Details */
         .job-details-container {
             background: white;
             border-radius: 12px;
@@ -272,7 +241,6 @@ require '../auth/auth_check_student.php';
             color: #444;
         }
         
-        /* Skills Section */
         .skills-container {
             display: flex;
             flex-wrap: wrap;
@@ -313,7 +281,6 @@ require '../auth/auth_check_student.php';
             margin-left: 5px;
         }
         
-        /* Action Buttons */
         .action-buttons {
             display: flex;
             gap: 15px;
@@ -346,7 +313,6 @@ require '../auth/auth_check_student.php';
             background-color: #f0f4ff;
         }
         
-        /* Empty States */
         .empty-state {
             text-align: center;
             padding: 40px;
@@ -359,7 +325,6 @@ require '../auth/auth_check_student.php';
             margin-bottom: 15px;
         }
         
-        /* Scrollable Containers */
         .scrollable-container {
             max-height: calc(100vh - 250px);
             overflow-y: auto;
@@ -384,7 +349,6 @@ require '../auth/auth_check_student.php';
             background: #aaa;
         }
         
-        /* Responsive Adjustments */
         @media (max-width: 992px) {
             .job-container {
                 padding: 15px;
@@ -421,7 +385,6 @@ require '../auth/auth_check_student.php';
             }
         }
         
-        /* Animation */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -431,7 +394,6 @@ require '../auth/auth_check_student.php';
             animation: fadeIn 0.3s ease-out forwards;
         }
         
-        /* Loading Spinner */
         .spinner-container {
             display: flex;
             justify-content: center;
@@ -445,7 +407,6 @@ require '../auth/auth_check_student.php';
             color: var(--primary-color);
         }
         
-        /* Status Badges */
         .status-badge {
             font-size: 0.8rem;
             padding: 4px 10px;
@@ -467,7 +428,6 @@ require '../auth/auth_check_student.php';
             background-color: #fee2e2;
             color: #b91c1c;
         }
-        
     </style>
     <style>
         .filter-container {
@@ -491,8 +451,7 @@ require '../auth/auth_check_student.php';
         .filter-toggle-btn.collapsed .bi {
             transform: rotate(-90deg);
         }
-                /* Chip Filters */
-                .filter-chips {
+        .filter-chips {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
@@ -543,7 +502,6 @@ require '../auth/auth_check_student.php';
         }
     </style>
     <style>
-    /* Base Styles */
         .jobsearch-input::placeholder {
             font-size: 16px; 
             color: #999;      
@@ -567,7 +525,6 @@ require '../auth/auth_check_student.php';
             padding: 4px;
         }
 
-        /* Search Fields */
         .jobsearch-field {
             flex: 1;
             position: relative;
@@ -589,7 +546,6 @@ require '../auth/auth_check_student.php';
             background-color: #e0e0e0;
         }
 
-        /* Input Containers */
         .jobsearch-input-wrapper {
             display: flex;
             align-items: center;
@@ -606,7 +562,6 @@ require '../auth/auth_check_student.php';
             background: transparent;
         }
 
-        /* Location Button */
         .jobsearch-location-btn {
             background: none;
             border: none;
@@ -621,7 +576,6 @@ require '../auth/auth_check_student.php';
             color: #333;
         }
 
-        /* Search Button */
         .jobsearch-submit-container {
             padding-left: 8px;
             padding-right: 10px;
@@ -644,7 +598,6 @@ require '../auth/auth_check_student.php';
         .jobsearch-submit-btn:hover {
             background-color: #1a4b8e;
         }
-
     </style>
 
     <style>
@@ -672,7 +625,6 @@ require '../auth/auth_check_student.php';
         </div>
     </div>
 
-
     <?php
         require '../config/dbcon.php'; 
         $jobTypes = [];
@@ -683,11 +635,10 @@ require '../auth/auth_check_student.php';
             $stmt->execute();
             $jobTypes = $stmt->fetchAll(PDO::FETCH_COLUMN);
         } catch (PDOException $e) {
-            // Optional: handle errors (you can log this in production)
             echo "Error fetching job types: " . $e->getMessage();
         }
         try{
-            $stmt = $conn->prepare("SELECT DISTINCT  category FROM skill_masterlist");
+            $stmt = $conn->prepare("SELECT DISTINCT category FROM skill_masterlist");
             $stmt->execute();
             $categories = $stmt->fetchAll(PDO::FETCH_COLUMN);
         }catch (PDOException $e){
@@ -735,12 +686,11 @@ require '../auth/auth_check_student.php';
             <!-- Submit Button -->
             <div class="jobsearch-submit-container">
                 <button class="btn btn-primary w-100 d-flex align-items-center justify-content-center" onclick="filterJobs()" style="background-color: #1A4D8F; border-color: #1A4D8F;">
-                        Find Jobs
+                    Find Jobs
                 </button>
             </div>
         </div>
     </div>
-
 
     <!-- Filter Toggle Button -->
     <div class="mb-3">
@@ -750,76 +700,61 @@ require '../auth/auth_check_student.php';
     </div>
 
     <!-- Filters Section -->
-        <div class="filter-container" id="filterContainer">
-            <div class="filter-section">
-                <div class="row filter-row g-3">
-                    <!--
-                    <div class="col-md-4">
-                        <div class="filter-label">Search Keywords</div>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-search"></i></span>
-                            <input type="text" id="search" class="form-control" placeholder="Job title, company, or keywords">
-                        </div>
-                    </div>
-                    -->
-                    <div class="col-md-5">
-                        <div class="filter-label">Category</div>
-                        <select id="category" class="form-select">
-                            <option value="">All Categories</option>
-                            <?php
-                                foreach($categories as $category){
-                                    echo "<option value='$category'>$category</option>";
-                                }
-                            ?>
-                        </select>
-                    </div>
-                    <div class="col-md-5">
-                        <div class="filter-label">Job Type</div>
-                        <select id="jobType" class="form-select">
-                            <option value="">All Types</option>
-                            <?php
-                            foreach ($jobTypes as $type) {
-                                echo "<option value='$type'>$type</option>";
+    <div class="filter-container" id="filterContainer">
+        <div class="filter-section">
+            <div class="row filter-row g-3">
+                <div class="col-md-5">
+                    <div class="filter-label">Category</div>
+                    <select id="category" class="form-select">
+                        <option value="">All Categories</option>
+                        <?php
+                            foreach($categories as $category){
+                                echo "<option value='$category'>$category</option>";
                             }
-                            ?>
-                        </select>
-                    </div>
-                    <!-- 
-                    <div class="col-md-2">
-                        <div class="filter-label">Location</div>
-                        <input type="text" id="location" class="form-control" placeholder="Any location">
-                    </div>
-                    -->
-                    <div class="col-md-2 d-flex align-items-end">
-                        <button class="btn btn-primary w-100 d-flex align-items-center justify-content-center" onclick="filterJobs()" style="background-color: #1A4D8F; border-color: #1A4D8F;">
-                            <i class="bi bi-funnel-fill me-2"></i> Filter
-                        </button>
-                    </div>
+                        ?>
+                    </select>
                 </div>
-                
-                <!-- Quick Filters -->
-                <div class="filter-chips mt-3">
-                    <div class="form-check form-check-inline m-0">
-                        <input class="form-check-input d-none" type="checkbox" id="remoteOnly" value="1">
-                        <label class="filter-chip" for="remoteOnly" onclick="toggleFilterChip(this)">
-                            <i class="bi bi-laptop"></i> Remote Only
-                        </label>
-                    </div>
-                    <div class="form-check form-check-inline m-0">
-                        <input class="form-check-input d-none" type="checkbox" id="expiringSoon" value="1">
-                        <label class="filter-chip" for="expiringSoon" onclick="toggleFilterChip(this)">
-                            <i class="bi bi-clock"></i> Expiring Soon
-                        </label>
-                    </div>
-                    <div class="form-check form-check-inline m-0">
-                        <input class="form-check-input d-none" type="checkbox" id="highMatch" value="1">
-                        <label class="filter-chip" for="highMatch" onclick="toggleFilterChip(this)">
-                            <i class="bi bi-lightning-charge"></i> High Match
-                        </label>
-                    </div>
+                <div class="col-md-5">
+                    <div class="filter-label">Job Type</div>
+                    <select id="jobType" class="form-select">
+                        <option value="">All Types</option>
+                        <?php
+                        foreach ($jobTypes as $type) {
+                            echo "<option value='$type'>$type</option>";
+                        }
+                        ?>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button class="btn btn-primary w-100 d-flex align-items-center justify-content-center" onclick="filterJobs()" style="background-color: #1A4D8F; border-color: #1A4D8F;">
+                        <i class="bi bi-funnel-fill me-2"></i> Filter
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Quick Filters -->
+            <div class="filter-chips mt-3">
+                <div class="form-check form-check-inline m-0">
+                    <input class="form-check-input d-none" type="checkbox" id="remoteOnly" value="1">
+                    <label class="filter-chip" for="remoteOnly" onclick="toggleFilterChip(this)">
+                        <i class="bi bi-laptop"></i> Remote Only
+                    </label>
+                </div>
+                <div class="form-check form-check-inline m-0">
+                    <input class="form-check-input d-none" type="checkbox" id="expiringSoon" value="1">
+                    <label class="filter-chip" for="expiringSoon" onclick="toggleFilterChip(this)">
+                        <i class="bi bi-clock"></i> Expiring Soon
+                    </label>
+                </div>
+                <div class="form-check form-check-inline m-0">
+                    <input class="form-check-input d-none" type="checkbox" id="highMatch" value="1">
+                    <label class="filter-chip" for="highMatch" onclick="toggleFilterChip(this)">
+                        <i class="bi bi-lightning-charge"></i> High Match
+                    </label>
                 </div>
             </div>
         </div>
+    </div>
 
     <!-- Main Content -->
     <div class="row">
@@ -999,6 +934,16 @@ function showAllJobs() {
     fetchJobs();
 }
 
+function formatSalary(job) {
+    if (job.salary_disclosure && job.min_salary && job.max_salary) {
+        return `₱${Number(job.min_salary).toLocaleString()} - ₱${Number(job.max_salary).toLocaleString()} per ${job.salary_type.toLowerCase()}`;
+    } else if (job.salary_disclosure && job.min_salary) {
+        return `₱${Number(job.min_salary).toLocaleString()} per ${job.salary_type.toLowerCase()}`;
+    } else {
+        return job.salary_type === 'Negotiable' ? 'Negotiable' : `Salary ${job.salary_type.toLowerCase()}`;
+    }
+}
+
 function renderJobListings(jobs) {
     const container = document.getElementById("jobListings");
     
@@ -1027,7 +972,7 @@ function renderJobListings(jobs) {
                 <span class="job-type-badge">${sanitize(job.job_type_title || job.job_type)}</span>
             </div>
             
-            ${job.salary ? `<div class="salary"><i class="bi bi-cash"></i> ₱${sanitize(job.salary.toLocaleString())}/month</div>` : ''}
+            <div class="salary"><i class="bi bi-cash"></i> ${formatSalary(job)}</div>
             
             <div class="d-flex justify-content-between mt-2">
                 ${isJobExpiringSoon(job.expires_at) ? 
@@ -1078,7 +1023,6 @@ function selectJob(jobId) {
         card.classList.remove('active');
         if (card.getAttribute('onclick').includes(jobId)) {
             card.classList.add('active');
-            // Scroll into view if not fully visible
             if (!isElementInViewport(card)) {
                 card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }
@@ -1099,18 +1043,16 @@ function isElementInViewport(el) {
 function renderJobDetails(job, jobDetails) {
     const container = document.getElementById("jobDetails");
     
-    // Basic job info with improved layout
     let html = `
        <div class="detail-header">
         <div class="d-flex justify-content-between align-items-center">
-            <!-- Job Info Section - Add max-width and text-truncate classes -->
             <div class="job-info flex-grow-1 pe-3" style="max-width: 70%;">
                 <h2 class="detail-title text-truncate">${sanitize(job.title)}</h2>
                 <h4 class="detail-company text-truncate">${sanitize(job.company_name || job.company)}</h4>
                 <div class="detail-meta">
                     <span class="detail-meta-item"><i class="bi bi-geo-alt"></i> ${sanitize(job.location)}</span>
                     <span class="detail-meta-item" data-bs-toggle="tooltip" title="Job Type"><i class="bi bi-briefcase"></i> ${sanitize(job.job_type_title || job.job_type)}</span>
-                    ${job.salary ? `<span class="detail-meta-item" data-bs-toggle="tooltip" title="Salary"><i class="bi bi-cash"></i> ₱${sanitize(job.salary.toLocaleString())}/month</span>` : ''}
+                    <span class="detail-meta-item" data-bs-toggle="tooltip" title="Salary"><i class="bi bi-cash"></i> ${formatSalary(job)}</span>
                 </div>
                 <div class="d-flex flex-wrap gap-3">
                     <span class="detail-meta-item"><i class="bi bi-calendar"></i> Posted: ${formatDate(job.posted_at)}</span>
@@ -1120,7 +1062,6 @@ function renderJobDetails(job, jobDetails) {
                 </div>
             </div>
             
-            <!-- Action Buttons - Ensure this stays on the right -->
             <div class="action-buttons flex-shrink-0">
                 <div class="d-flex flex-column gap-2">
                     ${job.application_status ? 
@@ -1145,7 +1086,6 @@ function renderJobDetails(job, jobDetails) {
     </div>
     `;
 
-    // Add skills section with improved layout
     if (jobDetails && jobDetails.skills && jobDetails.skills.length > 0) {
         html += `
             <div class="detail-section">
@@ -1154,7 +1094,6 @@ function renderJobDetails(job, jobDetails) {
         `;
 
         jobDetails.skills.forEach(skill => {
-            // Check if student has this skill
             const studentSkill = studentSkills.find(s => s.skill_id == skill.skill_id);
             const skillClass = studentSkill ? 
                 (studentSkill.proficiency === 'Advanced' ? 'high-skill' : 
@@ -1203,7 +1142,6 @@ function renderJobDetails(job, jobDetails) {
     tooltipTriggerList.forEach(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
 }
 
-
 function getStatusClass(status) {
     switch(status.toLowerCase()) {
         case 'pending': return 'status-pending';
@@ -1213,24 +1151,21 @@ function getStatusClass(status) {
     }
 }
 
-
 function filterJobs() {
     const search = document.getElementById("search").value.toLowerCase();
     const category = document.getElementById("category").value.toLowerCase();
     const jobType = document.getElementById("jobType").value.toLowerCase();
     const location = document.getElementById("location").value.toLowerCase();
     
-    // Update active filters
     activeFilters.remoteOnly = document.getElementById("remoteOnly").checked;
     activeFilters.expiringSoon = document.getElementById("expiringSoon").checked;
     activeFilters.highMatch = document.getElementById("highMatch").checked;
 
     const now = new Date();
     const soonDate = new Date();
-    soonDate.setDate(now.getDate() + 7); // 7 days from now
+    soonDate.setDate(now.getDate() + 7);
 
     const filteredJobs = jobData.filter(job => {
-        console.log(jobData);
         const matchesSearch = search === "" || 
              job.title.toLowerCase().includes(search) || 
              (job.company_name && job.company_name.toLowerCase().includes(search)) ||
@@ -1239,7 +1174,6 @@ function filterJobs() {
         const matchesCategory = category === "" || 
              (job.categories && job.categories.toLowerCase().split(', ').some(cat => cat.toLowerCase() === category));
 
-        
         const matchesJobType = jobType === "" || 
             (job.job_type_title && job.job_type_title.toLowerCase().includes(jobType)) ||
             (job.job_type && job.job_type.toLowerCase().includes(jobType));
@@ -1262,7 +1196,6 @@ function filterJobs() {
 
     renderJobListings(filteredJobs);
     
-    // Select the first job if available
     if (filteredJobs.length > 0) {
         selectJob(filteredJobs[0].job_id);
     } else {
@@ -1279,7 +1212,6 @@ function filterJobs() {
 function toggleFilterChip(element) {
     const checkbox = document.getElementById(element.htmlFor);
 
-    // Let the label toggle the checkbox naturally on click
     setTimeout(() => {
         if (checkbox.checked) {
             element.classList.add('active');
@@ -1288,9 +1220,8 @@ function toggleFilterChip(element) {
         }
 
         filterJobs();
-    }, 0); // wait for checkbox state to update
+    }, 0);
 }
-
 
 function saveJob(jobId) {
     const btn = document.querySelector(`button[onclick="saveJob(${jobId})"]`);
@@ -1360,7 +1291,7 @@ function isJobExpiringSoon(expiryDate) {
     if (!expiryDate) return false;
     const now = new Date();
     const soonDate = new Date();
-    soonDate.setDate(now.getDate() + 7); // 7 days from now
+    soonDate.setDate(now.getDate() + 7);
     return new Date(expiryDate) <= soonDate;
 }
 
@@ -1377,14 +1308,12 @@ function formatDate(dateString) {
 function getTimeAgo(timestamp, referenceTime = null) {
     const manilaTimeZone = 'Asia/Manila';
     
-    // Convert both timestamps to Manila time
     const date = new Date(timestamp);
     const now = referenceTime ? new Date(referenceTime) : new Date();
 
     const options = { timeZone: manilaTimeZone, year: 'numeric', month: '2-digit', day: '2-digit', 
                       hour: '2-digit', minute: '2-digit', second: '2-digit' };
     
-    // Parse the formatted time into date components
     const manilaDate = new Date(new Intl.DateTimeFormat('en-US', options).format(date));
     const manilaNow = new Date(new Intl.DateTimeFormat('en-US', options).format(now));
     
@@ -1408,7 +1337,6 @@ function getTimeAgo(timestamp, referenceTime = null) {
 
     return 'just now';
 }
-
 
 function sanitize(text) {
     if (!text) return '';
@@ -1441,7 +1369,6 @@ function showErrorState(message = "Error loading jobs") {
 }
 
 function showToast(message, type = 'success') {
-    // Implement a toast notification system
     const toast = document.createElement('div');
     toast.className = `toast show position-fixed bottom-0 end-0 mb-4 me-4 bg-${type} text-white`;
     toast.style.zIndex = '1100';
@@ -1462,9 +1389,8 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 
-
 function applyForJob(jobId) {
-     console.log("Applying for job ID:", jobId);
+    console.log("Applying for job ID:", jobId);
     const btn = document.querySelector(`.btn-apply[data-job-id="${jobId}"]`);
     if (!btn) return;
     
@@ -1512,6 +1438,7 @@ function applyForJob(jobId) {
         showToast('Error submitting application. Please try again.', 'danger');
     });
 }
+
 function confirmApply(jobId) {
     Swal.fire({
         title: 'Are you sure?',
@@ -1572,7 +1499,6 @@ document.addEventListener("DOMContentLoaded", function() {
         handleJobSelection();
     }
     
-    // Optional: Also check for a parameter like ?select_job=1
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('select_job')) {
         handleJobSelection();

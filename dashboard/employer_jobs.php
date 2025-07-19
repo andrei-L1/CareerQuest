@@ -2,11 +2,21 @@
 require '../controllers/employer_jobs.php';
 require '../auth/employer_auth.php';
 include '../includes/employer_navbar.php';
-// Example: require database or session start here
 require_once '../config/dbcon.php';
 
 $successMessage = isset($_GET['success']) ? urldecode($_GET['success']) : null;
 $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
+
+// PHP function to format salary
+function formatSalary($min_salary, $max_salary, $salary_type, $salary_disclosure) {
+    if ($salary_disclosure && $min_salary && $max_salary) {
+        return '₱' . number_format($min_salary) . ' - ₱' . number_format($max_salary) . ' per ' . strtolower($salary_type);
+    } elseif ($salary_disclosure && $min_salary) {
+        return '₱' . number_format($min_salary) . ' per ' . strtolower($salary_type);
+    } else {
+        return $salary_type === 'Negotiable' ? 'Negotiable' : 'Salary ' . strtolower($salary_type ?: 'Not Specified');
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -73,7 +83,6 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
             font-size: 1.75rem;
         }
         
-        /* Improved Card Design */
         .job-card {
             background: white;
             border-radius: 12px;
@@ -131,7 +140,6 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
             font-size: 0.9em;
         }
         
-        /* Enhanced Status Badges */
         .job-status {
             font-size: 0.75rem;
             padding: 0.35rem 0.75rem;
@@ -201,7 +209,6 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
             transform: translateY(-1px);
         }
         
-        /* Improved Stats Cards */
         .job-stats {
             display: flex;
             gap: 1rem;
@@ -236,7 +243,6 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
             letter-spacing: 0.5px;
         }
         
-        /* Enhanced Footer Actions */
         .job-card-footer {
             display: flex;
             justify-content: space-between;
@@ -308,7 +314,6 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
             transform: translateY(-1px);
         }
         
-        /* Improved Empty State */
         .empty-state {
             text-align: center;
             padding: 3rem 1rem;
@@ -337,7 +342,6 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
             font-weight: 400;
         }
         
-        /* Enhanced Stats Overview Cards */
         .stats-card {
             border: none;
             border-radius: 12px;
@@ -370,7 +374,6 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
             font-size: 0.9rem;
         }
         
-        /* Improved Table Styling */
         .table-responsive {
             border-radius: 12px;
             overflow: hidden;
@@ -403,7 +406,6 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
             background-color: rgba(26, 77, 143, 0.03);
         }
         
-        /* Improved Dropdown */
         .action-dropdown .dropdown-menu {
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -432,7 +434,6 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
             text-align: center;
         }
         
-        /* Improved Pagination */
         .pagination .page-item .page-link {
             border-radius: 6px;
             margin: 0 0.2rem;
@@ -452,7 +453,6 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
             background-color: var(--primary-light);
         }
         
-        /* Improved Filter Section */
         #filterSection {
             background-color: white;
             border-radius: 12px;
@@ -491,7 +491,6 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
             flex-wrap: wrap;
         }
         
-        /* Responsive Improvements */
         @media (max-width: 992px) {
             .dashboard-container {
                 padding: 1.5rem;
@@ -559,7 +558,6 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
             }
         }
         
-        /* Animation Enhancements */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -569,14 +567,12 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
             animation: fadeIn 0.3s ease forwards;
         }
         
-        /* Delay animations for each card */
         .job-card:nth-child(1) { animation-delay: 0.1s; }
         .job-card:nth-child(2) { animation-delay: 0.2s; }
         .job-card:nth-child(3) { animation-delay: 0.3s; }
         .job-card:nth-child(4) { animation-delay: 0.4s; }
         .job-card:nth-child(5) { animation-delay: 0.5s; }
         
-        /* Loading Skeleton */
         .skeleton {
             background-color: #e9ecef;
             border-radius: 4px;
@@ -588,14 +584,12 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
             50% { opacity: 0.5; }
         }
         
-        /* Tooltip Enhancements */
         .tooltip-inner {
             border-radius: 6px;
             padding: 0.5rem 0.75rem;
             font-size: 0.8rem;
         }
         
-        /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -614,13 +608,11 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
             background: #a8a8a8;
         }
         
-        /* Focus States for Accessibility */
         a:focus, button:focus, input:focus, select:focus, textarea:focus {
             outline: 2px solid var(--primary-color);
             outline-offset: 2px;
         }
         
-        /* Badge Improvements */
         .badge-custom {
             font-size: 0.75rem;
             font-weight: 600;
@@ -630,7 +622,6 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
             color: white;
         }
         
-        /* Progress Bar Styling */
         .progress {
             height: 8px;
             border-radius: 4px;
@@ -640,7 +631,6 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
             background-color: var(--primary-color);
         }
         
-        /* Custom Toggle Switch */
         .form-switch .form-check-input {
             width: 2.5em;
             height: 1.5em;
@@ -651,97 +641,92 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
             background-color: var(--primary-color);
             border-color: var(--primary-color);
         }
-    </style>
-    <style>
-    /* Stats Cards Styling */
-    .stat-card {
-        border: none;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        transition: all 0.3s ease;
-        overflow: hidden;
-        position: relative;
-        color: white;
-    }
-    
-    .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 16px rgba(26, 77, 143, 0.15);
-    }
-    
-    .stat-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 4px;
-    }
-    
-    .stat-card-total {
-        background: linear-gradient(135deg, var(--dark-blue) 0%, var(--medium-blue) 100%);
-    }
-    
-    .stat-card-active {
-        background: linear-gradient(135deg, var(--medium-blue) 0%, var(--light-blue) 100%);
-    }
-    
-    .stat-card-pending {
-        background: linear-gradient(135deg, var(--light-blue) 0%, var(--lighter-blue) 100%);
-    }
-    
-    .stat-card-expired {
-        background: linear-gradient(135deg, var(--lighter-blue) 0%, #a8c6df 100%);
-    }
-    
-    .stat-icon {
-        font-size: 2rem;
-        margin-bottom: 1rem;
-        opacity: 0.8;
-    }
-    
-    .stat-value {
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-    }
-    
-    .stat-label {
-        font-size: 1rem;
-        font-weight: 500;
-        opacity: 0.9;
-        margin-bottom: 0;
-    }
-    
-    /* Responsive adjustments */
-    @media (max-width: 992px) {
-        .stats-row > div {
-            margin-bottom: 1rem;
+        
+        .stat-card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            overflow: hidden;
+            position: relative;
+            color: white;
         }
         
-        .stat-value {
-            font-size: 2rem;
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(26, 77, 143, 0.15);
         }
-    }
-    
-    @media (max-width: 768px) {
-        .stat-card {
-            text-align: center;
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+        }
+        
+        .stat-card-total {
+            background: linear-gradient(135deg, var(--dark-blue) 0%, var(--medium-blue) 100%);
+        }
+        
+        .stat-card-active {
+            background: linear-gradient(135deg, var(--medium-blue) 0%, var(--light-blue) 100%);
+        }
+        
+        .stat-card-pending {
+            background: linear-gradient(135deg, var(--light-blue) 0%, var(--lighter-blue) 100%);
+        }
+        
+        .stat-card-expired {
+            background: linear-gradient(135deg, var(--lighter-blue) 0%, #a8c6df 100%);
         }
         
         .stat-icon {
-            font-size: 1.75rem;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            opacity: 0.8;
         }
         
         .stat-value {
-            font-size: 1.75rem;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
         }
-    }
-</style>
-    
+        
+        .stat-label {
+            font-size: 1rem;
+            font-weight: 500;
+            opacity: 0.9;
+            margin-bottom: 0;
+        }
+        
+        @media (max-width: 992px) {
+            .stats-row > div {
+                margin-bottom: 1rem;
+            }
+            
+            .stat-value {
+                font-size: 2rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .stat-card {
+                text-align: center;
+            }
+            
+            .stat-icon {
+                font-size: 1.75rem;
+            }
+            
+            .stat-value {
+                font-size: 1.75rem;
+            }
+        }
+    </style>
 </head>
 <body>
-
 <div class="container dashboard-container">
     <div class="page-header">
         <h1 class="page-title">Manage Job Postings</h1>
@@ -759,54 +744,51 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
         
         <div id="filterSection" class="card collapse">
             <div class="card-body">
-            <form id="jobFilterForm">
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <label for="statusFilter" class="form-label">Status</label>
-                        <select class="form-select" id="statusFilter" name="status">
-                            <option value="">All Statuses</option>
-                            <option value="Pending">Pending Approval</option>
-                            <option value="Approved">Approved</option>
-                            <option value="Paused">Paused</option>
-                            <option value="Rejected">Rejected</option>
-                            <option value="Expired">Expired</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label for="dateFilter" class="form-label">Date Posted</label>
-                        <select class="form-select" id="dateFilter" name="date">
-                            <option value="">All Time</option>
-                            <option value="today">Today</option>
-                            <option value="week">This Week</option>
-                            <option value="month">This Month</option>
-                            <option value="year">This Year</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label for="searchFilter" class="form-label">Search</label>
-                        <div class="input-group">
-                            <input type="text" class="form-control" id="searchFilter" placeholder="Search jobs...">
-                            <button class="btn btn-outline-secondary" type="button">
-                                <i class="bi bi-search"></i>
-                            </button>
+                <form id="jobFilterForm">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="statusFilter" class="form-label">Status</label>
+                            <select class="form-select" id="statusFilter" name="status">
+                                <option value="">All Statuses</option>
+                                <option value="Pending">Pending Approval</option>
+                                <option value="Approved">Approved</option>
+                                <option value="Paused">Paused</option>
+                                <option value="Rejected">Rejected</option>
+                                <option value="Expired">Expired</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="dateFilter" class="form-label">Date Posted</label>
+                            <select class="form-select" id="dateFilter" name="date">
+                                <option value="">All Time</option>
+                                <option value="today">Today</option>
+                                <option value="week">This Week</option>
+                                <option value="month">This Month</option>
+                                <option value="year">This Year</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="searchFilter" class="form-label">Search</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="searchFilter" placeholder="Search jobs...">
+                                <button class="btn btn-outline-secondary" type="button">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="row mt-3">
-                    <div class="col-12">
-                        <button type="submit" class="btn btn-primary me-2">Apply Filters</button>
-                        <button type="reset" class="btn btn-outline-secondary">Reset</button>
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary me-2">Apply Filters</button>
+                            <button type="reset" class="btn btn-outline-secondary">Reset</button>
+                        </div>
                     </div>
-                </div>
-            </form>
+                </form>
             </div>
         </div>
     </div>
-
     
-    <!-- Stats Overview -->
     <div class="row mb-4 stats-row">
-        <!-- Total Jobs Card -->
         <div class="col-md-3">
             <div class="card stat-card stat-card-total h-100">
                 <div class="card-body text-center">
@@ -815,8 +797,6 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
                 </div>
             </div>
         </div>
-        
-        <!-- Active Jobs Card -->
         <div class="col-md-3">
             <div class="card stat-card stat-card-active h-100">
                 <div class="card-body text-center">
@@ -825,8 +805,6 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
                 </div>
             </div>
         </div>
-        
-        <!-- Pending Approval Card -->
         <div class="col-md-3">
             <div class="card stat-card stat-card-pending h-100">
                 <div class="card-body text-center">
@@ -835,8 +813,6 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
                 </div>
             </div>
         </div>
-        
-        <!-- Expired Jobs Card -->
         <div class="col-md-3">
             <div class="card stat-card stat-card-expired h-100">
                 <div class="card-body text-center">
@@ -847,22 +823,17 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
         </div>
     </div>
     
-    <!-- Jobs Table View -->
     <div class="card mb-4">
-    
-    
         <?php if ($successMessage): ?>
             <div class="alert alert-success" role="alert">
                 <?= htmlspecialchars($successMessage) ?>
             </div>
         <?php endif; ?>
-
         <?php if ($errorMessage): ?>
             <div class="alert alert-danger" role="alert">
                 <?= htmlspecialchars($errorMessage) ?>
             </div>
         <?php endif; ?>
-
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">All Job Postings</h5>
             <div class="form-check form-switch">
@@ -887,7 +858,12 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
                                         </span>
                                         <span class="job-meta-item">
                                             <i class="bi bi-cash"></i> 
-                                            <?= $job['salary'] ? '₱' . number_format($job['salary'], 2) : 'Not Specified' ?>
+                                            <?= htmlspecialchars(formatSalary(
+                                                $job['min_salary'] ?? null,
+                                                $job['max_salary'] ?? null,
+                                                $job['salary_type'] ?? null,
+                                                $job['salary_disclosure'] ?? false
+                                            )) ?>
                                         </span>
                                         <span class="job-meta-item">
                                             <i class="bi bi-clock"></i> Posted <?= getTimeAgo($job['posted_at']) ?>
@@ -902,7 +878,6 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
                                 <div class="job-description">
                                     <?= nl2br(htmlspecialchars(truncateDescription($job['description'], 250))) ?>
                                 </div>
-                                
                                 <?php if (!empty($job['skills'])): ?>
                                     <div class="job-skills">
                                         <h6>Required Skills:</h6>
@@ -911,7 +886,6 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
                                         <?php endforeach; ?>
                                     </div>
                                 <?php endif; ?>
-                                
                                 <div class="job-stats">
                                     <div class="job-stat">
                                         <div class="job-stat-value"><?= $job['applicant_count'] ?></div>
@@ -1031,7 +1005,14 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
                                         </td>
                                         <td><?= htmlspecialchars($job['job_type_title']) ?></td>
                                         <td><?= htmlspecialchars($job['location']) ?></td>
-                                        <td><?= $job['salary'] ? '₱' . number_format($job['salary'], 2) : 'N/A' ?></td>
+                                        <td>
+                                            <?= htmlspecialchars(formatSalary(
+                                                $job['min_salary'] ?? null,
+                                                $job['max_salary'] ?? null,
+                                                $job['salary_type'] ?? null,
+                                                $job['salary_disclosure'] ?? false
+                                            )) ?>
+                                        </td>
                                         <td>
                                             <span class="fw-bold"><?= $job['applicant_count'] ?></span>
                                             <?php if ($job['new_applicants'] > 0): ?>
@@ -1052,23 +1033,11 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
                                                     Actions
                                                 </button>
                                                 <ul class="dropdown-menu" aria-labelledby="tableActionsDropdown<?= $job['job_id'] ?>">
-                                                    <!-- <li>
-                                                        <a class="dropdown-item" href="employer_view_job.php?id=<?= $job['job_id'] ?>">
-                                                            <i class="bi bi-eye"></i> View
-                                                        </a>
-                                                    </li> -->
                                                     <li>
                                                         <a class="dropdown-item" href="employer_edit_job.php?id=<?= $job['job_id'] ?>">
                                                             <i class="bi bi-pencil"></i> Edit
                                                         </a>
                                                     </li>
-                                                    <!-- 
-                                                    <li>
-                                                        <a class="dropdown-item" href="employer_view_applicants.php?job_id=<?= $job['job_id'] ?>">
-                                                            <i class="bi bi-people"></i> Applicants
-                                                        </a>
-                                                    </li>
-                                                    -->
                                                     <li><hr class="dropdown-divider"></li>
                                                     <li>
                                                         <a class="dropdown-item text-danger" href="#" 
@@ -1105,7 +1074,7 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
                     <ul class="pagination justify-content-center mb-0">
                         <li class="page-item <?= $current_page == 1 ? 'disabled' : '' ?>">
                             <a class="page-link" href="?page=<?= $current_page - 1 ?>" aria-label="Previous">
-                                <span aria-hidden="true">&laquo;</span>
+                                <span aria-hidden="true">«</span>
                             </a>
                         </li>
                         <?php for ($i = 1; $i <= $total_pages; $i++): ?>
@@ -1115,7 +1084,7 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
                         <?php endfor; ?>
                         <li class="page-item <?= $current_page == $total_pages ? 'disabled' : '' ?>">
                             <a class="page-link" href="?page=<?= $current_page + 1 ?>" aria-label="Next">
-                                <span aria-hidden="true">&raquo;</span>
+                                <span aria-hidden="true">»</span>
                             </a>
                         </li>
                     </ul>
@@ -1125,7 +1094,6 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteConfirmationModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -1145,7 +1113,6 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
     </div>
 </div>
 
-<!-- Pause Job Modal -->
 <div class="modal fade" id="pauseJobModal" tabindex="-1" aria-labelledby="pauseModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -1172,128 +1139,119 @@ $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
 
 <?php include '../includes/stud_footer.php'; ?>
 
-<!-- ✅ jQuery first -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-<!-- ✅ Then DataTables core -->
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-
-<!-- ✅ Then DataTables Bootstrap 5 styling -->
 <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
-
-<!-- ✅ Then your custom script -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const table = $('#jobsTable');
-    const hasDataRows = table.find('tbody tr').length > 0 && table.find('tbody tr td:not([colspan])').length > 0;
-
-    if (hasDataRows && !$.fn.DataTable.isDataTable('#jobsTable')) {
-        table.DataTable({
-            responsive: true,
-            order: [[6, 'desc']],
-            pageLength: 10
-        });
-    }
-});
-</script>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-
 <script>
-    // Toggle between card and table view
-    document.getElementById('toggleTableView').addEventListener('change', function() {
-        const cardView = document.getElementById('cardView');
-        const tableView = document.getElementById('tableView');
-        
-        if (this.checked) {
-            cardView.style.display = 'none';
-            tableView.style.display = 'block';
+
+        const table = $('#jobsTable');
+        const hasDataRows = table.find('tbody tr').length > 0 && table.find('tbody tr td:not([colspan])').length > 0;
+
+        if (hasDataRows && !$.fn.DataTable.isDataTable('#jobsTable')) {
+            table.DataTable({
+                responsive: true,
+                order: [[6, 'desc']],
+                pageLength: 10
+            });
+        }
+
+        document.getElementById('toggleTableView').addEventListener('change', function() {
+            const cardView = document.getElementById('cardView');
+            const tableView = document.getElementById('tableView');
+            
+            if (this.checked) {
+                cardView.style.display = 'none';
+                tableView.style.display = 'block';
             
             // Initialize DataTable only if not already initialized and table has data
             const table = $('#jobsTable');
             const hasDataRows = table.find('tbody tr').length > 0 && table.find('tbody tr td:not([colspan])').length > 0;
-
-            if (hasDataRows && !$.fn.DataTable.isDataTable('#jobsTable')) {
-                table.DataTable({
-                    responsive: true,
-                    order: [[6, 'desc']],
-                    pageLength: 10
-                });
+                
+                if (hasDataRows && !$.fn.DataTable.isDataTable('#jobsTable')) {
+                    table.DataTable({
+                        responsive: true,
+                        order: [[6, 'desc']],
+                        pageLength: 10
+                    });
+                }
+            } else {
+                cardView.style.display = 'block';
+                tableView.style.display = 'none';
+                
+                if ($.fn.DataTable.isDataTable('#jobsTable')) {
+                    table.DataTable().destroy();
+                }
             }
-        } else {
-            cardView.style.display = 'block';
-            tableView.style.display = 'none';
+        });
+        
+        let jobIdToDelete = null;
+        
+        function confirmDelete(jobId) {
+            jobIdToDelete = jobId;
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmationModal'));
+            deleteModal.show();
+        }
+        
+        document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+            if (jobIdToDelete) {
+                window.location.href = '../controllers/employer_delete_job.php?id=' + jobIdToDelete;
+            }
+        });
+        
+        let jobIdToPause = null;
+        
+        function pauseJob(jobId) {
+            jobIdToPause = jobId;
+            const pauseModal = new bootstrap.Modal(document.getElementById('pauseJobModal'));
+            pauseModal.show();
+        }
+        
+        document.getElementById('confirmPauseBtn').addEventListener('click', function() {
+            if (jobIdToPause) {
+                window.location.href = '../controllers/employer_pause_job.php?id=' + jobIdToPause;
+            }
+        });
+        
+        function activateJob(jobId) {
+            if (confirm('Are you sure you want to activate this job posting?')) {
+                window.location.href = '../controllers/employer_activate_job.php?id=' + jobId;
+            }
+        }
+        
+        function duplicateJob(jobId) {
+            if (confirm('Create a copy of this job posting?')) {
+                window.location.href = '../controllers/employer_duplicate_job.php?id=' + jobId;
+            }
+        }
+        
+        document.getElementById('jobFilterForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const status = document.getElementById('statusFilter').value;
+            const date = document.getElementById('dateFilter').value;
+            const search = document.getElementById('searchFilter').value;
             
-            // Destroy DataTable if initialized to avoid memory leaks
-            if ($.fn.DataTable.isDataTable('#jobsTable')) {
-                table.DataTable().destroy();
+            let queryParams = [];
+            if (status) queryParams.push(`status=${encodeURIComponent(status)}`);
+            if (date) queryParams.push(`date=${encodeURIComponent(date)}`);
+            if (search) queryParams.push(`search=${encodeURIComponent(search)}`);
+            
+            window.location.href = '../dashboard/employer_jobs.php?' + queryParams.join('&');
+        });
+
+
+
+        setTimeout(() => {
+            const alert = document.querySelector('.alert');
+            if (alert) {
+                alert.style.display = 'none';
             }
-        }
-    });
-    
-    // Delete job confirmation
-    let jobIdToDelete = null;
-    
-    function confirmDelete(jobId) {
-        jobIdToDelete = jobId;
-        const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmationModal'));
-        deleteModal.show();
-    }
-    
-    document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
-        if (jobIdToDelete) {
-            window.location.href = '../controllers/employer_delete_job.php?id=' + jobIdToDelete;
-        }
-    });
-    
-    // Pause job confirmation
-    let jobIdToPause = null;
-    
-    function pauseJob(jobId) {
-        jobIdToPause = jobId;
-        const pauseModal = new bootstrap.Modal(document.getElementById('pauseJobModal'));
-        pauseModal.show();
-    }
-    
-    document.getElementById('confirmPauseBtn').addEventListener('click', function() {
-        if (jobIdToPause) {
-            window.location.href = '../controllers/employer_pause_job.php?id=' + jobIdToPause;
-        }
-    });
-    
-    // Activate job
-    function activateJob(jobId) {
-        if (confirm('Are you sure you want to activate this job posting?')) {
-            window.location.href = '../controllers/employer_activate_job.php?id=' + jobId;
-        }
-    }
-    
-    // Duplicate job
-    function duplicateJob(jobId) {
-        if (confirm('Create a copy of this job posting?')) {
-            window.location.href = '../controllers/employer_duplicate_job.php?id=' + jobId;
-        }
-    }
-    
-    // Filter form submission
-    document.getElementById('jobFilterForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const status = document.getElementById('statusFilter').value;
-        const date = document.getElementById('dateFilter').value;
-        const search = document.getElementById('searchFilter').value;
-        
-        // Build query string
-        let queryParams = [];
-        if (status) queryParams.push(`status=${encodeURIComponent(status)}`);
-        if (date) queryParams.push(`date=${encodeURIComponent(date)}`);
-        if (search) queryParams.push(`search=${encodeURIComponent(search)}`);
-        
-        window.location.href = '../dashboard/employer_jobs.php?' + queryParams.join('&');
-    });
+        }, 3000);
+
+
+
+
 </script>
-
-
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -1337,14 +1295,5 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-<script>
-    setTimeout(() => {
-        const alert = document.querySelector('.alert');
-        if (alert) {
-            alert.style.display = 'none';
-        }
-    }, 3000);
-</script>
-
 </body>
 </html>
