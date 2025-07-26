@@ -14,7 +14,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 e.company_name,
                 COALESCE(e.job_title, 'N/A') AS job_title, 
                 (SELECT COUNT(*) FROM job_posting jp WHERE jp.employer_id = e.employer_id) AS jobs_posted,
-                COALESCE(e.status, 'Active') AS status 
+                COALESCE(e.status, 'Active') AS status,
+                e.document_url  -- Add document_url to the query
             FROM employer e
             LEFT JOIN user u ON e.user_id = u.user_id
         ");

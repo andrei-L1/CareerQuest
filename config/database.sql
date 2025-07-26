@@ -71,12 +71,13 @@ CREATE TABLE IF NOT EXISTS employer (
     company_name VARCHAR(255),
     job_title VARCHAR(255),
     company_logo VARCHAR(255),  -- Added for branding
-    status ENUM('Active', 'Suspended', 'Banned') DEFAULT 'Active',
+    status ENUM('Verification', 'Active', 'Suspended', 'Banned') DEFAULT 'Verification',
     company_website VARCHAR(255),
     contact_number VARCHAR(50),
     company_description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP NULL,
+    document_url VARCHAR(255) NULL COMMENT 'Uploaded verification document',
     FOREIGN KEY (user_id) REFERENCES user(user_id)
 );
 

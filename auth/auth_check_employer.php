@@ -70,22 +70,27 @@ if (!$actor_id) {
 
 // Define employer-specific page permissions
 $page_permissions = [
-    // Employer pages
+    // Pages accessible to verified employers only
     'employer.php' => ['active'],
-    'employer_profile.php' => ['active'],
     'post_job.php' => ['active'],
     'manage_jobs.php' => ['active'],
-    'employer_account_settings.php' => ['active'],
-    'manage_applications.php' => ['active'],
-    'view_application.php' => ['active'],
     'edit_job.php' => ['active'],
     'schedule_interview.php' => ['active'],
+    'manage_applications.php' => ['active'],
+    'view_application.php' => ['active'],
+
+    // Pages accessible to employers in verification stage
+    'employer_profile.php' => ['active', 'verification'],
+    'employer_account_settings.php' => ['active', 'verification'],
+
     // Shared pages
-    'forum.php' => ['active'],
-    'resources.php' => ['active'],
-    // Admin pages (for reference - employers shouldn't access these)
-    'admin_dashboard.php' => ['admin'],
+    'forum.php' => ['active', 'verification'],
+    'resources.php' => ['active', 'verification'],
+
+    // Admin pages (for reference only)
+    'admin_dashboard.php' => ['admin']
 ];
+
 
 // Get current page safely
 $current_page = htmlspecialchars(basename($_SERVER['PHP_SELF']), ENT_QUOTES, 'UTF-8');

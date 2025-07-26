@@ -1,7 +1,5 @@
 <?php
 include "../includes/sidebar.php";
-require "../controllers/chart_query.php";
-require "../controllers/admin_dashboard.php";
 require '../auth/auth_check.php'; 
 require '../config/dbcon.php';
 
@@ -603,6 +601,7 @@ $totalExpiringJobs = $stats['total_expiring_jobs'];
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="employers-tab" data-bs-toggle="tab" data-bs-target="#employers" type="button" role="tab">Employers</button>
                 </li>
+                  <!--
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="moderation-tab" data-bs-toggle="tab" data-bs-target="#moderation" type="button" role="tab">Moderation</button>
                 </li>
@@ -612,6 +611,7 @@ $totalExpiringJobs = $stats['total_expiring_jobs'];
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="expiry-tab" data-bs-toggle="tab" data-bs-target="#expiry" type="button" role="tab">Job Expiry</button>
                 </li>
+                -->
             </ul>
             
             <div class="tab-content mt-3" id="adminTabsContent">
@@ -641,22 +641,24 @@ $totalExpiringJobs = $stats['total_expiring_jobs'];
                         <button class="btn btn-md btn-outline-primary filter-btn" onclick="filterEmployers('Active', this)">Active</button>
                         <button class="btn btn-md btn-outline-primary filter-btn" onclick="filterEmployers('Suspended', this)">Suspended</button>
                         <button class="btn btn-md btn-outline-primary filter-btn" onclick="filterEmployers('Banned', this)">Banned</button>
+                        <button class="btn btn-md btn-outline-primary filter-btn" onclick="filterEmployers('Verification', this)">Verification</button>
                     </div>
                 </div>
                     <table class="table table-striped">
                         <thead>
                             <tr>
                                 <th>Employer Name</th>
-                                <th>Company Name</th> <!-- Added this column -->
-                                <th>Job Title</th> <!-- Added this column -->
+                                <th>Company Name</th>
+                                <th>Job Title</th>
                                 <th>Jobs Posted</th>
                                 <th>Status</th>
+                                <th>Document</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="employerTableBody">
                             <tr id="loadingRow">
-                                <td colspan="6" class="text-center">Loading employers...</td>
+                                <td colspan="7" class="text-center">Loading employers...</td> <!-- Update colspan to 7 -->
                             </tr>
                         </tbody>
                     </table>
@@ -722,10 +724,33 @@ $totalExpiringJobs = $stats['total_expiring_jobs'];
                             <input type="text" id="location" name="location" class="form-control" required>
                         </div>
 
-                        <!-- Salary -->
+                        <!-- Salary Fields -->
                         <div class="col-md-6">
-                            <label for="salary" class="form-label"><i class="fas fa-dollar-sign me-1"></i>Salary ($)</label>
-                            <input type="number" id="salary" name="salary" class="form-control" step="0.01" min="0" required>
+                            <label for="min_salary" class="form-label"><i class="fas fa-dollar-sign me-1"></i>Min Salary ($)</label>
+                            <input type="number" id="min_salary" name="min_salary" class="form-control" step="0.01" min="0">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="max_salary" class="form-label"><i class="fas fa-dollar-sign me-1"></i>Max Salary ($)</label>
+                            <input type="number" id="max_salary" name="max_salary" class="form-control" step="0.01" min="0">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="salary_type" class="form-label"><i class="fas fa-money-check-alt me-1"></i>Salary Type</label>
+                            <select id="salary_type" name="salary_type" class="form-select" required>
+                                <option value="">Select Salary Type</option>
+                                <option value="Hourly">Hourly</option>
+                                <option value="Weekly">Weekly</option>
+                                <option value="Monthly">Monthly</option>
+                                <option value="Yearly">Yearly</option>
+                                <option value="Commission">Commission</option>
+                                <option value="Negotiable">Negotiable</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="salary_disclosure" class="form-label"><i class="fas fa-eye me-1"></i>Salary Disclosure</label>
+                            <select id="salary_disclosure" name="salary_disclosure" class="form-select" required>
+                                <option value="1">Public</option>
+                                <option value="0">Not Disclosed</option>
+                            </select>
                         </div>
 
                         <!-- Job Title -->
@@ -917,7 +942,27 @@ $totalExpiringJobs = $stats['total_expiring_jobs'];
                     });
                 }
             });
+            
+            // Toggle min_salary and max_salary based on salary_disclosure
+            const salaryDisclosure = document.getElementById('salary_disclosure');
+            const minSalary = document.getElementById('min_salary');
+            const maxSalary = document.getElementById('max_salary');
 
+            function toggleSalaryFields() {
+                const isDisclosed = salaryDisclosure.value === '1';
+                minSalary.disabled = !isDisclosed;
+                maxSalary.disabled = !isDisclosed;
+                if (!isDisclosed) {
+                    minSalary.value = '';
+                    maxSalary.value = '';
+                }
+            }
+
+            // Initial state
+            toggleSalaryFields();
+
+            // Update on change
+            salaryDisclosure.addEventListener('change', toggleSalaryFields);
         </script>
     </body>
 </html>

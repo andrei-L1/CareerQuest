@@ -2,13 +2,37 @@
 require '../controllers/employer_jobs.php';
 require '../auth/employer_auth.php';
 include '../includes/employer_navbar.php';
+
+// Fetch employer status and document_url status
+global $conn;
+$user_id = $_SESSION['user_id'];
+try {
+    $stmt = $conn->prepare("SELECT employer_id, status, document_url FROM employer WHERE user_id = :user_id AND deleted_at IS NULL");
+    $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+    $stmt->execute();
+    $employer = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$employer) {
+        $_SESSION['error'] = "Employer account not found.";
+        header("Location: ../unauthorized.php");
+        exit();
+    }
+    $employer_id = $employer['employer_id'];
+    $employer_status = $employer['status'];
+    $has_document = !empty($employer['document_url']) ? '1' : '0'; // Flag for document presence
+} catch (PDOException $e) {
+    $_SESSION['error'] = "Database error: " . $e->getMessage();
+    header("Location: ../error.php");
+    exit();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="employer-id" content="123"> <!-- Set employer_id dynamically -->
+    <meta name="employer-id" content="<?php echo htmlspecialchars($employer_id); ?>">
+    <meta name="employer-status" content="<?php echo htmlspecialchars($employer_status); ?>">
+    <meta name="has-document" content="<?php echo htmlspecialchars($has_document); ?>">
     <title>Post New Job</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -18,6 +42,10 @@ include '../includes/employer_navbar.php';
         .alert {
             position: fixed; top: 20px; right: 20px; z-index: 1100;
             min-width: 300px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .form-disabled { opacity: 0.6; pointer-events: none; }
+        .alert-verification {
+            background-color: #fff3cd; border-color: #ffec99; color: #856404;
         }
     </style>
 </head>
@@ -29,7 +57,16 @@ include '../includes/employer_navbar.php';
                 <i class="fas fa-arrow-left me-2"></i>Back to Jobs
             </a>
         </div>
-        <form id="addJobForm" method="POST">
+        <?php if ($employer_status === 'Verification' || $has_document === '0'): ?>
+            <div class="alert alert-verification alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <?php echo $employer_status === 'Verification' ? 
+                    'Your account is under verification. Please wait for approval before posting jobs.' : 
+                    'You must upload a verification document before posting jobs. <a href="employer_settings.php">Upload now</a>.'; ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+        <form id="addJobForm" method="POST" class="<?php echo $employer_status === 'Verification' || $has_document === '0' ? 'form-disabled' : ''; ?>">
             <div class="row g-3">
                 <div class="col-md-12">
                     <label for="jobTitle" class="form-label">Job Title *</label>
@@ -86,18 +123,27 @@ include '../includes/employer_navbar.php';
                 </div>
             </div>
             <div class="mt-4 d-flex justify-content-end">
-                <button type="submit" class="btn btn-primary">Post Job</button>
+                <button type="submit" class="btn btn-primary" <?php echo $employer_status === 'Verification' || $has_document === '0' ? 'disabled' : ''; ?>>Post Job</button>
             </div>
         </form>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let cachedSkills = [];
         let tagify;
         let skillMap = {}; // name => id
 
         document.addEventListener('DOMContentLoaded', function() {
+            // Check employer status and document presence
+            const employerStatus = document.querySelector('meta[name="employer-status"]').getAttribute('content');
+            const hasDocument = document.querySelector('meta[name="has-document"]').getAttribute('content');
+            if (employerStatus === 'Verification' || hasDocument === '0') {
+                document.querySelector('#addJobForm').classList.add('form-disabled');
+                document.querySelector('#addJobForm button[type="submit"]').disabled = true;
+            }
+
             loadJobTypes();
             loadSkills();
             document.getElementById("addJobForm").addEventListener("submit", handleJobFormSubmit);
@@ -181,6 +227,16 @@ include '../includes/employer_navbar.php';
 
         function handleJobFormSubmit(event) {
             event.preventDefault();
+            const employerStatus = document.querySelector('meta[name="employer-status"]').getAttribute('content');
+            const hasDocument = document.querySelector('meta[name="has-document"]').getAttribute('content');
+            if (employerStatus === 'Verification' || hasDocument === '0') {
+                const message = employerStatus === 'Verification' 
+                    ? 'Your account is under verification. Please wait for approval before posting jobs.'
+                    : 'You must upload a verification document before posting jobs. <a href="employer_settings.php">Upload now</a>.';
+                showAlert('danger', message);
+                return;
+            }
+
             const formData = new FormData(document.getElementById('addJobForm'));
 
             const selectedSkills = tagify.value;
@@ -205,7 +261,7 @@ include '../includes/employer_navbar.php';
             .then(data => {
                 if (data.success) {
                     showAlert('success', 'Job posted successfully!');
-                    setTimeout(() => window.location.reload(), 1500);
+                    setTimeout(() => window.location.href = 'employer_jobs.php', 1500);
                 } else {
                     showAlert('danger', 'Error: ' + data.error);
                 }

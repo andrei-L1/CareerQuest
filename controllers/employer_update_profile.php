@@ -34,9 +34,11 @@ if (!is_dir($targetDir)) {
 
 // File type whitelists
 $allowedImageTypes = ['jpg', 'jpeg', 'png', 'gif'];
+$allowedDocumentTypes = ['pdf', 'jpg', 'jpeg', 'png']; // For document_url
 
 // File size limits (in bytes)
 $maxImageSize = 10 * 1024 * 1024; // 10MB
+$maxDocumentSize = 10 * 1024 * 1024; // 10MB for documents
 
 // Initialize response
 $response = ["status" => "success", "message" => "Profile updated successfully"];
@@ -57,7 +59,7 @@ try {
     $employer_id = $employer['employer_id'];
 
     // Check for required columns in employer table
-    $requiredColumns = ['company_description', 'company_website'];
+    $requiredColumns = ['company_description', 'company_website', 'document_url'];
     $columnsStmt = $conn->query("SHOW COLUMNS FROM employer");
     $columns = $columnsStmt->fetchAll(PDO::FETCH_COLUMN, 0);
     foreach ($requiredColumns as $col) {
@@ -127,6 +129,37 @@ try {
         $updateEmployerStmt = $conn->prepare("UPDATE employer SET company_logo = :filename WHERE employer_id = :employer_id");
         $updateEmployerStmt->execute([':filename' => $newFileName, ':employer_id' => $employer_id]);
         $response['company_logo'] = $newFileName;
+    }
+
+    // Handle Document Upload
+    if (!empty($_FILES["document_url"]["name"])) {
+        $fileInfo = $_FILES["document_url"];
+        $fileName = basename($fileInfo["name"]);
+        $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+        $fileSize = $fileInfo["size"];
+
+        // Validate file
+        if (!in_array($fileExtension, $allowedDocumentTypes)) {
+            throw new Exception("Only PDF, JPG, JPEG, PNG files are allowed for verification documents");
+        }
+
+        if ($fileSize > $maxDocumentSize) {
+            throw new Exception("Verification document must be less than 10MB");
+        }
+
+        // Generate unique filename
+        $newFileName = "doc_" . $user_id . "_" . time() . "." . $fileExtension;
+        $targetFilePath = $targetDir . $newFileName;
+
+        // Move uploaded file
+        if (!move_uploaded_file($fileInfo["tmp_name"], $targetFilePath)) {
+            throw new Exception("Failed to upload verification document");
+        }
+
+        // Update employer table with new document
+        $updateEmployerStmt = $conn->prepare("UPDATE employer SET document_url = :filename WHERE employer_id = :employer_id");
+        $updateEmployerStmt->execute([':filename' => $newFileName, ':employer_id' => $employer_id]);
+        $response['document_url'] = $newFileName;
     }
 
     // Handle profile information updates

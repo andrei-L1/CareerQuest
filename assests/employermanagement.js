@@ -20,6 +20,9 @@ $(document).ready(function () {
                 let suspendDisabled = emp.status === "Suspended" || emp.status === "Banned" ? "disabled" : "";
                 let banDisabled = emp.status === "Banned" ? "disabled" : "";
                 let reactivateDisabled = emp.status === "Active" ? "disabled" : "";
+                let documentLink = emp.document_url 
+                    ? `<a href="../Uploads/${emp.document_url}" target="_blank" class="btn btn-info btn-sm">View</a>` 
+                    : "No document";
 
                 tbody.append(`
                     <tr>
@@ -28,10 +31,13 @@ $(document).ready(function () {
                         <td>${emp.job_title}</td>
                         <td>${emp.jobs_posted}</td>
                         <td class="status-cell">${emp.status}</td>
+                        <td>${documentLink}</td>
                         <td>
                             <button class="btn btn-warning suspend-btn" data-id="${emp.employer_id}" ${suspendDisabled}>Suspend</button>
                             <button class="btn btn-danger ban-btn" data-id="${emp.employer_id}" ${banDisabled}>Ban</button>
-                            <button class="btn btn-success reactivate-btn" data-id="${emp.employer_id}" ${reactivateDisabled}>Reactivate</button>
+                            <button class="btn btn-success reactivate-btn" data-id="${emp.employer_id}" ${reactivateDisabled}>
+                                ${emp.status === "Verification" ? "Activate" : "Reactivate"}
+                            </button>
                         </td>
                     </tr>
                 `);
@@ -68,6 +74,10 @@ $(document).ready(function () {
                         row.find(".suspend-btn").prop("disabled", newStatus !== "Active");
                         row.find(".ban-btn").prop("disabled", newStatus === "Banned");
                         row.find(".reactivate-btn").prop("disabled", newStatus === "Active");
+                        // Update button text to "Reactivate" after activation
+                        if (newStatus === "Active") {
+                            row.find(".reactivate-btn").text("Reactivate");
+                        }
                     } else {
                         alert("Error: " + response.error);
                         button.prop("disabled", false);
@@ -83,7 +93,6 @@ $(document).ready(function () {
     });
 });
 
-
 function filterEmployers(status, button) {
     // Remove active class from all buttons
     document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
@@ -93,7 +102,7 @@ function filterEmployers(status, button) {
     let rows = document.querySelectorAll("#employerTableBody tr");
 
     rows.forEach(row => {
-        let statusCell = row.querySelector("td:nth-child(5)"); // Adjust index if needed
+        let statusCell = row.querySelector("td:nth-child(5)"); // Status is 5th column (index 4)
         if (!statusCell) return; // Skip if no status cell
 
         let currentStatus = statusCell.textContent.trim();
@@ -117,6 +126,10 @@ function filterEmployers(status, button) {
         } else if (status === "Banned") {
             suspendBtn.style.display = "none";
             banBtn.style.display = "none";
+            reactivateBtn.style.display = "inline-block";
+        } else if (status === "Verification") {
+            suspendBtn.style.display = "inline-block";
+            banBtn.style.display = "inline-block";
             reactivateBtn.style.display = "inline-block";
         } else {
             // Show all buttons when "All" filter is selected

@@ -27,12 +27,11 @@ try {
             u.user_id, u.user_first_name, u.user_middle_name, u.user_last_name, 
             u.user_email, u.picture_file,
             e.employer_id, e.company_name, e.job_title, e.company_logo,
-            e.company_website, e.contact_number, e.company_description
+            e.company_website, e.contact_number, e.company_description, e.document_url
         FROM user u
         JOIN employer e ON u.user_id = e.user_id
         WHERE u.user_id = :user_id AND u.deleted_at IS NULL
     ");
-    // Removed user_middle_name, u.status, and e.status from SELECT as they are not used
     $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
     $stmt->execute();
     $employer = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -431,6 +430,16 @@ $company_logo = !empty($employer['company_logo']) ? '../Uploads/' . $employer['c
                                         <label for="company_website" class="form-label">Company Website</label>
                                         <input type="url" id="company_website" class="form-control auto-save" name="company_website" value="<?php echo htmlspecialchars($employer['company_website'] ?? ''); ?>">
                                     </div>
+                                    <div class="col-md-6">
+                                        <label for="document_url" class="form-label">Verification Document</label>
+                                        <input type="file" id="document_url" class="form-control" name="document_url" accept=".pdf,.jpg,.jpeg,.png">
+                                        <div class="form-text">Upload a PDF or image (max 10MB) for verification.</div>
+                                        <?php if (!empty($employer['document_url'])): ?>
+                                            <div class="form-text mt-2">
+                                                Current file: <a href="../Uploads/<?php echo htmlspecialchars($employer['document_url']); ?>" target="_blank">View Document</a>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
                                     <div class="col-md-12">
                                         <label for="company_description" class="form-label">Company Description</label>
                                         <textarea id="company_description" class="form-control auto-save" name="company_description" rows="3"><?php echo htmlspecialchars($employer['company_description'] ?? ''); ?></textarea>
@@ -619,6 +628,50 @@ $company_logo = !empty($employer['company_logo']) ? '../Uploads/' . $employer['c
                             if (response.status === 'success' && response.company_logo) {
                                 $('#companyLogoPreview').attr('src', '../Uploads/' + response.company_logo);
                                 showAlert('Company logo updated!', 'success');
+                            } else {
+                                showAlert('Error: ' + response.message, 'danger');
+                            }
+                        },
+                        error: function(xhr) {
+                            let message = 'An error occurred.';
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                message = xhr.responseJSON.message;
+                            }
+                            showAlert(message, 'danger');
+                        }
+                    });
+                }
+            });
+
+            // Document upload
+            $('#document_url').change(function() {
+                if (this.files && this.files[0]) {
+                    const file = this.files[0];
+                    const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+                    if (file.size > maxSize) {
+                        showAlert('File size exceeds 10MB limit.', 'danger');
+                        $(this).val(''); // Clear the input
+                        return;
+                    }
+
+                    const formData = new FormData();
+                    formData.append('csrf_token', $('input[name="csrf_token"]').val());
+                    formData.append('document_url', file);
+
+                    $.ajax({
+                        url: '../controllers/employer_update_profile.php',
+                        type: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.status === 'success' && response.document_url) {
+                                // Update the "View Document" link
+                                const linkHtml = `Current file: <a href="../Uploads/${response.document_url}" target="_blank">View Document</a>`;
+                                $('#document_url').next('.form-text').next('.form-text').remove(); // Remove old link if exists
+                                $('#document_url').next('.form-text').after(`<div class="form-text mt-2">${linkHtml}</div>`);
+                                showAlert('Verification document updated!', 'success');
                             } else {
                                 showAlert('Error: ' + response.message, 'danger');
                             }

@@ -23,7 +23,7 @@ $user_id = $_SESSION['user_id'];
 global $conn;
 
 try {
-    $stmt = $conn->prepare("SELECT employer_id, company_name, company_logo FROM employer WHERE user_id = :user_id AND deleted_at IS NULL");
+    $stmt = $conn->prepare("SELECT employer_id, company_name, company_logo, `status`, document_url FROM employer WHERE user_id = :user_id AND deleted_at IS NULL");
     $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
     $stmt->execute();
     $employer = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -31,6 +31,16 @@ try {
     if (!$employer) {
         $_SESSION['error'] = "Employer account not found or has been deleted.";
         header("Location: ../unauthorized.php");
+        exit();
+    }
+
+    // Check if employer status is Verification or document_url is empty
+    if ($employer['status'] === 'Verification' || empty($employer['document_url'])) {
+        $errorMessage = $employer['status'] === 'Verification' 
+            ? "Your account is under verification. Please wait for approval before posting jobs."
+            : "You must upload a verification document before posting jobs.";
+        http_response_code(403);
+        echo json_encode(['success' => false, 'error' => $errorMessage]);
         exit();
     }
 } catch (PDOException $e) {
