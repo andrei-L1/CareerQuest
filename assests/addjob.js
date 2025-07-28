@@ -75,6 +75,12 @@ document.getElementById("addJobForm").addEventListener("submit", function (event
         }
     });
 
+    // Ensure salary fields are included
+    formData.append('min_salary', document.getElementById('min_salary').value || null);
+    formData.append('max_salary', document.getElementById('max_salary').value || null);
+    formData.append('salary_type', document.getElementById('salary_type').value);
+    formData.append('salary_disclosure', document.getElementById('salary_disclosure').value);
+
     fetch("../controllers/job_moderation.php", {
         method: "POST",
         body: formData
@@ -82,13 +88,29 @@ document.getElementById("addJobForm").addEventListener("submit", function (event
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert("Job added successfully!");
-            location.reload();
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: 'Job added successfully!',
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => location.reload());
         } else {
-            alert("Error: " + data.error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.error || 'Failed to add job'
+            });
         }
     })
-    .catch(error => console.error("Error:", error));
+    .catch(error => {
+        console.error("Error:", error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Request failed'
+        });
+    });
 });
 
 // Load Employers & Job Types Dynamically

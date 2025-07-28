@@ -43,7 +43,34 @@ $totalExpiringJobs = $stats['total_expiring_jobs'];
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- Custom Styles -->
-    <style>
+    <style>.card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.card-body .d-flex.align-items-center {
+    flex-wrap: wrap;
+}
+
+.card-body img {
+    object-fit: cover;
+}
+
+.card-text {
+    margin-bottom: 0.5rem;
+}
+
+.card-text i {
+    margin-right: 5px;
+    color: var(--primary-color);
+}
+
+@media (max-width: 576px) {
+    .card {
+        min-height: 360px !important;
+    }
+}
         :root {
             --primary-color: #0A2647; /* Navy Blue */
             --secondary-color: #2C7865; /* Teal */
@@ -557,7 +584,7 @@ $totalExpiringJobs = $stats['total_expiring_jobs'];
 
    <!-- Main Content -->
    <main class="main-content">
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom ">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom ">
                 <h1 class="h2">Job Management Panel</h1>
                 <div class="d-flex gap-2">
                     <button class="btn btn-primary d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#addJobModal">

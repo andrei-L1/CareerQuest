@@ -496,11 +496,7 @@ if (!empty($resumeFile) && file_exists($uploadsDir . $resumeFile)) {
                         <li><h6 class="custom-dropdown-header"><?= htmlspecialchars($firstName . ' ' . $lastName) ?></h6></li>
                         <li><hr class="custom-dropdown-divider"></li>
                         <li><a class="custom-dropdown-item" href="../dashboard/employer_profile.php"><i class="bi bi-person"></i> My Profile</a></li>
-                        <?php if ($resumeLink): ?>
-                            <li><a class="custom-dropdown-item" href="<?= $resumeLink ?>" target="_blank"><i class="bi bi-file-earmark-text"></i> My Resume</a></li>
-                        <?php else: ?>
-                            <li><a class="custom-dropdown-item" href="javascript:void(0);"><i class="bi bi-file-earmark-text"></i> No Resume Uploaded</a></li>
-                        <?php endif; ?>
+
                         <li><a class="custom-dropdown-item" href="../dashboard/employer_account_settings.php"><i class="bi bi-gear"></i> Account Settings</a></li>
                         <li><hr class="custom-dropdown-divider"></li>
                         <li><a class="custom-dropdown-item text-danger" href="../auth/logout.php"><i class="bi bi-box-arrow-right"></i> Logout</a></li>

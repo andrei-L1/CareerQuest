@@ -518,7 +518,7 @@ if ($completion_percentage < 100 && !isset($_SESSION['profile_modal_shown'])) {
                     <a href="employer_account_settings.php" class="btn btn-outline-primary py-2">
                         <i class="bi bi-pencil-fill me-2"></i> Edit Profile
                     </a>
-                    <a href="employer_company_profile.php" class="btn btn-outline-secondary py-2">
+                    <a href="employer_profile.php" class="btn btn-outline-secondary py-2">
                         <i class="bi bi-building me-2"></i> Company Profile
                     </a>
                 </div>

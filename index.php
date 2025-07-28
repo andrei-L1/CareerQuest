@@ -59,7 +59,10 @@ try {
             jp.title,
             jp.description,
             jp.location,
-            jp.salary,
+            jp.min_salary,
+            jp.max_salary,
+            jp.salary_type,
+            jp.salary_disclosure,
             jp.posted_at,
             jp.expires_at,
             jt.job_type_title,
@@ -78,18 +81,56 @@ try {
     $stmt = $conn->prepare($query);
     $stmt->execute();
     $jobs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    error_log("Featured jobs retrieved: " . count($jobs));
+    if (empty($jobs)) {
+        error_log("No jobs found with query: " . $query);
+    }
 } catch (PDOException $e) {
     error_log("Database error: " . $e->getMessage());
     $jobs = [];
 }
-function formatSalary($salary) {
-    if ($salary === null) {
-        return 'Not Specified';
+function formatSalary($min_salary, $max_salary, $salary_type, $salary_disclosure) {
+    if (!$salary_disclosure) {
+        return 'Not Disclosed';
     }
-    if ($salary < 1000) { // Assuming low values are hourly rates
-        return '$' . number_format($salary, 2) . '/hr';
+    if ($min_salary === null && $max_salary === null) {
+        return $salary_type === 'Negotiable' ? 'Negotiable' : 'Not Disclosed';
     }
-    return '$' . number_format($salary / 1000, 0) . 'k - $' . number_format(($salary / 1000) + 30, 0) . 'k';
+
+    $formatted = '';
+    switch ($salary_type) {
+        case 'Hourly':
+            $suffix = '/hr';
+            break;
+        case 'Weekly':
+            $suffix = '/wk';
+            break;
+        case 'Monthly':
+            $suffix = '/mo';
+            break;
+        case 'Yearly':
+            $suffix = '/yr';
+            break;
+        case 'Commission':
+            $suffix = ' (Commission)';
+            break;
+        case 'Negotiable':
+            $suffix = ' (Negotiable)';
+            break;
+        default:
+            $suffix = '';
+    }
+
+    if ($min_salary !== null && $max_salary !== null) {
+        $formatted = '$' . number_format($min_salary, 2) . ' - $' . number_format($max_salary, 2) . $suffix;
+    } elseif ($min_salary !== null) {
+        $formatted = '$' . number_format($min_salary, 2) . '+' . $suffix;
+    } elseif ($max_salary !== null) {
+        $formatted = 'Up to $' . number_format($max_salary, 2) . $suffix;
+    }
+
+    return $formatted;
 }
 ?>
 <!DOCTYPE html>
@@ -779,7 +820,7 @@ function formatSalary($salary) {
                                         <span class="text-muted"><?php echo htmlspecialchars($job['location'] ?: 'Not Specified'); ?></span>
                                     </div>
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <span class="badge bg-primary bg-opacity-10 text-primary"><?php echo formatSalary($job['salary']); ?></span>
+                                        <span class="badge bg-primary bg-opacity-10 text-primary"><?php echo formatSalary($job['min_salary'], $job['max_salary'], $job['salary_type'], $job['salary_disclosure']); ?></span>
                                         <a href="auth/login_student.php?id=<?php echo $job['job_id']; ?>" class="btn btn-sm btn-primary">Apply Now</a>
                                     </div>
                                 </div>

@@ -809,13 +809,17 @@ $profile_picture = !empty($employer['picture_file']) ? '../Uploads/' . $employer
                                 <div class="text-muted small">Applied on <?php echo date('M j, Y', strtotime($app['applied_date'])); ?></div>
                                 
                                 <div class="action-buttons mt-2">
+                                    <!-- 
                                     <a href="employer_applications.php?application_id=<?= htmlspecialchars($app['application_id']) ?>&csrf_token=<?= htmlspecialchars($csrf_token) ?>" class="btn btn-sm btn-outline-primary">
                                         <i class="fas fa-eye me-1"></i> View
                                     </a>
+                                     -->
                                     <?php if ($app['status'] === 'Pending' || $app['status'] === 'Under Review'): ?>
+                                        <!-- 
                                         <a href="employer_schedule_interview.php?application_id=<?= htmlspecialchars($app['application_id']) ?>&csrf_token=<?= htmlspecialchars($csrf_token) ?>" class="btn btn-sm btn-outline-success">
                                             <i class="fas fa-calendar-alt me-1"></i> Schedule Interview
                                         </a>
+                                        -->
                                     <?php endif; ?>
                                 </div>
                             </div>
@@ -884,16 +888,20 @@ $profile_picture = !empty($employer['picture_file']) ? '../Uploads/' . $employer
                                     </p>
                                     
                                     <div class="action-buttons mt-3">
+                                        <!--
                                         <a href="employer_jobs.php?job_id=<?= htmlspecialchars($job['job_id']) ?>&csrf_token=<?= htmlspecialchars($csrf_token) ?>" class="btn btn-sm btn-outline-primary">
                                             <i class="fas fa-eye me-1"></i> View
                                         </a>
                                         <a href="employer_post_job.php?edit=<?= htmlspecialchars($job['job_id']) ?>&csrf_token=<?= htmlspecialchars($csrf_token) ?>" class="btn btn-sm btn-outline-secondary">
                                             <i class="fas fa-edit me-1"></i> Edit
                                         </a>
+                                        -->
                                         <?php if ($job['moderation_status'] === 'Approved'): ?>
+                                            <!--
                                             <a href="employer_applications.php?job_id=<?= htmlspecialchars($job['job_id']) ?>&csrf_token=<?= htmlspecialchars($csrf_token) ?>" class="btn btn-sm btn-outline-success">
                                                 <i class="fas fa-users me-1"></i> View Applicants
                                             </a>
+                                            -->
                                         <?php endif; ?>
                                     </div>
                                 </div>
@@ -915,7 +923,7 @@ $profile_picture = !empty($employer['picture_file']) ? '../Uploads/' . $employer
         </div>
     </div>
 
-    <?php include '../includes/employer_footer.php'; ?>
+    <?php include '../includes/stud_footer.php'; ?>
     
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

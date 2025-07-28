@@ -261,12 +261,13 @@ try {
     $profile_fields = [
         'user_first_name' => 10,
         'user_last_name' => 10,
-        'company_name' => 20,
+        'company_name' => 10,
         'job_title' => 15,
         'company_logo' => 15,
         'company_website' => 10,
         'contact_number' => 10,
-        'company_description' => 10
+        'company_description' => 10,
+        'document_url' => 10,
     ];
 
     // Get employer profile details from both user and employer tables
@@ -280,7 +281,8 @@ try {
             e.company_logo,
             e.company_website,
             e.contact_number,
-            e.company_description
+            e.company_description,
+            e.document_url
         FROM user u
         LEFT JOIN employer e ON u.user_id = e.user_id
         WHERE u.user_id = :user_id
@@ -311,6 +313,7 @@ try {
                 case 'company_website': $missing_fields[] = 'Company Website'; break;
                 case 'contact_number': $missing_fields[] = 'Contact Number'; break;
                 case 'company_description': $missing_fields[] = 'Company Description'; break;
+                case 'document_url': $missing_fields[] = 'Supporting Documents'; break;
             }
         }
     }
