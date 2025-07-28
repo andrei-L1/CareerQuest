@@ -1,9 +1,8 @@
 <?php
 include "../includes/sidebar.php";
-require "../controllers/chart_query.php";
-require "../controllers/admin_dashboard.php";
 require "../controllers/admin_user_management.php";
 require '../auth/auth_check.php'; 
+$roles = fetchRoles();
 ?>
 
 
@@ -781,7 +780,7 @@ require '../auth/auth_check.php';
                             <select class="form-select bg-secondary text-light border-0" id="editUserRole" name="role" required>
                                 <?php foreach ($roles as $role): ?>
                                     <option value="<?= htmlspecialchars($role['role_id']) ?>" 
-                                        <?= ($role['role_id'] == $current_role_id) ? 'selected' : '' ?>>
+                                        <?= (isset($current_role_id) && $role['role_id'] == $current_role_id) ? 'selected' : '' ?>>
                                         <?= htmlspecialchars($role['role_title']) ?>
                                     </option>
                                 <?php endforeach; ?>

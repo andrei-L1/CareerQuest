@@ -7,7 +7,7 @@ require "../config/dbcon.php";
 require "../auth/auth_check.php"; 
 include "../includes/sidebar.php";
 
-// Ensure moderator is logged in
+
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../auth/login.php");
     exit();
@@ -16,7 +16,7 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 
 try {
-    // Fetch moderator details including role_title
+
     $stmt = $conn->prepare("
         SELECT u.user_first_name, u.user_last_name, r.role_title
         FROM user u
@@ -108,14 +108,41 @@ try {
 $reported_users = [];
 try {
     $stmt = $conn->prepare("
-        SELECT u.user_id, u.user_first_name, u.user_last_name, u.user_email,
-               r.role_title, COUNT(re.report_id) as report_count, u.created_at
+        SELECT 
+            u.user_id AS id,
+            u.user_first_name AS first_name,
+            u.user_last_name AS last_name,
+            u.user_email AS email,
+            r.role_title AS role,
+            COUNT(re.report_id) AS report_count,
+            GROUP_CONCAT(DISTINCT re.reason SEPARATOR ', ') AS reasons,
+            u.created_at,
+            'user' AS user_type
         FROM user u
         JOIN role r ON u.role_id = r.role_id
         JOIN actor a ON a.entity_id = u.user_id AND a.entity_type = 'user'
         JOIN report re ON a.actor_id = re.content_id AND re.content_type = 'user'
         WHERE re.status = 'pending'
         GROUP BY u.user_id
+
+        UNION
+
+        SELECT 
+            s.stud_id AS id,
+            s.stud_first_name AS first_name,
+            s.stud_last_name AS last_name,
+            s.stud_email AS email,
+            'Student' AS role,
+            COUNT(re.report_id) AS report_count,
+            GROUP_CONCAT(DISTINCT re.reason SEPARATOR ', ') AS reasons,
+            s.created_at,
+            'student' AS user_type
+        FROM student s
+        JOIN actor a ON a.entity_id = s.stud_id AND a.entity_type = 'student'
+        JOIN report re ON a.actor_id = re.content_id AND re.content_type = 'student'
+        WHERE re.status = 'pending'
+        GROUP BY s.stud_id
+
         ORDER BY report_count DESC
         LIMIT 2
     ");
@@ -212,7 +239,7 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Moderator Dashboard</title>
+    <title>Forum content moderation</title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- SweetAlert2 CSS -->
@@ -794,10 +821,11 @@ try {
                                             <thead>
                                                 <tr>
                                                     <th width="5%">ID</th>
-                                                    <th width="25%">User</th>
-                                                    <th width="20%">Email</th>
-                                                    <th width="15%">Role</th>
-                                                    <th width="15%">Reports</th>
+                                                    <th width="20%">User</th>
+                                                    <th width="15%">Email</th>
+                                                    <th width="10%">Role</th>
+                                                    <th width="10%">Reports</th>
+                                                    <th width="20%">Reasons</th>
                                                     <th width="10%">Joined</th>
                                                     <th width="10%">Actions</th>
                                                 </tr>
@@ -805,24 +833,32 @@ try {
                                             <tbody>
                                                 <?php foreach ($reported_users as $user): ?>
                                                 <tr>
-                                                    <td><?php echo htmlspecialchars($user['user_id']); ?></td>
+                                                    <td><?php echo htmlspecialchars($user['id']); ?></td>
                                                     <td>
-                                                        <!-- <img src="https://via.placeholder.com/40" class="user-avatar" alt="User"> -->
-                                                        <?php echo htmlspecialchars($user['user_first_name'] . ' ' . $user['user_last_name']); ?>
+                                                        <?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name']); ?>
                                                     </td>
                                                     <td><?php echo htmlspecialchars($user['email']); ?></td>
-                                                    <td><?php echo htmlspecialchars($user['role_name']); ?></td>
+                                                    <td><?php echo htmlspecialchars($user['role']); ?></td>
                                                     <td><span class="badge bg-danger"><?php echo htmlspecialchars($user['report_count']); ?></span></td>
+                                                    <td>
+                                                        <span class="report-reasons" title="<?php echo htmlspecialchars($user['reasons']); ?>">
+                                                            <?php 
+                                                            // Show first 30 chars of reasons with ellipsis if longer
+                                                            $reasons = $user['reasons'];
+                                                            echo htmlspecialchars(strlen($reasons) > 30 ? substr($reasons, 0, 30) . '...' : $reasons); 
+                                                            ?>
+                                                        </span>
+                                                    </td>
                                                     <td>
                                                         <span class="time-ago" title="<?php echo htmlspecialchars($user['created_at']); ?>">
                                                             <?php echo time_elapsed_string($user['created_at']); ?>
                                                         </span>
                                                     </td>
                                                     <td class="action-buttons">
-                                                        <button class="btn btn-sm btn-warning" title="Warn" onclick="warnUser(<?php echo $user['user_id']; ?>)">
+                                                        <button class="btn btn-sm btn-warning" title="Warn" onclick="warnUser(<?php echo $user['id']; ?>, '<?php echo $user['user_type']; ?>')">
                                                             <i class="fas fa-exclamation-triangle"></i>
                                                         </button>
-                                                        <button class="btn btn-sm btn-danger" title="Ban" onclick="banUser(<?php echo $user['user_id']; ?>)">
+                                                        <button class="btn btn-sm btn-danger" title="Ban" onclick="banUser(<?php echo $user['id']; ?>, '<?php echo $user['user_type']; ?>')">
                                                             <i class="fas fa-ban"></i>
                                                         </button>
                                                     </td>
@@ -830,7 +866,7 @@ try {
                                                 <?php endforeach; ?>
                                                 <?php if (empty($reported_users)): ?>
                                                 <tr>
-                                                    <td colspan="7" class="text-center">No reported users found</td>
+                                                    <td colspan="8" class="text-center">No reported users found</td>
                                                 </tr>
                                                 <?php endif; ?>
                                             </tbody>
