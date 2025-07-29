@@ -199,13 +199,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception("Invalid entity type.");
         }
 
-        // === Insert into Actor Table ===
+        // === Check for Existing Actor Entry ===
         $actor_entity = ($entity === 'employer' || $entity === 'professional') ? 'user' : $entity;
-        $stmt = $conn->prepare("INSERT INTO actor (entity_type, entity_id) VALUES (:entity, :entity_id)");
-        $stmt->execute([
-            ':entity' => $actor_entity,
+        $checkActorStmt = $conn->prepare("SELECT COUNT(*) FROM actor WHERE entity_type = :entity_type AND entity_id = :entity_id");
+        $checkActorStmt->execute([
+            ':entity_type' => $actor_entity,
             ':entity_id' => $entity_id
         ]);
+        $actorExists = $checkActorStmt->fetchColumn();
+
+        if ($actorExists == 0) {
+            // Insert into Actor Table only if no entry exists
+            $stmt = $conn->prepare("INSERT INTO actor (entity_type, entity_id) VALUES (:entity, :entity_id)");
+            $stmt->execute([
+                ':entity' => $actor_entity,
+                ':entity_id' => $entity_id
+            ]);
+        }
 
         $conn->commit();
 
