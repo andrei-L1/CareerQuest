@@ -8,19 +8,23 @@ if (session_status() === PHP_SESSION_NONE) {
 require '../config/dbcon.php';
 
 // Redirect to login if not authenticated
-if (!isset($_SESSION['employer_id'])) {
-    error_log("Employer session not found, redirecting to login.");
-    header("Location: ../auth/login_employer.php");
+if (!isset($_SESSION['employer_id']) || !is_int($_SESSION['employer_id'])) {
+    error_log("Invalid or missing employer_id in session: " . var_export($_SESSION['employer_id'] ?? 'not set', true));
+    session_unset();
+    session_destroy();
+    header("Location: ../auth/login_employer.php?invalid_session=1");
     exit();
 }
 
 // Fetch employer details including status
-$stmt = $conn->prepare("SELECT e.*, u.user_first_name, u.user_last_name, u.user_email, e.status 
-                        FROM employer e
-                        LEFT JOIN user u ON e.user_id = u.user_id
-                        WHERE e.employer_id = :employer_id
-                        AND e.deleted_at IS NULL
-                        LIMIT 1");
+$stmt = $conn->prepare("
+    SELECT e.*, u.user_first_name, u.user_last_name, u.user_email, e.status 
+    FROM employer e
+    LEFT JOIN user u ON e.user_id = u.user_id
+    WHERE e.employer_id = :employer_id
+    AND e.deleted_at IS NULL
+    LIMIT 1
+");
 $stmt->bindParam(':employer_id', $_SESSION['employer_id'], PDO::PARAM_INT);
 $stmt->execute();
 $employer = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -44,28 +48,74 @@ if ($status === 'deleted' || $status === 'blocked') {
     exit();
 }
 
-// Fetch actor ID for features like forum/messages/notifications
-$actor_stmt = $conn->prepare("
-    SELECT actor_id
-    FROM actor
-    WHERE entity_type = 'employer' AND entity_id = :employer_id AND deleted_at IS NULL
-    LIMIT 1
-");
-$actor_stmt->bindParam(':employer_id', $_SESSION['employer_id'], PDO::PARAM_INT);
-$actor_stmt->execute();
-$actor = $actor_stmt->fetch(PDO::FETCH_ASSOC);
-
-$actor_id = $actor['actor_id'] ?? null;
-
-// Create actor record if it doesn't exist
-if (!$actor_id) {
-    $insert_actor = $conn->prepare("
-        INSERT INTO actor (entity_type, entity_id)
-        VALUES ('employer', :employer_id)
+// Fetch or create actor ID for features like forum/messages/notifications
+if (!isset($_SESSION['actor_id'])) {
+    $actor_stmt = $conn->prepare("
+        SELECT actor_id
+        FROM actor
+        WHERE entity_type = 'employer' AND entity_id = :employer_id AND deleted_at IS NULL
+        LIMIT 1
     ");
-    $insert_actor->bindParam(':employer_id', $_SESSION['employer_id'], PDO::PARAM_INT);
-    $insert_actor->execute();
-    $actor_id = $conn->lastInsertId();
+    $actor_stmt->bindParam(':employer_id', $_SESSION['employer_id'], PDO::PARAM_INT);
+    $actor_stmt->execute();
+    $actor = $actor_stmt->fetch(PDO::FETCH_ASSOC);
+    $actor_id = $actor['actor_id'] ?? null;
+
+    if (!$actor_id) {
+        // Check for soft-deleted record
+        $check_deleted = $conn->prepare("
+            SELECT actor_id
+            FROM actor
+            WHERE entity_type = 'user' AND entity_id = :employer_id
+            LIMIT 1
+        ");
+        $check_deleted->bindParam(':employer_id', $_SESSION['employer_id'], PDO::PARAM_INT);
+        $check_deleted->execute();
+        $deleted_actor = $check_deleted->fetch(PDO::FETCH_ASSOC);
+
+        if ($deleted_actor) {
+            // Restore soft-deleted record
+            error_log("Restoring soft-deleted actor record for employer_id: {$_SESSION['employer_id']}");
+            $restore_actor = $conn->prepare("
+                UPDATE actor
+                SET deleted_at = NULL
+                WHERE actor_id = :actor_id
+            ");
+            $restore_actor->bindParam(':actor_id', $deleted_actor['actor_id'], PDO::PARAM_INT);
+            $restore_actor->execute();
+            $actor_id = $deleted_actor['actor_id'];
+        } else {
+            // Create new actor record
+            error_log("Creating new actor record for employer_id: {$_SESSION['employer_id']}");
+            try {
+                $insert_actor = $conn->prepare("
+                    INSERT IGNORE INTO actor (entity_type, entity_id)
+                    VALUES ('employer', :employer_id)
+                ");
+                $insert_actor->bindParam(':employer_id', $_SESSION['employer_id'], PDO::PARAM_INT);
+                $insert_actor->execute();
+                $actor_id = $conn->lastInsertId();
+
+                if (!$actor_id) {
+                    // If no new record was inserted, fetch existing one
+                    $actor_stmt->execute();
+                    $actor = $actor_stmt->fetch(PDO::FETCH_ASSOC);
+                    $actor_id = $actor['actor_id'] ?? null;
+                } else {
+                    error_log("Created actor_id: $actor_id for employer_id: {$_SESSION['employer_id']}");
+                }
+            } catch (PDOException $e) {
+                error_log("Error inserting actor record: " . $e->getMessage());
+                // Fetch existing record in case of duplicate key
+                $actor_stmt->execute();
+                $actor = $actor_stmt->fetch(PDO::FETCH_ASSOC);
+                $actor_id = $actor['actor_id'] ?? null;
+            }
+        }
+    }
+    $_SESSION['actor_id'] = $actor_id;
+} else {
+    $actor_id = $_SESSION['actor_id'];
 }
 
 // Define employer-specific page permissions
@@ -90,7 +140,6 @@ $page_permissions = [
     // Admin pages (for reference only)
     'admin_dashboard.php' => ['admin']
 ];
-
 
 // Get current page safely
 $current_page = htmlspecialchars(basename($_SERVER['PHP_SELF']), ENT_QUOTES, 'UTF-8');
