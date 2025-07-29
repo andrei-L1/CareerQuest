@@ -39,7 +39,7 @@ $post = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$post) {
     $_SESSION['error'] = "Post not found";
-    header("Location: forum.php");
+    header("Location: ../dashboard/forums.php");
     exit;
 }
 
@@ -128,7 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment'])) {
         $stmt->execute([$post_id, $currentUser['actor_id'], $comment]);
         
         $_SESSION['success'] = "Comment added successfully!";
-        header("Location: post.php?post_id=" . $post_id);
+        header("Location: post.php?post_id=" . $post_id . "#post-$post_id");
         exit;
     } else {
         $_SESSION['error'] = "Comment cannot be empty";
@@ -152,6 +152,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment'])) {
             --danger-color: #ef4444; /* Red for errors */
             --light-gray: #f1f5f9; /* Lighter background */
             --dark-color: #1e293b; /* Darker text */
+            --announcement-bg: #fef3c7; /* Yellow background for announcements */
+            --announcement-border: #f59e0b; /* Amber border for announcements */
             --border-radius: 8px; /* Modern radius */
             --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             --transition: all 0.2s ease-in-out;
@@ -176,6 +178,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment'])) {
             background: white;
             margin-bottom: 2rem;
             transition: var(--transition);
+        }
+
+        .post-card.announcement {
+            background: var(--announcement-bg);
+            border-left: 4px solid var(--announcement-border);
         }
 
         .post-card:hover {
@@ -276,13 +283,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment'])) {
             font-size: 0.95rem;
         }
 
-        .badge-pinned {
-            background-color: #fef3c7;
+        .badge-pinned, .badge-announcement {
+            background-color: var(--announcement-bg);
             color: var(--dark-color);
             padding: 0.25rem 0.5rem;
             border-radius: 6px;
             font-size: 0.75rem;
             font-weight: 500;
+            margin-left: 0.5rem;
         }
 
         .comment-card {
@@ -523,6 +531,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment'])) {
             outline: 2px solid var(--primary-color);
             outline-offset: 2px;
         }
+        /* Post actions dropdown */
+        .post-actions-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .post-actions-btn {
+            background: none;
+            border: none;
+            color: var(--secondary-color);
+            font-size: 1.25rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .post-actions-btn:hover {
+            color: var(--primary-color);
+        }
+
+        .post-actions-menu {
+            position: absolute;
+            right: 0;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            padding: 0.5rem 0;
+            min-width: 180px;
+            z-index: 100;
+            display: none;
+        }
+
+        .post-actions-menu.show {
+            display: block;
+        }
+
+        .post-actions-menu a {
+            display: block;
+            padding: 0.5rem 1rem;
+            color: var(--dark-color);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .post-actions-menu a:hover {
+            background-color: var(--light-gray);
+            color: var(--primary-color);
+        }
+
+        .post-actions-menu a.danger {
+            color: var(--danger-color);
+        }
+
+        .post-actions-menu a.danger:hover {
+            background-color: #fee2e2;
+        }
     </style>
 </head>
 <body>
@@ -553,11 +616,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment'])) {
             <?php endif; ?>
             
             <!-- Main Post Card -->
-            <div class="post-card card" role="article">
+            <div class="post-card card <?php echo $post['is_announcement'] ? 'announcement' : ''; ?>" role="article" id="post-<?php echo $post['post_id']; ?>">
                 <div class="post-header card-header">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <h1 class="post-title"><?php echo htmlspecialchars($post['post_title']); ?></h1>
+                            <h1 class="post-title"><?php echo htmlspecialchars($post['post_title']); ?>
+                                <?php if ($post['is_announcement']): ?>
+                                    <span class="badge-announcement"><i class="bi bi-megaphone"></i> Announcement</span>
+                                <?php endif; ?>
+                            </h1>
                             <div class="user-info">
                                 <div class="avatar" aria-hidden="true">
                                     <?php if (!empty($post['poster_picture'])): ?>
@@ -611,27 +678,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment'])) {
                             <span><?php echo count($comments); ?> Comments</span>
                         </div>
                     </div>
-                    <div class="post-actions">
-                        <?php if ($currentUser['actor_id'] == $post['poster_id']): ?>
-                            <a href="edit_post.php?post_id=<?php echo $post_id; ?>" class="btn btn-outline-secondary" aria-label="Edit Post">
-                                <i class="bi bi-pencil"></i> Edit
-                            </a>
+                    <div class="post-actions d-flex flex-wrap gap-2 mt-3">
+                        <?php if ($currentUser['actor_id'] == $post['poster_id'] || $isModerator): ?>
+                            <div class="post-actions-dropdown">
+                                <button class="post-actions-btn" aria-label="Post actions">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                                <div class="post-actions-menu">
+                                    <a href="edit_post.php?post_id=<?php echo $post_id; ?>" aria-label="Edit Post">
+                                        <i class="bi bi-pencil"></i> Edit
+                                    </a>
+                                    <?php if ($isModerator || $currentUser['actor_id'] == $post['poster_id']): ?>
+                                        <a href="#" class="delete-post-btn danger" data-post-id="<?php echo $post_id; ?>" aria-label="Delete Post">
+                                            <i class="bi bi-trash"></i> Delete
+                                        </a>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
                         <?php endif; ?>
+
                         <?php if (!$isModerator): ?>
-                            <a href="#" class="report-btn" 
-                               data-bs-toggle="modal" 
-                               data-bs-target="#reportModal" 
-                               data-content-type="post" 
-                               data-content-id="<?php echo $post['post_id']; ?>" 
-                               aria-label="Report Post">
+                            <a href="#" 
+                            class="btn btn-outline-danger report-btn" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#reportModal" 
+                            data-content-type="post" 
+                            data-content-id="<?php echo $post['post_id']; ?>" 
+                            aria-label="Report Post">
                                 <i class="bi bi-flag"></i> Report
                             </a>
                         <?php endif; ?>
+
                         <a href="../dashboard/forums.php?forum_id=<?php echo $post['forum_id']; ?>" 
-                           class="btn btn-outline-secondary" aria-label="Back to Forum">
+                        class="btn btn-outline-secondary" 
+                        aria-label="Back to Forum">
                             <i class="bi bi-arrow-left"></i> Back to Forum
                         </a>
                     </div>
+
                 </div>
             </div>
             
@@ -866,6 +950,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment'])) {
                     });
                 });
             });
+
+            // Auto-scroll to post if anchor is present
+            if (window.location.hash === '#post-<?php echo $post['post_id']; ?>') {
+                document.getElementById('post-<?php echo $post['post_id']; ?>').scrollIntoView({
+                    behavior: 'smooth'
+                });
+            }
+        });
+        // Post actions dropdown
+        document.addEventListener('click', function(e) {
+            // Close all dropdowns when clicking anywhere
+            if (!e.target.closest('.post-actions-dropdown')) {
+                document.querySelectorAll('.post-actions-menu').forEach(menu => {
+                    menu.classList.remove('show');
+                });
+            }
+            
+            // Toggle dropdown when clicking the button
+            if (e.target.closest('.post-actions-btn')) {
+                const dropdown = e.target.closest('.post-actions-dropdown');
+                const menu = dropdown.querySelector('.post-actions-menu');
+                menu.classList.toggle('show');
+                e.preventDefault();
+            }
+            
+            // Handle delete post action
+            if (e.target.closest('.delete-post-btn')) {
+                e.preventDefault();
+                const postId = e.target.closest('.delete-post-btn').dataset.postId;
+                if (confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+                    fetch('../forum/delete_own_post.php', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                        body: `post_id=${postId}`
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            showToast('Post deleted successfully!', 'success');
+                            setTimeout(() => {
+                                window.location.href = '../dashboard/forums.php?forum_id=<?php echo $post['forum_id']; ?>';
+                            }, 1500);
+                        } else {
+                            showToast(data.message || 'Failed to delete post.', 'error');
+                        }
+                    })
+                    .catch(err => {
+                        showToast('An error occurred.', 'error');
+                        console.error('Error:', err);
+                    });
+                }
+            }
         });
     </script>
 </body>

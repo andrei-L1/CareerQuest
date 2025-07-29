@@ -14,7 +14,7 @@ if (!isset($_SESSION['user_id']) && !isset($_SESSION['stud_id'])) {
 // Check if forum_id is provided
 if (!isset($_GET['forum_id'])) {
     $_SESSION['error'] = "Forum not specified";
-    header("Location: forum.php");
+    header("Location: forums.php");
     exit;
 }
 
@@ -28,7 +28,7 @@ $forum = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$forum) {
     $_SESSION['error'] = "Forum not found";
-    header("Location: forum.php");
+    header("Location: forums.php");
     exit;
 }
 
@@ -37,14 +37,23 @@ if (isset($_SESSION['user_id'])) {
     $currentUser = [
         'entity_type' => 'user',
         'entity_id' => $_SESSION['user_id'],
-        'name' => $_SESSION['user_first_name'] ?? 'User'
+        'name' => $_SESSION['user_first_name'] ?? 'User',
+        'role' => $_SESSION['user_role'] ?? 'Unknown'
     ];
+    // Check if user is a moderator or admin
+    $query = "SELECT r.role_title FROM user u JOIN role r ON u.role_id = r.role_id WHERE u.user_id = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->execute([$currentUser['entity_id']]);
+    $userDetails = $stmt->fetch(PDO::FETCH_ASSOC);
+    $isModerator = $userDetails && in_array($userDetails['role_title'], ['Admin', 'Moderator']);
 } else {
     $currentUser = [
         'entity_type' => 'student',
         'entity_id' => $_SESSION['stud_id'],
-        'name' => $_SESSION['stud_first_name'] ?? 'Student'
+        'name' => $_SESSION['stud_first_name'] ?? 'Student',
+        'role' => 'Student'
     ];
+    $isModerator = false;
 }
 
 // Get actor ID
@@ -54,7 +63,6 @@ $stmt->execute([$currentUser['entity_type'], $currentUser['entity_id']]);
 $actor = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$actor) {
-    // Create actor record if it doesn't exist
     $query = "INSERT INTO actor (entity_type, entity_id) VALUES (?, ?)";
     $stmt = $conn->prepare($query);
     $stmt->execute([$currentUser['entity_type'], $currentUser['entity_id']]);
@@ -63,22 +71,52 @@ if (!$actor) {
     $currentUser['actor_id'] = $actor['actor_id'];
 }
 
+// Check forum membership and role
+$query = "SELECT role, status FROM forum_membership WHERE forum_id = ? AND actor_id = ? AND deleted_at IS NULL";
+$stmt = $conn->prepare($query);
+$stmt->execute([$forum_id, $currentUser['actor_id']]);
+$membership = $stmt->fetch(PDO::FETCH_ASSOC);
+$isForumModerator = $membership && in_array($membership['role'], ['Moderator', 'Admin']) && $membership['status'] === 'Active';
+$isModerator = $isModerator || $isForumModerator;
+
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = trim($_POST['title']);
     $content = trim($_POST['content']);
-    $is_pinned = isset($_POST['is_pinned']) ? 1 : 0;
-    
+    $is_pinned = isset($_POST['is_pinned']) && $isModerator ? 1 : 0;
+    $is_announcement = isset($_POST['is_announcement']) && $isModerator ? 1 : 0;
+
     // Validate input
     if (empty($title) || empty($content)) {
         $_SESSION['error'] = "Title and content are required";
     } else {
         // Create the post
-        $query = "INSERT INTO forum_post (forum_id, post_title, poster_id, content, is_pinned) 
-                  VALUES (?, ?, ?, ?, ?)";
+        $query = "INSERT INTO forum_post (forum_id, post_title, poster_id, content, is_pinned, is_announcement) 
+                  VALUES (?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($query);
-        $stmt->execute([$forum_id, $title, $currentUser['actor_id'], $content, $is_pinned]);
-        
+        $stmt->execute([$forum_id, $title, $currentUser['actor_id'], $content, $is_pinned, $is_announcement]);
+        $post_id = $conn->lastInsertId();
+
+        // Send notifications for announcements
+        if ($is_announcement) {
+            $query = "SELECT actor_id FROM forum_membership WHERE forum_id = ? AND status = 'Active' AND actor_id != ?";
+            $stmt = $conn->prepare($query);
+            $stmt->execute([$forum_id, $currentUser['actor_id']]);
+            $members = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($members as $member) {
+                $query = "INSERT INTO notification (actor_id, message, notification_type, reference_type, reference_id, action_url)
+                          VALUES (?, ?, 'announcement', 'post', ?, ?)";
+                $stmt = $conn->prepare($query);
+                $stmt->execute([
+                    $member['actor_id'],
+                    "New announcement in " . htmlspecialchars($forum['title']) . ": " . htmlspecialchars($title),
+                    $post_id,
+                    "../dashboard/forums.php?forum_id=$forum_id#post-$post_id"
+                ]);
+            }
+        }
+
         $_SESSION['success'] = "Post created successfully!";
         header("Location: ../dashboard/forums.php?forum_id=" . $forum_id);
         exit;
@@ -361,6 +399,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <div class="post-container">
+        <!-- Sidebar Navigation -->
+        <?php require '../includes/forum_sidebar.php'; ?>
         <!-- Breadcrumb Navigation -->
         <nav aria-label="breadcrumb" class="mb-3">
             <ol class="breadcrumb">
@@ -408,17 +448,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                           aria-describedby="contentHelp"></textarea>
                                 <div id="contentHelp" class="form-text">Provide the main content of your post. Be clear and respectful.</div>
                             </div>
-                            <?php if ($currentUser['entity_type'] === 'user'): ?>
+                            <?php if ($isModerator): ?>
                                 <div class="mb-3 form-check">
                                     <input class="form-check-input" type="checkbox" id="is_pinned" name="is_pinned" 
                                            aria-describedby="pinHelp">
-                                    <label class="form-check-label" for="is_pinned">Pin this post (for moderators)</label>
+                                    <label class="form-check-label" for="is_pinned">Pin this post</label>
                                     <div id="pinHelp" class="form-text">Pinned posts appear at the top of the forum.</div>
+                                </div>
+                                <div class="mb-3 form-check">
+                                    <input class="form-check-input" type="checkbox" id="is_announcement" name="is_announcement" 
+                                           aria-describedby="announcementHelp">
+                                    <label class="form-check-label" for="is_announcement">Mark as Announcement</label>
+                                    <div id="announcementHelp" class="form-text">Announcements are highlighted and notify all forum members.</div>
                                 </div>
                             <?php endif; ?>
                             <div class="d-flex gap-2 justify-content-end">
                                 <a href="../dashboard/forums.php?forum_id=<?php echo $forum_id; ?>" 
-                                   class="btn btn-primary" aria-label="Cancel Post Creation">
+                                   class="btn btn-secondary" aria-label="Cancel Post Creation" style="color: black;">
                                     <i class="bi bi-x-circle me-1"></i> Cancel
                                 </a>
                                 <button type="submit" class="btn btn-primary" aria-label="Submit Post">

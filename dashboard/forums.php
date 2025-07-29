@@ -10,7 +10,6 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['stud_id'])) {
     echo "Error: Both user and student IDs are set. Only one should be set.";
     exit;
 }
-
 // Check if neither user_id nor stud_id is set
 if (!isset($_SESSION['user_id']) && !isset($_SESSION['stud_id'])) {
     header("Location: ../index.php");
@@ -123,6 +122,7 @@ $selectedForum = null;
 $forumPosts = [];
 $bannedFromForum = false;
 $isPrivateForum = false;
+$announcementsOnly = isset($_GET['announcements_only']) && $_GET['announcements_only'] == 1;
 
 if ($selectedForumId) {
     // Get the selected forum details
@@ -158,7 +158,7 @@ if ($selectedForumId) {
         }
         
         // Get posts for this forum (only if not banned and either not private or a member)
-        if (!$bannedFromForum && (!$isPrivateForum || $currentUser['forum_role'] || $currentUser['forum_status'] === 'Pending')) {
+        if (!$bannedFromForum && (!$isPrivateForum || $currentUser['forum_role'] || $currentUser['is_pending'])) {
             $query = "SELECT fp.*, 
                             CONCAT(COALESCE(u.user_first_name, s.stud_first_name), ' ', COALESCE(u.user_last_name, s.stud_last_name)) AS poster_name,
                             COALESCE(u.picture_file, s.profile_picture) AS poster_picture,
@@ -171,9 +171,9 @@ if ($selectedForumId) {
                     LEFT JOIN forum_membership fm ON fm.forum_id = fp.forum_id AND fm.actor_id = fp.poster_id
                     WHERE fp.forum_id = ? 
                         AND fp.deleted_at IS NULL
-                        AND fm.status = 'Active'
+                        AND fm.status = 'Active'" . (isset($announcementsOnly) && $announcementsOnly ? " AND fp.is_announcement = 1" : "") . "
                     GROUP BY fp.post_id
-                    ORDER BY fp.is_pinned DESC, fp.posted_at DESC";
+                    ORDER BY fp.is_announcement DESC, fp.is_pinned DESC, fp.posted_at DESC";
             $stmt = $conn->prepare($query);
             $stmt->execute([$selectedForumId]);
             $forumPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -191,7 +191,42 @@ $stmt = $conn->prepare($query);
 $stmt->execute([$currentUser['actor_id']]);
 $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+// Fetch notifications based on entity type
+if ($currentUser['entity_type'] === 'student') {
+    // Students: Fetch only 'announcement' notifications
+    $query = "SELECT * FROM notification 
+              WHERE actor_id = ? AND is_read = FALSE AND deleted_at IS NULL AND notification_type = 'announcement'
+              ORDER BY created_at DESC
+              LIMIT 5";
+    $stmt = $conn->prepare($query);
+    $stmt->execute([$currentUser['actor_id']]);
+    $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // Count unread notifications for students
+    $query = "SELECT COUNT(*) AS unread_count FROM notification 
+              WHERE actor_id = ? AND is_read = FALSE AND deleted_at IS NULL AND notification_type = 'announcement'";
+    $stmt = $conn->prepare($query);
+    $stmt->execute([$currentUser['actor_id']]);
+    $unreadCount = $stmt->fetch(PDO::FETCH_ASSOC)['unread_count'];
+} else {
+    // Users: Fetch 'announcement' and 'membership_request' notifications
+    $query = "SELECT * FROM notification 
+              WHERE actor_id = ? AND is_read = FALSE AND deleted_at IS NULL 
+              AND notification_type IN ('announcement', 'membership_request')
+              ORDER BY created_at DESC
+              LIMIT 5";
+    $stmt = $conn->prepare($query);
+    $stmt->execute([$currentUser['actor_id']]);
+    $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Count unread notifications for users
+    $query = "SELECT COUNT(*) AS unread_count FROM notification 
+              WHERE actor_id = ? AND is_read = FALSE AND deleted_at IS NULL 
+              AND notification_type IN ('announcement', 'membership_request')";
+    $stmt = $conn->prepare($query);
+    $stmt->execute([$currentUser['actor_id']]);
+    $unreadCount = $stmt->fetch(PDO::FETCH_ASSOC)['unread_count'];
+}
 
 // Check moderator status
 $isSystemModerator = false;
@@ -589,6 +624,16 @@ $isModerator = $isSystemModerator || $isForumModerator;
             margin-left: 0.5rem;
         }
 
+        .announcement-badge {
+            background-color: #fef3c7; /* Matches post-item.announcement */
+            color: #1e293b; /* Matches --dark-color */
+            border: 1px solid #f59e0b; /* Matches border-left */
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+        }
+
         .new-post-btn {
             background-color: var(--primary-color);
             color: white;
@@ -662,6 +707,64 @@ $isModerator = $isSystemModerator || $isForumModerator;
             border-left: 4px solid var(--danger-color);
         }
 
+        /* Notification Dropdown Styles */
+        .notification-dropdown {
+            width: 350px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 0;
+        }
+
+        .notification-item {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--light-gray);
+            transition: var(--transition);
+        }
+
+        .notification-item:hover {
+            background-color: var(--light-gray);
+        }
+
+        .notification-item.unread {
+            background-color: #f0f7ff;
+        }
+
+        .notification-message {
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .notification-time {
+            font-size: 0.75rem;
+            color: var(--secondary-color);
+        }
+
+        .notification-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+        }
+
+        .mark-read-btn {
+            font-size: 0.75rem;
+            color: var(--primary-color);
+            cursor: pointer;
+        }
+
+        .view-all-notifications {
+            display: block;
+            text-align: center;
+            padding: 0.75rem;
+            background-color: var(--light-gray);
+            color: var(--dark-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .view-all-notifications:hover {
+            background-color: #e2e8f0;
+        }
+
         /* Responsive Design */
         @media (max-width: 767px) {
             .forum-container {
@@ -691,6 +794,12 @@ $isModerator = $isSystemModerator || $isForumModerator;
 
             .forum-list {
                 grid-template-columns: 1fr;
+            }
+
+            .notification-dropdown {
+                width: 280px;
+                right: 0.5rem !important;
+                left: auto !important;
             }
 
             .sidebar-toggle {
@@ -753,6 +862,10 @@ $isModerator = $isSystemModerator || $isForumModerator;
         .report-btn i {
             margin-right: 0.4rem;
         }
+        .post-item.announcement {
+            background-color: #fef3c7; /* Light yellow for visibility */
+            border-left: 4px solid #f59e0b; /* Amber border */
+        }
     </style>
 </head>
 <body>
@@ -795,17 +908,71 @@ $isModerator = $isSystemModerator || $isForumModerator;
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="d-flex align-items-center" aria-label="Notifications (3 unread)">
+                            <a href="#" class="d-flex align-items-center position-relative" id="notificationDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notifications">
                                 <i class="bi bi-bell"></i>
                                 <span>Notifications</span>
-                                <span class="badge bg-danger ms-auto">3</span>
+                                <?php if ($unreadCount > 0): ?>
+                                    <span class="badge bg-danger ms-auto"><?php echo $unreadCount; ?></span>
+                                <?php endif; ?>
                             </a>
+                            <ul class="dropdown-menu notification-dropdown" aria-labelledby="notificationDropdown">
+                                <?php if (count($notifications) > 0): ?>
+                                    <?php foreach ($notifications as $notification): ?>
+                                        <li class="notification-item unread" data-notification-id="<?php echo $notification['notification_id']; ?>">
+                                            <div class="notification-message"><?php echo htmlspecialchars($notification['message']); ?></div>
+                                            <div class="notification-time">
+                                                <?php 
+                                                    $now = new DateTime();
+                                                    $createdAt = new DateTime($notification['created_at']);
+                                                    $interval = $now->diff($createdAt);
+                                                    
+                                                    if ($interval->y > 0) {
+                                                        echo $interval->y . ' year' . ($interval->y > 1 ? 's' : '') . ' ago';
+                                                    } elseif ($interval->m > 0) {
+                                                        echo $interval->m . ' month' . ($interval->m > 1 ? 's' : '') . ' ago';
+                                                    } elseif ($interval->d > 0) {
+                                                        echo $interval->d . ' day' . ($interval->d > 1 ? 's' : '') . ' ago';
+                                                    } elseif ($interval->h > 0) {
+                                                        echo $interval->h . ' hour' . ($interval->h > 1 ? 's' : '') . ' ago';
+                                                    } elseif ($interval->i > 0) {
+                                                        echo $interval->i . ' minute' . ($interval->i > 1 ? 's' : '') . ' ago';
+                                                    } else {
+                                                        echo 'Just now';
+                                                    }
+                                                ?>
+                                            </div>
+                                            <div class="notification-actions">
+                                                <a href="<?php echo htmlspecialchars($notification['action_url']); ?>" class="btn btn-sm btn-outline-primary">View</a>
+                                                <span class="mark-read-btn" data-notification-id="<?php echo $notification['notification_id']; ?>">Mark as read</span>
+                                            </div>
+                                        </li>
+                                    <?php endforeach; ?>
+                                    <li>
+                                        <a href="../forum/notifications.php" class="view-all-notifications">View all notifications</a>
+                                    </li>
+                                <?php else: ?>
+                                    <li class="notification-item text-center py-3">
+                                        No new notifications
+                                    </li>
+                                    <li>
+                                        <a href="../forum/notifications.php" class="view-all-notifications">View all notifications</a>
+                                    </li>
+                                <?php endif; ?>
+                            </ul>
                         </li>
                         <?php if ($isModerator): ?>
                             <li class="nav-item">
                                 <a href="../forum/manage_reports.php" class="d-flex align-items-center" aria-label="Manage Reports">
                                     <i class="bi bi-flag"></i>
                                     <span>Manage Reports</span>
+                                </a>
+                            </li>
+                        <?php endif; ?>
+                        <?php if ($selectedForumId): ?>
+                            <li class="nav-item <?php echo isset($announcementsOnly) && $announcementsOnly ? 'active' : ''; ?>">
+                                <a href="forums.php?forum_id=<?php echo $selectedForumId; ?>&announcements_only=1" class="d-flex align-items-center" aria-label="View Announcements">
+                                    <i class="bi bi-megaphone"></i>
+                                    <span>Announcements</span>
                                 </a>
                             </li>
                         <?php endif; ?>
@@ -844,6 +1011,11 @@ $isModerator = $isSystemModerator || $isForumModerator;
                     </div>
                     <ul class="nav-links">
                         <?php foreach ($forums as $forum): 
+                            $query = "SELECT status FROM forum_membership 
+                                    WHERE forum_id = ? AND actor_id = ? AND deleted_at IS NULL";
+                            $stmt = $conn->prepare($query);
+                            $stmt->execute([$forum['forum_id'], $currentUser['actor_id']]);
+                            $membership = $stmt->fetch(PDO::FETCH_ASSOC);
                             $isPending = ($membership['status'] ?? null) === 'Pending';
                         ?>
                             <li class="nav-item <?php echo $selectedForumId == $forum['forum_id'] ? 'active' : ''; ?>">
@@ -907,7 +1079,7 @@ $isModerator = $isSystemModerator || $isForumModerator;
                 <?php else: ?>
                     <div class="forum-header">
                         <div>
-                            <h2 class="forum-title"><?php echo htmlspecialchars($selectedForum['title']); ?></h2>
+                            <h2 class="forum-title"><?php echo htmlspecialchars($selectedForum['title']); ?><?php echo isset($announcementsOnly) && $announcementsOnly ? ' - Announcements' : ''; ?></h2>
                             <p class="text-muted mb-0"><?php echo htmlspecialchars($selectedForum['description']); ?></p>
                         </div>
                         <div class="d-flex align-items-center gap-2">
@@ -944,11 +1116,14 @@ $isModerator = $isSystemModerator || $isForumModerator;
                     <?php if (count($forumPosts) > 0): ?>
                         <ul class="post-list">
                             <?php foreach ($forumPosts as $post): ?>
-                                <li class="post-item clickable-post" data-post-id="<?php echo $post['post_id']; ?>" role="article">
+                                <li class="post-item <?php echo $post['is_announcement'] ? 'announcement' : ''; ?>" 
+                                    id="post-<?php echo $post['post_id']; ?>" 
+                                    data-post-id="<?php echo $post['post_id']; ?>" role="article">
                                     <div class="post-header">
                                         <div class="post-author-avatar" aria-hidden="true">
                                             <?php if (!empty($post['poster_picture'])): ?>
-                                                <img src="../Uploads/<?php echo htmlspecialchars($post['poster_picture']); ?>" alt="Profile Picture of <?php echo htmlspecialchars($post['poster_name']); ?>">
+                                                <img src="../Uploads/<?php echo htmlspecialchars($post['poster_picture']); ?>" 
+                                                    alt="Profile Picture of <?php echo htmlspecialchars($post['poster_name']); ?>">
                                             <?php else: ?>
                                                 <i class="bi bi-person-fill text-muted"></i>
                                             <?php endif; ?>
@@ -957,12 +1132,16 @@ $isModerator = $isSystemModerator || $isForumModerator;
                                             <div class="post-author-name"><?php echo htmlspecialchars($post['poster_name']); ?></div>
                                             <div class="post-date"><?php echo date('M j, Y g:i a', strtotime($post['posted_at'])); ?></div>
                                         </div>
-                                        <?php if ($post['is_pinned']): ?>
+                                        <?php if ($post['is_announcement']): ?>
+                                            <span class="announcement-badge"><i class="bi bi-megaphone"></i> Announcement</span>
+                                        <?php elseif ($post['is_pinned']): ?>
                                             <span class="pinned-badge"><i class="bi bi-pin-angle"></i> Pinned</span>
                                         <?php endif; ?>
                                     </div>
                                     <h3 class="post-title">
-                                        <a href="../forum/post.php?post_id=<?php echo $post['post_id']; ?>" style="color: inherit; text-decoration: none;">
+                                        <a href="../forum/post.php?post_id=<?php echo $post['post_id']; ?>" 
+                                        style="color: inherit; text-decoration: none;" 
+                                        aria-label="View Post: <?php echo htmlspecialchars($post['post_title']); ?>">
                                             <?php echo htmlspecialchars($post['post_title']); ?>
                                         </a>
                                     </h3>
@@ -1004,7 +1183,7 @@ $isModerator = $isSystemModerator || $isForumModerator;
                         <div class="alert alert-info mt-3">
                             <i class="bi bi-info-circle"></i>
                             <div>
-                                No posts yet in this forum. Be the first to post!
+                                <?php echo $announcementsOnly ? 'No announcements in this forum.' : 'No posts yet in this forum. Be the first to post!'; ?>
                             </div>
                         </div>
                     <?php endif; ?>
@@ -1019,7 +1198,7 @@ $isModerator = $isSystemModerator || $isForumModerator;
                         <div class="forum-list">
                             <?php foreach ($forums as $forum): 
                                 $query = "SELECT status FROM forum_membership 
-                                          WHERE forum_id = ? AND actor_id = ? AND deleted_at IS NULL";
+                                        WHERE forum_id = ? AND actor_id = ? AND deleted_at IS NULL";
                                 $stmt = $conn->prepare($query);
                                 $stmt->execute([$forum['forum_id'], $currentUser['actor_id']]);
                                 $membership = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -1263,6 +1442,82 @@ $isModerator = $isSystemModerator || $isForumModerator;
                         submitButton.classList.remove('disabled');
                         showToast('An error occurred.', 'error');
                         console.error('Error:', err);
+                    });
+                });
+
+                // Mark notification as read
+                document.querySelectorAll('.mark-read-btn').forEach(button => {
+                    button.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const notificationId = this.dataset.notificationId;
+                        const notificationItem = this.closest('.notification-item');
+                        
+                        fetch('../forum/mark_notification_read.php', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                            body: `notification_id=${notificationId}`
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                notificationItem.classList.remove('unread');
+                                // Update unread count in the badge
+                                const badge = document.querySelector('#notificationDropdown .badge');
+                                if (badge) {
+                                    const currentCount = parseInt(badge.textContent);
+                                    if (currentCount > 1) {
+                                        badge.textContent = currentCount - 1;
+                                    } else {
+                                        badge.remove();
+                                    }
+                                }
+                            } else {
+                                showToast('Failed to mark notification as read.', 'error');
+                            }
+                        })
+                        .catch(err => {
+                            showToast('An error occurred.', 'error');
+                            console.error('Error:', err);
+                        });
+                    });
+                });
+
+                // Clicking on a notification marks it as read
+                document.querySelectorAll('.notification-item a').forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        if (this.classList.contains('mark-read-btn') || this.classList.contains('view-all-notifications')) {
+                            return;
+                        }
+                        
+                        const notificationItem = this.closest('.notification-item');
+                        if (notificationItem.classList.contains('unread')) {
+                            const notificationId = notificationItem.dataset.notificationId;
+                            
+                            fetch('../forum/mark_notification_read.php', {
+                                method: 'POST',
+                                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                                body: `notification_id=${notificationId}`
+                            })
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.success) {
+                                    notificationItem.classList.remove('unread');
+                                    // Update unread count in the badge
+                                    const badge = document.querySelector('#notificationDropdown .badge');
+                                    if (badge) {
+                                        const currentCount = parseInt(badge.textContent);
+                                        if (currentCount > 1) {
+                                            badge.textContent = currentCount - 1;
+                                        } else {
+                                            badge.remove();
+                                        }
+                                    }
+                                }
+                            })
+                            .catch(err => {
+                                console.error('Error:', err);
+                            });
+                        }
                     });
                 });
             });

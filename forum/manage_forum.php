@@ -45,7 +45,7 @@ $forum = $stmt->fetch(PDO::FETCH_ASSOC);
 
 // Fetch forum members
 $query = "
-    SELECT fm.*, a.entity_type, 
+    SELECT fm.*, a.entity_type, a.entity_id, 
            COALESCE(u.user_first_name, s.stud_first_name) AS first_name,
            COALESCE(u.user_last_name, s.stud_last_name) AS last_name,
            COALESCE(u.picture_file, s.profile_picture) AS picture
@@ -59,6 +59,26 @@ $query = "
 $stmt = $conn->prepare($query);
 $stmt->execute([$forumId]);
 $members = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$userId = $_GET['user_id'] ?? null;
+$userType = $_GET['user_type'] ?? null;
+
+// Then when displaying the page, you can highlight the specific user if these parameters exist
+if ($userId && $userType) {
+    echo "<script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Scroll to and highlight the user's row
+            const userRow = document.querySelector('tr[data-user-id=\"$userId\"][data-user-type=\"$userType\"]');
+            if (userRow) {
+                userRow.scrollIntoView({behavior: 'smooth', block: 'center'});
+                userRow.style.backgroundColor = '#fffde7';
+                setTimeout(() => {
+                    userRow.style.backgroundColor = '';
+                }, 3000);
+            }
+        });
+    </script>";
+}
 ?>
 
 <!DOCTYPE html>
@@ -132,6 +152,18 @@ $members = $stmt->fetchAll(PDO::FETCH_ASSOC);
             color: #6c757d;
         }
     </style>
+    <style>
+        .highlighted-row {
+            background-color: #fffde7;
+            animation: fadeOutHighlight 3s forwards;
+        }
+
+        @keyframes fadeOutHighlight {
+            0% { background-color: #fffde7; }
+            100% { background-color: transparent; }
+        }
+    </style>
+
 </head>
 <body>
     <div class="container py-4">
@@ -177,7 +209,8 @@ $members = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <tbody>
                             <?php foreach ($members as $m): ?>
                                 <?php if ($m['status'] !== 'Pending'): ?>
-                                <tr>
+                                <tr data-user-id="<?php echo $m['entity_id']; ?>" data-user-type="<?php echo $m['entity_type']; ?>">
+
                                     <td>
                                         <?php if ($m['picture']): ?>
                                             <img src="../Uploads/<?php echo htmlspecialchars($m['picture']); ?>" class="member-avatar">
@@ -277,7 +310,8 @@ Admin' ? 'badge-admin' :
                         <tbody>
                             <?php foreach ($members as $m): ?>
                                 <?php if ($m['status'] === 'Pending'): ?>
-                                <tr>
+                               <tr data-user-id="<?php echo $m['entity_id']; ?>" data-user-type="<?php echo $m['entity_type']; ?>">
+
                                     <td>
                                         <?php if ($m['picture']): ?>
                                             <img src="../Uploads/<?php echo htmlspecialchars($m['picture']); ?>" class="member-avatar">

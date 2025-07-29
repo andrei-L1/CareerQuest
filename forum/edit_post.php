@@ -21,7 +21,7 @@ if (!isset($_GET['post_id'])) {
 $post_id = $_GET['post_id'];
 
 // Get post details
-$query = "SELECT fp.*, f.title AS forum_title
+$query = "SELECT fp.*, f.title AS forum_title, f.forum_id
           FROM forum_post fp
           JOIN forum f ON fp.forum_id = f.forum_id
           WHERE fp.post_id = ? AND fp.deleted_at IS NULL";
@@ -42,12 +42,19 @@ if (isset($_SESSION['user_id'])) {
         'entity_id' => $_SESSION['user_id'],
         'name' => $_SESSION['user_first_name'] ?? 'User'
     ];
+    // Check if user is a system moderator or admin
+    $query = "SELECT r.role_title FROM user u JOIN role r ON u.role_id = r.role_id WHERE u.user_id = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->execute([$currentUser['entity_id']]);
+    $userDetails = $stmt->fetch(PDO::FETCH_ASSOC);
+    $isModerator = $userDetails && in_array($userDetails['role_title'], ['Admin', 'Moderator']);
 } else {
     $currentUser = [
         'entity_type' => 'student',
         'entity_id' => $_SESSION['stud_id'],
         'name' => $_SESSION['stud_first_name'] ?? 'Student'
     ];
+    $isModerator = false;
 }
 
 // Get actor ID
@@ -64,9 +71,17 @@ if (!$actor) {
 
 $currentUser['actor_id'] = $actor['actor_id'];
 
-// Check if current user is the post author
-if ($currentUser['actor_id'] != $post['poster_id']) {
-    $_SESSION['error'] = "You can only edit your own posts";
+// Check forum membership and role
+$query = "SELECT role, status FROM forum_membership WHERE forum_id = ? AND actor_id = ? AND deleted_at IS NULL";
+$stmt = $conn->prepare($query);
+$stmt->execute([$post['forum_id'], $currentUser['actor_id']]);
+$membership = $stmt->fetch(PDO::FETCH_ASSOC);
+$isForumModerator = $membership && in_array($membership['role'], ['Moderator', 'Admin']) && $membership['status'] === 'Active';
+$isModerator = $isModerator || $isForumModerator;
+
+// Check if current user is the post author or a moderator
+if ($currentUser['actor_id'] != $post['poster_id'] && !$isModerator) {
+    $_SESSION['error'] = "You can only edit your own posts or posts in forums you moderate";
     header("Location: post.php?post_id=" . $post_id);
     exit;
 }
@@ -75,19 +90,57 @@ if ($currentUser['actor_id'] != $post['poster_id']) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = trim($_POST['title']);
     $content = trim($_POST['content']);
-    $is_pinned = isset($_POST['is_pinned']) ? 1 : 0;
-    
+    $is_pinned = isset($_POST['is_pinned']) && $isModerator ? 1 : 0;
+    $is_announcement = $isModerator ? (isset($_POST['is_announcement']) ? 1 : 0) : $post['is_announcement'];
+
     // Validate input
     if (empty($title) || empty($content)) {
         $_SESSION['error'] = "Title and content are required";
     } else {
         // Update the post
         $query = "UPDATE forum_post 
-                  SET post_title = ?, content = ?, is_pinned = ?, updated_at = CURRENT_TIMESTAMP
+                  SET post_title = ?, content = ?, is_pinned = ?, is_announcement = ?, updated_at = CURRENT_TIMESTAMP
                   WHERE post_id = ?";
         $stmt = $conn->prepare($query);
-        $stmt->execute([$title, $content, $is_pinned, $post_id]);
-        
+        $stmt->execute([$title, $content, $is_pinned, $is_announcement, $post_id]);
+
+        // Send notifications if announcement status changed
+        if ($is_announcement && !$post['is_announcement']) {
+            $query = "SELECT actor_id FROM forum_membership WHERE forum_id = ? AND status = 'Active' AND actor_id != ?";
+            $stmt = $conn->prepare($query);
+            $stmt->execute([$post['forum_id'], $currentUser['actor_id']]);
+            $members = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($members as $member) {
+                $query = "INSERT INTO notification (actor_id, message, notification_type, reference_type, reference_id, action_url)
+                          VALUES (?, ?, 'announcement', 'post', ?, ?)";
+                $stmt = $conn->prepare($query);
+                $stmt->execute([
+                    $member['actor_id'],
+                    "New announcement in " . htmlspecialchars($post['forum_title']) . ": " . htmlspecialchars($title),
+                    $post_id,
+                    "../dashboard/forums.php?forum_id={$post['forum_id']}#post-$post_id"
+                ]);
+            }
+        } elseif (!$is_announcement && $post['is_announcement']) {
+            $query = "SELECT actor_id FROM forum_membership WHERE forum_id = ? AND status = 'Active' AND actor_id != ?";
+            $stmt = $conn->prepare($query);
+            $stmt->execute([$post['forum_id'], $currentUser['actor_id']]);
+            $members = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($members as $member) {
+                $query = "INSERT INTO notification (actor_id, message, notification_type, reference_type, reference_id, action_url)
+                          VALUES (?, ?, 'announcement', 'post', ?, ?)";
+                $stmt = $conn->prepare($query);
+                $stmt->execute([
+                    $member['actor_id'],
+                    "Announcement removed in " . htmlspecialchars($post['forum_title']) . ": " . htmlspecialchars($title),
+                    $post_id,
+                    "../dashboard/forums.php?forum_id={$post['forum_id']}#post-$post_id"
+                ]);
+            }
+        }
+
         $_SESSION['success'] = "Post updated successfully!";
         header("Location: post.php?post_id=" . $post_id);
         exit;
@@ -307,6 +360,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 <?php endif; ?>
+                <?php if (isset($_SESSION['success'])): ?>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <?php echo $_SESSION['success']; unset($_SESSION['success']); ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                <?php endif; ?>
                 
                 <form method="POST" id="editPostForm">
                     <div class="mb-3">
@@ -322,17 +382,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                   required aria-describedby="contentHelp"><?php echo htmlspecialchars($post['content']); ?></textarea>
                         <div id="contentHelp" class="form-text">Provide the main content of your post. Be clear and respectful.</div>
                     </div>
-                    <?php if ($currentUser['entity_type'] === 'user'): ?>
+                    <?php if ($isModerator): ?>
                         <div class="mb-3 form-check">
                             <input type="checkbox" class="form-check-input" id="is_pinned" name="is_pinned" 
                                    <?php echo $post['is_pinned'] ? 'checked' : ''; ?> aria-describedby="pinHelp">
-                            <label class="form-check-label" for="is_pinned">Pin this post (for moderators)</label>
+                            <label class="form-check-label" for="is_pinned">Pin this post</label>
                             <div id="pinHelp" class="form-text">Pinned posts appear at the top of the forum.</div>
                         </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="is_announcement" name="is_announcement" 
+                                   <?php echo $post['is_announcement'] ? 'checked' : ''; ?> aria-describedby="announcementHelp">
+                            <label class="form-check-label" for="is_announcement">Mark as Announcement</label>
+                            <div id="announcementHelp" class="form-text">Announcements are highlighted and notify all forum members.</div>
+                        </div>
                     <?php endif; ?>
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">Update Post</button>
-                        <a href="post.php?post_id=<?php echo $post_id; ?>" class="btn btn-primary" aria-label="Cancel Edit">Cancel</a>
+                    <div class="d-flex gap-2 justify-content-end">
+                        <button type="submit" class="btn btn-primary" aria-label="Update Post">
+                            <i class="bi bi-check-circle me-1"></i> Update Post
+                        </button>
+                        <a href="post.php?post_id=<?php echo $post_id; ?>" class="btn btn-secondary" aria-label="Cancel Edit" style="color: black;">
+                            <i class="bi bi-x-circle me-1"></i> Cancel
+                        </a>
                     </div>
                 </form>
             </div>
@@ -348,6 +418,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             const form = document.getElementById('editPostForm');
             const titleInput = document.getElementById('title');
             const contentInput = document.getElementById('content');
+
+            // Auto-resize textarea
+            contentInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = `${this.scrollHeight}px`;
+            });
 
             form.addEventListener('submit', function(e) {
                 let hasError = false;
@@ -396,6 +472,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     setTimeout(() => toast.remove(), 300);
                 }, 3000);
             }
+
+            // Show success toast if present
+            <?php if (isset($_SESSION['success'])): ?>
+                showToast('<?php echo addslashes($_SESSION['success']); ?>', 'success');
+            <?php endif; ?>
         });
     </script>
 </body>
