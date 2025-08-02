@@ -50,6 +50,7 @@ try {
 }
 
 // Handle job form submission
+// Handle job form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $conn->beginTransaction();
@@ -64,11 +65,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $salary_type = $_POST['salary_type'] ?? 'Yearly';
         $salary_disclosure = isset($_POST['salary_disclosure']) && $_POST['salary_disclosure'] === 'on' ? 1 : 0;
         $expires_at = isset($_POST['expires_at']) && $_POST['expires_at'] !== '' ? $_POST['expires_at'] : null;
+        $visible_to = $_POST['visible_to'] ?? 'both'; // New field for visibility
+
+        // Validate visible_to value
+        if (!in_array($visible_to, ['students', 'applicants', 'both'])) {
+            $visible_to = 'both'; // Default to 'both' if invalid
+        }
 
         // Insert job posting
         $query = "INSERT INTO job_posting 
-                  (employer_id, title, description, location, job_type_id, min_salary, max_salary, salary_type, salary_disclosure, expires_at) 
-                  VALUES (:employer_id, :title, :description, :location, :job_type_id, :min_salary, :max_salary, :salary_type, :salary_disclosure, :expires_at)";
+                  (employer_id, title, description, location, job_type_id, min_salary, max_salary, salary_type, salary_disclosure, expires_at, visible_to) 
+                  VALUES (:employer_id, :title, :description, :location, :job_type_id, :min_salary, :max_salary, :salary_type, :salary_disclosure, :expires_at, :visible_to)";
         
         $stmt = $conn->prepare($query);
         $stmt->bindParam(':employer_id', $employer['employer_id'], PDO::PARAM_INT);
@@ -81,6 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindParam(':salary_type', $salary_type);
         $stmt->bindParam(':salary_disclosure', $salary_disclosure, PDO::PARAM_BOOL);
         $stmt->bindParam(':expires_at', $expires_at);
+        $stmt->bindParam(':visible_to', $visible_to);
 
         $stmt->execute();
         $jobId = $conn->lastInsertId();

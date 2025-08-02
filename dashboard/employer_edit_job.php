@@ -27,14 +27,14 @@ $csrf_token = $_SESSION['csrf_token'];
 // Prepare skills data for Tagify
 $tagify_skills = array_map(function($skill) {
     return [
-        'value' => (int)$skill['skill_id'], // Ensure integer skill_id
+        'value' => (int)$skill['skill_id'],
         'name' => htmlspecialchars($skill['skill_name'])
     ];
 }, $skills);
 
 $selected_tags = array_map(function($skill) {
     return [
-        'value' => (int)$skill['skill_id'], // Ensure integer skill_id
+        'value' => (int)$skill['skill_id'],
         'name' => htmlspecialchars($skill['skill_name']),
         'importance' => $skill['importance'] ?? 'Medium'
     ];
@@ -55,6 +55,7 @@ $skill_map = array_column($skills, 'skill_id', 'skill_name');
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@yaireo/tagify@4.17.0/dist/tagify.css">
     <style>
+        /* Unchanged CSS */
         :root {
             --primary-color: #1A4D8F;
             --primary-light: #e8f0fe;
@@ -320,6 +321,16 @@ $skill_map = array_column($skills, 'skill_id', 'skill_name');
                 </div>
 
                 <div class="mb-3">
+                    <label for="visibleTo" class="form-label">Visible To <span class="text-danger">*</span></label>
+                    <select class="form-select" id="visibleTo" name="visible_to" required>
+                        <option value="students" <?= $job['visible_to'] === 'students' ? 'selected' : '' ?>>Students Only</option>
+                        <option value="applicants" <?= $job['visible_to'] === 'applicants' ? 'selected' : '' ?>>Applicants Only</option>
+                        <option value="both" <?= $job['visible_to'] === 'both' ? 'selected' : '' ?>>Both</option>
+                    </select>
+                    <div class="invalid-feedback">Please select who the job is visible to.</div>
+                </div>
+
+                <div class="mb-3">
                     <label for="skills" class="form-label">Required Skills (Optional)</label>
                     <input id="skills" name="skills" class="form-control" placeholder="Type to search skills..." />
                     <div class="invalid-feedback">Invalid skills selected. Please choose valid skills from the list.</div>
@@ -350,7 +361,8 @@ $skill_map = array_column($skills, 'skill_id', 'skill_name');
             const minSalaryInput = document.getElementById('minSalary');
             const maxSalaryInput = document.getElementById('maxSalary');
             const salaryTypeInput = document.getElementById('salaryType');
-            const skillMap = <?= json_encode($skill_map) ?>; // Map skill_name to skill_id
+            const visibleToInput = document.getElementById('visibleTo'); // Added
+            const skillMap = <?= json_encode($skill_map) ?>;
 
             // Initialize Tagify
             const tagify = new Tagify(skillsInput, {
@@ -467,7 +479,7 @@ $skill_map = array_column($skills, 'skill_id', 'skill_name');
             }
 
             salaryDisclosureInput.addEventListener('change', toggleSalaryInputs);
-            toggleSalaryInputs(); // Initial state
+            toggleSalaryInputs();
 
             // Client-side salary validation
             function validateSalaries() {
@@ -521,6 +533,21 @@ $skill_map = array_column($skills, 'skill_id', 'skill_name');
             maxSalaryInput.addEventListener('input', validateSalaries);
             salaryTypeInput.addEventListener('change', validateSalaries);
 
+            // Client-side validation for visible_to
+            function validateVisibleTo() {
+                const validValues = ['students', 'applicants', 'both'];
+                if (!visibleToInput.value || !validValues.includes(visibleToInput.value)) {
+                    visibleToInput.classList.add('is-invalid');
+                    visibleToInput.classList.remove('is-valid');
+                    return false;
+                }
+                visibleToInput.classList.remove('is-invalid');
+                visibleToInput.classList.add('is-valid');
+                return true;
+            }
+
+            visibleToInput.addEventListener('change', validateVisibleTo);
+
             // AJAX form submission
             $('#editJobForm').on('submit', function(e) {
                 e.preventDefault();
@@ -541,7 +568,7 @@ $skill_map = array_column($skills, 'skill_id', 'skill_name');
                 console.log('Form element:', formElement);
 
                 // Validate form
-                if (!formElement.checkValidity()) {
+                if (!formElement.checkValidity() || !validateVisibleTo()) {
                     formElement.classList.add('was-validated');
                     console.log('Form validation failed');
                     return;
@@ -632,7 +659,7 @@ $skill_map = array_column($skills, 'skill_id', 'skill_name');
             });
 
             // Clear invalid feedback on input for valid form elements
-            form.querySelectorAll('input:not([id="skills"]):not([id="minSalary"]):not([id="maxSalary"]), select:not([id="salaryType"]), textarea').forEach(input => {
+            form.querySelectorAll('input:not([id="skills"]):not([id="minSalary"]):not([id="maxSalary"]), select:not([id="salaryType"]):not([id="visibleTo"]), textarea').forEach(input => {
                 input.addEventListener('input', function() {
                     if (this.checkValidity && this.checkValidity()) {
                         this.classList.remove('is-invalid');

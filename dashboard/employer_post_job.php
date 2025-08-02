@@ -112,6 +112,14 @@ try {
                         <label class="form-check-label" for="jobSalaryDisclosure">Show salary on job posting</label>
                     </div>
                 </div>
+                <div class="col-md-6">
+                    <label for="jobVisibility" class="form-label">Visible To *</label>
+                    <select class="form-select" id="jobVisibility" name="visible_to" required>
+                        <option value="both" selected>Students and Applicants</option>
+                        <option value="students">Students Only</option>
+                        <option value="applicants">Applicants Only</option>
+                    </select>
+                </div>
                 <div class="col-12">
                     <label for="jobDescription" class="form-label">Job Description *</label>
                     <textarea class="form-control" id="jobDescription" name="description" rows="5" required></textarea>
@@ -238,6 +246,13 @@ try {
             }
 
             const formData = new FormData(document.getElementById('addJobForm'));
+
+            // Validate visible_to
+            const visibleTo = formData.get('visible_to');
+            if (!['students', 'applicants', 'both'].includes(visibleTo)) {
+                showAlert('danger', 'Invalid visibility selection.');
+                return;
+            }
 
             const selectedSkills = tagify.value;
             const importanceFields = document.querySelectorAll('.skill-importance');

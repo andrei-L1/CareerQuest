@@ -27,6 +27,7 @@ $salary_type = filter_var(trim($_POST['salary_type'] ?? 'Yearly'), FILTER_SANITI
 $salary_disclosure = isset($_POST['salary_disclosure']) ? 1 : 0;
 $expires_at = !empty($_POST['expires_at']) ? $_POST['expires_at'] : null;
 $description = filter_var(trim($_POST['description'] ?? ''), FILTER_SANITIZE_STRING);
+$visible_to = filter_var(trim($_POST['visible_to'] ?? 'both'), FILTER_SANITIZE_STRING);
 $skills_json = $_POST['skills_data'] ?? '[]';
 
 // Log skills input for debugging
@@ -70,6 +71,9 @@ if ($salary_disclosure) {
 }
 if ($expires_at && strtotime($expires_at) <= time()) {
     $errors[] = 'Expiration date must be in the future.';
+}
+if (!in_array($visible_to, ['students', 'applicants', 'both'])) {
+    $errors[] = 'Invalid visibility option selected.';
 }
 
 // Validate skills (optional, so empty array is allowed)
@@ -122,7 +126,7 @@ try {
         UPDATE job_posting 
         SET title = ?, job_type_id = ?, location = ?, min_salary = ?, max_salary = ?, 
             salary_type = ?, salary_disclosure = ?, description = ?, expires_at = ?, 
-            moderation_status = 'Pending'
+            moderation_status = 'Pending', visible_to = ?
         WHERE job_id = ? AND employer_id = ?
     ");
     $stmt->execute([
@@ -135,6 +139,7 @@ try {
         $salary_disclosure,
         $description,
         $expires_at,
+        $visible_to,
         $job_id,
         $_SESSION['employer_id']
     ]);

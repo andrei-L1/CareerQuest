@@ -13,10 +13,22 @@ if (!isset($_SESSION['stud_id'])) {
 class StudentJobController {
     private $db;
     private $studentId;
+    private $isStudent;
 
     public function __construct($dbConnection) {
         $this->db = $dbConnection;
         $this->studentId = $_SESSION['stud_id'];
+
+        // Fetch is_student status
+        $stmt = $this->db->prepare("SELECT is_student FROM student WHERE stud_id = :stud_id");
+        $stmt->bindParam(':stud_id', $this->studentId, PDO::PARAM_INT);
+        $stmt->execute();
+        $student = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($student) {
+            $this->isStudent = $student['is_student'];
+        } else {
+            throw new Exception("Student record not found");
+        }
     }
 
     public function handleRequest() {
@@ -60,85 +72,98 @@ class StudentJobController {
     }
 
     private function getAllJobs() {
-        $stmt = $this->db->prepare("
+        $query = "
             SELECT jp.job_id, jp.title, e.company_name AS company, 
-                   jt.job_type_title, jp.description, jp.location, 
-                   jp.min_salary, jp.max_salary, jp.salary_type, jp.salary_disclosure, 
-                   jp.posted_at, jp.expires_at,
-                   (SELECT COUNT(*) 
+                jt.job_type_title, jp.description, jp.location, 
+                jp.min_salary, jp.max_salary, jp.salary_type, jp.salary_disclosure, 
+                jp.posted_at, jp.expires_at,
+                (SELECT COUNT(*) 
                     FROM application_tracking at 
                     WHERE at.job_id = jp.job_id AND at.stud_id = :stud_id) AS has_applied,
-                   (SELECT COUNT(*) 
+                (SELECT COUNT(*) 
                     FROM saved_jobs sj 
                     WHERE sj.job_id = jp.job_id AND sj.stud_id = :stud_id AND sj.deleted_at IS NULL) AS is_saved,
-                   GROUP_CONCAT(sm.category SEPARATOR ', ') AS categories
+                GROUP_CONCAT(sm.category SEPARATOR ', ') AS categories
             FROM job_posting jp
             JOIN employer e ON jp.employer_id = e.employer_id
             JOIN job_type jt ON jp.job_type_id = jt.job_type_id
             LEFT JOIN job_skill js ON jp.job_id = js.job_id
             LEFT JOIN skill_masterlist sm ON js.skill_id = sm.skill_id
             WHERE jp.deleted_at IS NULL 
-              AND jp.moderation_status = 'Approved'
-              AND e.status = 'Active'
-              AND (jp.expires_at >= CURDATE() OR jp.expires_at IS NULL)
+            AND jp.moderation_status = 'Approved'
+            AND e.status = 'Active'
+            AND (jp.expires_at >= CURDATE() OR jp.expires_at IS NULL)
+            AND (jp.visible_to = 'both'
+                OR (jp.visible_to = 'students' AND :is_student = 1)
+                OR (jp.visible_to = 'applicants' AND :is_student = 0))
             GROUP BY jp.job_id
             ORDER BY jp.posted_at DESC
-        ");
-        $stmt->bindParam(':stud_id', $this->studentId);
+        ";
+
+        $stmt = $this->db->prepare($query);
+        $stmt->bindParam(':stud_id', $this->studentId, PDO::PARAM_INT);
+        $stmt->bindParam(':is_student', $this->isStudent, PDO::PARAM_BOOL);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }    
+    }
     
     private function getRecommendedJobs($category = "") {
-        $query = "SELECT jp.job_id, jp.title, e.company_name as company, 
-                     jt.job_type_title, jp.description, jp.location, 
-                     jp.min_salary, jp.max_salary, jp.salary_type, jp.salary_disclosure, 
-                     jp.posted_at, jp.expires_at,
-                     ROUND(AVG(CASE 
-                         WHEN ss.proficiency = 'Advanced' AND js.importance = 'High' THEN 100
-                         WHEN ss.proficiency = 'Advanced' AND js.importance = 'Medium' THEN 80
-                         WHEN ss.proficiency = 'Intermediate' AND js.importance = 'High' THEN 80
-                         WHEN ss.proficiency = 'Intermediate' AND js.importance = 'Medium' THEN 60
-                         WHEN ss.proficiency = 'Beginner' AND js.importance = 'High' THEN 40
-                         ELSE 20
-                     END), 0) as match_score,
-                     GROUP_CONCAT(sm.category SEPARATOR ', ') AS categories
-                     FROM job_posting jp
-                     JOIN employer e ON jp.employer_id = e.employer_id
-                     JOIN job_type jt ON jp.job_type_id = jt.job_type_id
-                     JOIN job_skill js ON jp.job_id = js.job_id
-                     JOIN skill_masterlist sm ON js.skill_id = sm.skill_id
-                     JOIN stud_skill ss ON sm.skill_id = ss.skill_id
-                     WHERE jp.deleted_at IS NULL 
-                     AND jp.moderation_status = 'Approved'
-                     AND ss.stud_id = :stud_id";
-    
+        $query = "
+            SELECT jp.job_id, jp.title, e.company_name AS company, 
+                jt.job_type_title, jp.description, jp.location, 
+                jp.min_salary, jp.max_salary, jp.salary_type, jp.salary_disclosure, 
+                jp.posted_at, jp.expires_at,
+                ROUND(AVG(CASE 
+                    WHEN ss.proficiency = 'Advanced' AND js.importance = 'High' THEN 100
+                    WHEN ss.proficiency = 'Advanced' AND js.importance = 'Medium' THEN 80
+                    WHEN ss.proficiency = 'Intermediate' AND js.importance = 'High' THEN 80
+                    WHEN ss.proficiency = 'Intermediate' AND js.importance = 'Medium' THEN 60
+                    WHEN ss.proficiency = 'Beginner' AND js.importance = 'High' THEN 40
+                    ELSE 20
+                END), 0) AS match_score,
+                GROUP_CONCAT(sm.category SEPARATOR ', ') AS categories
+            FROM job_posting jp
+            JOIN employer e ON jp.employer_id = e.employer_id
+            JOIN job_type jt ON jp.job_type_id = jt.job_type_id
+            JOIN job_skill js ON jp.job_id = js.job_id
+            JOIN skill_masterlist sm ON js.skill_id = sm.skill_id
+            JOIN stud_skill ss ON sm.skill_id = ss.skill_id
+            WHERE jp.deleted_at IS NULL 
+            AND jp.moderation_status = 'Approved'
+            AND ss.stud_id = :stud_id
+            AND (jp.visible_to = 'both'
+                OR (jp.visible_to = 'students' AND :is_student = 1)
+                OR (jp.visible_to = 'applicants' AND :is_student = 0))
+        ";
+
         // Add category filter if specified
         if ($category !== "") {
             $query .= " AND sm.category = :category";
         }
-    
+
         // Continue with the rest of the query
-        $query .= " GROUP BY jp.job_id
-                    HAVING match_score > 30
-                    ORDER BY match_score DESC, jp.posted_at DESC
-                    LIMIT 20";
-    
+        $query .= "
+            GROUP BY jp.job_id
+            HAVING match_score > 30
+            ORDER BY match_score DESC, jp.posted_at DESC
+            LIMIT 20
+        ";
+
         $stmt = $this->db->prepare($query);
-        $stmt->bindParam(':stud_id', $this->studentId);
-    
+        $stmt->bindParam(':stud_id', $this->studentId, PDO::PARAM_INT);
+        $stmt->bindParam(':is_student', $this->isStudent, PDO::PARAM_BOOL);
+
         // Bind category if it exists
         if ($category !== "") {
             $stmt->bindParam(':category', $category);
         }
-    
+
         $stmt->execute();
         
         $recommendedJobs = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-        // Now insert each skill match score into the skill_matching table
+
+        // Insert skill match scores into skill_matching table
         foreach ($recommendedJobs as $job) {
-            // Get job skills and calculate match score for each
             $jobId = $job['job_id'];
             
             $skillsQuery = "SELECT js.job_skills_id, sm.skill_id, ss.user_skills_id, 
@@ -149,8 +174,8 @@ class StudentJobController {
                             WHERE js.job_id = :job_id AND ss.stud_id = :stud_id";
             
             $skillsStmt = $this->db->prepare($skillsQuery);
-            $skillsStmt->bindParam(':job_id', $jobId);
-            $skillsStmt->bindParam(':stud_id', $this->studentId);
+            $skillsStmt->bindParam(':job_id', $jobId, PDO::PARAM_INT);
+            $skillsStmt->bindParam(':stud_id', $this->studentId, PDO::PARAM_INT);
             $skillsStmt->execute();
             
             $skills = $skillsStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -160,10 +185,10 @@ class StudentJobController {
                 
                 // Check if the record already exists in the skill_matching table
                 $checkQuery = "SELECT COUNT(*) FROM skill_matching
-                               WHERE user_skills_id = :user_skills_id AND job_skills_id = :job_skills_id";
+                            WHERE user_skills_id = :user_skills_id AND job_skills_id = :job_skills_id";
                 $checkStmt = $this->db->prepare($checkQuery);
-                $checkStmt->bindParam(':user_skills_id', $skill['user_skills_id']);
-                $checkStmt->bindParam(':job_skills_id', $skill['job_skills_id']);
+                $checkStmt->bindParam(':user_skills_id', $skill['user_skills_id'], PDO::PARAM_INT);
+                $checkStmt->bindParam(':job_skills_id', $skill['job_skills_id'], PDO::PARAM_INT);
                 $checkStmt->execute();
                 
                 $exists = $checkStmt->fetchColumn() > 0;
@@ -174,23 +199,23 @@ class StudentJobController {
                                     SET match_score = :match_score
                                     WHERE user_skills_id = :user_skills_id AND job_skills_id = :job_skills_id";
                     $updateStmt = $this->db->prepare($updateQuery);
-                    $updateStmt->bindParam(':user_skills_id', $skill['user_skills_id']);
-                    $updateStmt->bindParam(':job_skills_id', $skill['job_skills_id']);
-                    $updateStmt->bindParam(':match_score', $matchScore);
+                    $updateStmt->bindParam(':user_skills_id', $skill['user_skills_id'], PDO::PARAM_INT);
+                    $updateStmt->bindParam(':job_skills_id', $skill['job_skills_id'], PDO::PARAM_INT);
+                    $updateStmt->bindParam(':match_score', $matchScore, PDO::PARAM_INT);
                     $updateStmt->execute();
                 } else {
                     // Insert into skill_matching table if it doesn't exist
                     $insertQuery = "INSERT INTO skill_matching (user_skills_id, job_skills_id, match_score)
                                     VALUES (:user_skills_id, :job_skills_id, :match_score)";
                     $insertStmt = $this->db->prepare($insertQuery);
-                    $insertStmt->bindParam(':user_skills_id', $skill['user_skills_id']);
-                    $insertStmt->bindParam(':job_skills_id', $skill['job_skills_id']);
-                    $insertStmt->bindParam(':match_score', $matchScore);
+                    $insertStmt->bindParam(':user_skills_id', $skill['user_skills_id'], PDO::PARAM_INT);
+                    $insertStmt->bindParam(':job_skills_id', $skill['job_skills_id'], PDO::PARAM_INT);
+                    $insertStmt->bindParam(':match_score', $matchScore, PDO::PARAM_INT);
                     $insertStmt->execute();
                 }
             }
         }
-    
+
         return $recommendedJobs;
     }
     
@@ -212,47 +237,59 @@ class StudentJobController {
     }
     
     private function getJobDetails($jobId) {
-        $query = "SELECT jp.*, e.company_name, jt.job_type_title
-                 FROM job_posting jp
-                 JOIN employer e ON jp.employer_id = e.employer_id
-                 JOIN job_type jt ON jp.job_type_id = jt.job_type_id
-                 WHERE jp.job_id = :job_id";
+        $query = "
+            SELECT jp.*, e.company_name, jt.job_type_title
+            FROM job_posting jp
+            JOIN employer e ON jp.employer_id = e.employer_id
+            JOIN job_type jt ON jp.job_type_id = jt.job_type_id
+            WHERE jp.job_id = :job_id
+            AND jp.deleted_at IS NULL
+            AND jp.moderation_status = 'Approved'
+            AND e.status = 'Active'
+            AND (jp.expires_at >= CURDATE() OR jp.expires_at IS NULL)
+            AND (jp.visible_to = 'both'
+                OR (jp.visible_to = 'students' AND :is_student = 1)
+                OR (jp.visible_to = 'applicants' AND :is_student = 0))
+        ";
         
         $stmt = $this->db->prepare($query);
-        $stmt->bindParam(':job_id', $jobId);
+        $stmt->bindParam(':job_id', $jobId, PDO::PARAM_INT);
+        $stmt->bindParam(':is_student', $this->isStudent, PDO::PARAM_BOOL);
         $stmt->execute();
         $job = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if (!$job) {
-            throw new Exception("Job not found");
+            throw new Exception("Job not found or not accessible");
         }
         
-        $query = "SELECT sm.skill_id, sm.skill_name, js.importance
-                 FROM job_skill js
-                 JOIN skill_masterlist sm ON js.skill_id = sm.skill_id
-                 WHERE js.job_id = :job_id AND js.deleted_at IS NULL";
+        $query = "
+            SELECT sm.skill_id, sm.skill_name, js.importance
+            FROM job_skill js
+            JOIN skill_masterlist sm ON js.skill_id = sm.skill_id
+            WHERE js.job_id = :job_id AND js.deleted_at IS NULL
+        ";
         
         $stmt = $this->db->prepare($query);
-        $stmt->bindParam(':job_id', $jobId);
+        $stmt->bindParam(':job_id', $jobId, PDO::PARAM_INT);
         $stmt->execute();
         $skills = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         foreach ($skills as &$skill) {
             $query = "SELECT proficiency FROM stud_skill 
-                     WHERE skill_id = :skill_id AND stud_id = :stud_id";
+                    WHERE skill_id = :skill_id AND stud_id = :stud_id";
             $stmt = $this->db->prepare($query);
-            $stmt->bindParam(':skill_id', $skill['skill_id']);
-            $stmt->bindParam(':stud_id', $this->studentId);
+            $stmt->bindParam(':skill_id', $skill['skill_id'], PDO::PARAM_INT);
+            $stmt->bindParam(':stud_id', $this->studentId, PDO::PARAM_INT);
             $stmt->execute();
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             $skill['student_proficiency'] = $result ? $result['proficiency'] : null;
         }
         
         $query = "SELECT application_status FROM application_tracking
-                 WHERE job_id = :job_id AND stud_id = :stud_id";
+                WHERE job_id = :job_id AND stud_id = :stud_id";
         $stmt = $this->db->prepare($query);
-        $stmt->bindParam(':job_id', $jobId);
-        $stmt->bindParam(':stud_id', $this->studentId);
+        $stmt->bindParam(':job_id', $jobId, PDO::PARAM_INT);
+        $stmt->bindParam(':stud_id', $this->studentId, PDO::PARAM_INT);
         $stmt->execute();
         $application = $stmt->fetch(PDO::FETCH_ASSOC);
         

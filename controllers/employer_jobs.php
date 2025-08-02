@@ -248,7 +248,7 @@ function getJobDetails($job_id) {
         SELECT j.job_id, j.title, j.description, j.location, 
                j.min_salary, j.max_salary, j.salary_type, j.salary_disclosure, 
                j.posted_at, j.expires_at, j.moderation_status, j.img_url, j.flagged,
-               jt.job_type_title 
+               j.visible_to, jt.job_type_title 
         FROM job_posting j 
         LEFT JOIN job_type jt ON j.job_type_id = jt.job_type_id 
         WHERE j.job_id = ? AND j.employer_id = ? AND j.deleted_at IS NULL
@@ -313,7 +313,7 @@ function getJobs($employer_id, $page = 1, $per_page = 10, $status = '', $date = 
         SELECT j.job_id, j.title, j.description, j.location, 
                j.min_salary, j.max_salary, j.salary_type, j.salary_disclosure, 
                j.posted_at, j.expires_at, j.moderation_status, j.img_url, j.flagged,
-               jt.job_type_title, 
+               j.visible_to, jt.job_type_title, 
                (SELECT COUNT(*) FROM application_tracking a WHERE a.job_id = j.job_id AND a.deleted_at IS NULL) as applicant_count,
                (SELECT COUNT(*) FROM saved_jobs s WHERE s.job_id = j.job_id AND s.deleted_at IS NULL) as saved_count
         FROM job_posting j
