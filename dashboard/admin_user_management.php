@@ -643,27 +643,46 @@ $roles = fetchRoles();
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <?php foreach ($deletedusers as $deletedusers): ?>
-                                <?php if ($deletedusers['status'] === 'Deleted'): ?>
+                            <tbody>
+                                <?php 
+                                $hasDeleted = false;
+                                foreach ($deletedusers as $deleteduser): 
+                                    if ($deleteduser['status'] === 'Deleted'):
+                                        $hasDeleted = true;
+                                ?>
                                     <tr>
-                                        <td style="display:none;"><?= htmlspecialchars($user['actor_id']) ?></td>
-                                        <td style="display: none;"><?= htmlspecialchars($deletedusers['actor_id']) ?></td>
-                                        <td><?= htmlspecialchars($deletedusers['first_name'] . ' ' . $deletedusers['middle_name']. ' ' .  $deletedusers['last_name']) ?></td>
-                                        <td><?= htmlspecialchars($deletedusers['email']) ?></td>
-                                        <td><?= htmlspecialchars($deletedusers['role_name']) ?></td>
-                                        <td><span class="badge bg-danger"><?= htmlspecialchars($deletedusers['status']) ?></span></td>
+                                        <td style="display: none;"><?= htmlspecialchars($user['actor_id']) ?>
+                                            <?php if ($user['entity_type'] === 'user'): ?>
+                                                U-<?= htmlspecialchars($user['entity_id']) ?>
+                                            <?php elseif ($user['entity_type'] === 'student'): ?>
+                                                S-<?= htmlspecialchars($user['entity_id']) ?>
+                                            <?php endif; ?>
+                                    </td>
+                                        <td><?= htmlspecialchars($deleteduser['first_name'] . ' ' . $deleteduser['middle_name']. ' ' .  $deleteduser['last_name']) ?></td>
+                                        <td><?= htmlspecialchars($deleteduser['email']) ?></td>
+                                        <td><?= htmlspecialchars($deleteduser['role_name']) ?></td>
+                                        <td><span class="badge bg-danger"><?= htmlspecialchars($deleteduser['status']) ?></span></td>
                                         <td>
-                                        <button class="btn btn-sm btn-success btn-action restoreUserBtn" data-id="<?= $deletedusers['actor_id'] ?>">
-                                            <i class="fas fa-undo"></i> Restore
-                                        </button>
+                                            <button class="btn btn-sm btn-success btn-action restoreUserBtn" data-id="<?= $deleteduser['actor_id'] ?>">
+                                                <i class="fas fa-undo"></i> Restore
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <?php 
+                                    endif;
+                                endforeach;
 
-
+                                if (!$hasDeleted): 
+                                ?>
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-4">
+                                            <i class="bi bi-person-x fs-4 d-block mb-2"></i>
+                                            No deleted users found.
                                         </td>
                                     </tr>
                                 <?php endif; ?>
-                            <?php endforeach; ?>
-                        </tbody>
+                            </tbody>
+
                     </table>
                 </div>
             </div>
@@ -831,14 +850,13 @@ $roles = fetchRoles();
         <script src="../assests/sidebar_toggle.js" defer></script>
 
     <!-- Custom Scripts -->
+    <!-- 
     <script>
     // Enhanced JavaScript
     $(document).ready(function () {
-        $('#userTable').DataTable({
+        $('#activeUsersTable').DataTable({
             dom: 'Bfrtip',
-            buttons: [
-                'copy', 'csv', 'excel', 'pdf'
-            ],
+            buttons: ['copy', 'csv', 'excel', 'pdf'],
             responsive: true,
             language: {
                 paginate: {
@@ -848,39 +866,20 @@ $roles = fetchRoles();
             }
         });
 
-        // Select All Checkbox
-        document.getElementById('selectAll').addEventListener('click', function () {
-            const checkboxes = document.querySelectorAll('.userCheckbox');
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = this.checked;
-            });
-        });
-
-        // Confirm Delete with SweetAlert2
-        function confirmDelete() {
-            Swal.fire({
-                title: 'Are you sure?',
-                text: "You won't be able to revert this!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, delete it!'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire(
-                        'Deleted!',
-                        'The user has been deleted.',
-                        'success'
-                    );
-                    // Perform delete action
+        $('#deletedUsersTable').DataTable({
+            dom: 'Bfrtip',
+            buttons: ['copy', 'csv', 'excel', 'pdf'],
+            responsive: true,
+            language: {
+                paginate: {
+                    next: '<i class="fas fa-chevron-right"></i>',
+                    previous: '<i class="fas fa-chevron-left"></i>'
                 }
-            });
-        }
-
+            }
+        });
     });
     </script>
-
+    -->
     <script>
     function submitUser() {
         let firstName = document.getElementById("firstName").value.trim();
