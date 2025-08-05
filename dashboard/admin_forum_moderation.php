@@ -239,57 +239,47 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forum Content Moderation</title>
+    <title>Forum content moderation</title>
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    
-    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- SweetAlert2 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    
-    <!-- Bootstrap -->
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Animate.css -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <!-- Font Awesome (for icons) -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 
     <style>
-        :root {
-            --primary-color: #0A2647;
-            --primary-light: #1a3a6a;
-            --secondary-color: #2C7865;
-            --accent-color: #FFD700;
-            --danger-color: #dc3545;
-            --warning-color: #ffc107;
-            --success-color: #28a745;
-            --info-color: #17a2b8;
-            --light-color: #f8f9fa;
-            --dark-color: #343a40;
-            --gray-color: #6c757d;
-            --background-light: #F5F5F5;
-            --text-dark: #333333;
-            --text-light: #f8f9fa;
+       :root {
+            --primary-color: #0A2647; /* Navy Blue */
+            --secondary-color: #2C7865; /* Teal */
+            --accent-color: #FFD700; /* Gold */
+            --background-light: #F5F5F5; /* Light Gray */
+            --text-dark: #333333; /* Dark Gray */
             --shadow-color: rgba(0, 0, 0, 0.1);
-            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            --transition-fast: all 0.15s ease;
-            --transition-medium: all 0.3s ease;
-            --transition-slow: all 0.5s ease;
-            --border-radius-sm: 0.25rem;
-            --border-radius-md: 0.5rem;
-            --border-radius-lg: 1rem;
+            --font-family: 'Poppins', sans-serif;
+
+
             --sidebar-width: 280px;
             --sidebar-collapsed-width: 80px;
+            --sidebar-bg: #2c3e50;
+            --sidebar-active-bg: #34495e;
+            --sidebar-text: #ecf0f1;
+            --sidebar-active-text: #3498db;
+            --sidebar-hover-bg: #34495e;
+            --sidebar-transition: all 0.3s ease;
+            --main-content-padding: 20px;
         }
 
         body {
             background-color: var(--background-light);
             color: var(--text-dark);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            /* font-family: var(--font-family);*/
+            transition: background-color 0.3s ease, color 0.3s ease;
+
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             overflow-x: hidden;
-            transition: var(--transition-medium);
+            transition: var(--sidebar-transition);
         }
 
         /* Sidebar Styles */
@@ -299,9 +289,9 @@ try {
             left: 0;
             bottom: 0;
             width: var(--sidebar-width);
-            background: var(--primary-color);
-            color: var(--text-light);
-            transition: var(--transition-medium);
+            background: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            transition: var(--sidebar-transition);
             z-index: 1000;
             box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
             display: flex;
@@ -316,13 +306,13 @@ try {
             padding: 15px;
             text-align: right;
             cursor: pointer;
-            color: var(--text-light);
-            transition: var(--transition-medium);
+            color: var(--sidebar-text);
+            transition: var(--sidebar-transition);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .sidebar-toggle:hover {
-            color: var(--accent-color);
+            color: var(--sidebar-active-text);
         }
 
         .sidebar.collapsed .sidebar-toggle {
@@ -336,33 +326,41 @@ try {
             padding: 10px 0;
         }
 
+        .sidebar-nav::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .sidebar-nav::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+        }
+
         .nav-item {
             position: relative;
             margin: 5px 10px;
-            border-radius: var(--border-radius-sm);
+            border-radius: 5px;
             overflow: hidden;
-            transition: var(--transition-medium);
+            transition: var(--sidebar-transition);
         }
 
         .nav-link {
             display: flex;
             align-items: center;
             padding: 12px 15px;
-            color: var(--text-light);
+            color: var(--sidebar-text);
             text-decoration: none;
-            transition: var(--transition-medium);
+            transition: var(--sidebar-transition);
             white-space: nowrap;
-            border-radius: var(--border-radius-sm);
         }
 
         .nav-link:hover {
-            background: var(--primary-light);
-            color: var(--accent-color);
+            background: var(--sidebar-hover-bg);
+            color: var(--sidebar-active-text);
         }
 
         .nav-link.active {
-            background: var(--primary-light);
-            color: var(--accent-color);
+            background: var(--sidebar-active-bg);
+            color: var(--sidebar-active-text);
             font-weight: 500;
         }
 
@@ -371,7 +369,7 @@ try {
             width: 24px;
             text-align: center;
             font-size: 1.1rem;
-            transition: var(--transition-medium);
+            transition: var(--sidebar-transition);
         }
 
         .sidebar.collapsed .nav-link i {
@@ -389,14 +387,13 @@ try {
             left: 100%;
             top: 50%;
             transform: translateY(-50%);
-            background: var(--primary-color);
-            padding: 8px 15px;
-            border-radius: var(--border-radius-sm);
+            background: var(--sidebar-bg);
+            padding: 5px 15px;
+            border-radius: 4px;
             white-space: nowrap;
             pointer-events: none;
-            box-shadow: var(--card-shadow);
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
             z-index: 1001;
-            font-size: 0.9rem;
         }
 
         .sidebar.collapsed .nav-item:hover span {
@@ -406,367 +403,232 @@ try {
 
         /* Main Content */
         .main-content {
-            margin-left: calc(var(--sidebar-width) + 20px);
+            margin-left: 350px;
+            margin-right: 150px;
             padding: 20px;
-            transition: var(--transition-medium);
+            transition: margin-left 0.3s ease;
         }
 
         .sidebar.collapsed + .main-content {
-            margin-left: calc(var(--sidebar-collapsed-width) + 20px);
+            margin-left: 200px;
         }
 
-        /* Dark Mode */
+        /* Dark Mode Toggle */
+        .dark-mode-toggle {
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: var(--sidebar-text);
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: var(--sidebar-transition);
+        }
+
+        .toggle-btn:hover {
+            color: var(--sidebar-active-text);
+        }
+
+        /* Dark Mode Styles */
         body.dark-mode {
             background-color: #121212;
-            color: #e0e0e0;
-            --background-light: #1e1e1e;
-            --text-dark: #e0e0e0;
-            --primary-color: #0d1b2a;
-            --primary-light: #1b263b;
+            color: #ffffff;
         }
 
-        body.dark-mode .card {
-            background-color: #2d2d2d;
-            border-color: #444;
+        body.dark-mode .sidebar {
+            background-color: #1a1a1a;
         }
 
-        body.dark-mode .table {
-            color: #e0e0e0;
+        body.dark-mode .nav-link.active {
+            background-color: #2a2a2a;
         }
 
-        body.dark-mode .table th {
-            background-color: var(--primary-light);
+        body.dark-mode .nav-link:hover {
+            background-color: #2a2a2a;
         }
 
-        body.dark-mode .table-hover tbody tr:hover {
-            background-color: rgba(255, 255, 255, 0.05);
+        /* Logout button styling */
+        .logout-link {
+            color: #e74c3c;
+            transition: color 0.2s;
         }
 
-        /* Cards */
-        .card {
-            border: none;
-            border-radius: var(--border-radius-md);
-            box-shadow: var(--card-shadow);
-            transition: var(--transition-medium);
-            margin-bottom: 20px;
-            background-color: white;
+        .logout-link:hover {
+            color: #c0392b;
+            text-decoration: none;
         }
 
-        .card:hover {
-            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
-            transform: translateY(-2px);
+        body.dark-mode .logout-link {
+            color: #ff6b6b;
         }
 
-        .card-header {
-            background-color: var(--primary-color);
-            color: white;
-            border-bottom: none;
-            border-radius: var(--border-radius-md) var(--border-radius-md) 0 0 !important;
-            padding: 15px 20px;
-            font-weight: 600;
+        body.dark-mode .logout-link:hover {
+            color: #ff5252;
         }
 
-        /* Tables */
-        .table {
-            margin-bottom: 0;
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: var(--sidebar-width);
+            }
+
+            .sidebar.collapsed {
+                transform: translateX(0);
+                width: var(--sidebar-collapsed-width);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+
+    <style>
+        .badge-moderation {
+            background-color: #dc3545;
         }
 
-        .table th {
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.8rem;
-            letter-spacing: 0.5px;
-            padding: 12px 15px;
+        .badge-normal {
+            background-color: #28a745;
         }
 
-        .table td {
-            padding: 12px 15px;
-            vertical-align: middle;
-        }
-
-        .table-hover tbody tr {
-            transition: var(--transition-fast);
-        }
-
-        .table-hover tbody tr:hover {
-            background-color: rgba(0, 0, 0, 0.02);
-        }
-
-        /* Badges */
-        .badge {
-            font-weight: 500;
-            padding: 5px 8px;
-            font-size: 0.75rem;
-        }
-
-        /* Buttons */
-        .btn {
-            border-radius: var(--border-radius-sm);
-            font-weight: 500;
-            padding: 8px 15px;
-            transition: var(--transition-fast);
-        }
-
-        .btn-sm {
-            padding: 5px 10px;
-            font-size: 0.8rem;
-        }
-
-        .btn i {
-            margin-right: 5px;
-        }
-
-        /* Action Buttons */
-        .action-buttons .btn {
-            margin-right: 5px;
-            min-width: 30px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* Content Containers */
-        .content-container {
-            position: relative;
-            padding-bottom: 25px;
+        .post-content {
             max-height: 100px;
             overflow: hidden;
+            position: relative;
         }
 
-        .content-container.expanded {
+        .post-content.expanded {
             max-height: none;
         }
-
+        .content-container {
+            position: relative;
+            padding-bottom: 40px; 
+        }
         .read-more {
             position: absolute;
-            bottom: 0;
-            right: 0;
+            bottom: 10px;
+            right: 10px;
             display: inline-block;
-            padding: 3px 8px;
+            padding: 3px 7px;
             background-color: var(--primary-color);
-            color: white;
-            border-radius: var(--border-radius-sm);
-            font-size: 0.8rem;
-            font-weight: 500;
+            color: #fff;
+            border-radius: 3px;
+            font-size: 0.9rem;
+            font-weight: 400;
             text-decoration: none;
-            transition: var(--transition-fast);
+            transition: background-color 0.3s ease, transform 0.2s ease;
             z-index: 1;
-            cursor: pointer;
         }
 
         .read-more:hover {
-            background-color: var(--primary-light);
-            color: white;
-            text-decoration: none;
+            background-color: blue;
+            transform: translateY(-1px);
         }
 
-        /* User Avatar */
-        .user-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-right: 10px;
-            border: 2px solid var(--light-color);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        .read-more:active {
+            transform: translateY(1px);
+        }
+        .moderation-action {
+            cursor: pointer;
+            transition: all 0.2s;
         }
 
-        /* Stats Cards */
-        .stat-card {
-            border-radius: var(--border-radius-md);
-            padding: 15px;
-            text-align: center;
-            transition: var(--transition-medium);
-            height: 100%;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .stat-card .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            margin: 10px 0;
-        }
-
-        .stat-card .stat-label {
-            font-size: 0.9rem;
-            color: var(--gray-color);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        /* Activity List */
-        .activity-list {
-            list-style: none;
-            padding: 0;
-        }
-
-        .activity-item {
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            transition: var(--transition-fast);
-        }
-
-        .activity-item:hover {
-            background-color: rgba(0, 0, 0, 0.02);
-        }
-
-        .activity-item:last-child {
-            border-bottom: none;
-        }
-
-        .activity-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 15px;
-            color: white;
-            font-size: 1rem;
-        }
-
-        .activity-icon.post {
-            background-color: var(--info-color);
-        }
-
-        .activity-icon.comment {
-            background-color: var(--success-color);
-        }
-
-        .activity-icon.forum {
-            background-color: var(--warning-color);
-        }
-
-        /* Tabs */
-        .nav-tabs {
-            border-bottom: 2px solid rgba(0, 0, 0, 0.05);
-        }
-
-        .nav-tabs .nav-link {
-            border: none;
-            color: var(--gray-color);
-            font-weight: 500;
-            padding: 12px 20px;
-            transition: var(--transition-fast);
-        }
-
-        .nav-tabs .nav-link:hover {
-            border: none;
-            color: var(--primary-color);
+        .moderation-action:hover {
+            transform: scale(1.1);
         }
 
         .nav-tabs .nav-link.active {
-            background-color: transparent;
-            color: var(--primary-color);
-            border-bottom: 2px solid var(--primary-color);
-            font-weight: 600;
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
         }
 
-        /* Search Box */
+        .nav-tabs .nav-link {
+            color: var(--primary-color);
+        }
+
+        .table th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .action-buttons .btn {
+            margin-right: 5px;
+        }
+
         .search-box {
             position: relative;
+            margin-bottom: 20px;
         }
 
         .search-box input {
             padding-left: 40px;
             border-radius: 20px;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            transition: var(--transition-fast);
-        }
-
-        .search-box input:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.2rem rgba(10, 38, 71, 0.1);
         }
 
         .search-box i {
             position: absolute;
             left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--gray-color);
+            top: 10px;
+            color: #6c757d;
         }
 
-        /* Charts */
-        .chart-container {
-            position: relative;
-            height: 250px;
-            width: 100%;
-        }
-
-        /* Animations */
-        .fade-in {
-            animation: fadeIn 0.5s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        /* Responsive Adjustments */
-        @media (max-width: 992px) {
-            .main-content {
-                margin-left: 0;
-                padding-top: 70px;
-            }
-            
-            .sidebar {
-                transform: translateX(-100%);
-                width: var(--sidebar-width);
-                z-index: 1050;
-            }
-            
-            .sidebar.collapsed {
-                transform: translateX(0);
-                width: var(--sidebar-collapsed-width);
-            }
-            
-            .sidebar.show {
-                transform: translateX(0);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .card-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            
-            .search-box {
-                width: 100%;
-                margin-top: 10px;
-            }
-            
-            .table-responsive {
-                border: none;
-            }
-        }
-
-        /* Loading Spinner */
-        .loading-spinner {
-            display: inline-block;
-            width: 1.5rem;
-            height: 1.5rem;
-            border: 0.25em solid currentColor;
-            border-right-color: transparent;
+        .user-avatar {
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
-            animation: spinner-border 0.75s linear infinite;
-            vertical-align: -0.125em;
+            object-fit: cover;
+            margin-right: 10px;
         }
 
-        @keyframes spinner-border {
-            to { transform: rotate(360deg); }
+        .post-meta {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+        .post-card {
+            transition: transform 0.2s;
+        }
+
+        .post-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 3px 8px;
+            border-radius: 10px;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .pagination .page-link {
+            color: var(--primary-color);
+        }
+
+        .time-ago {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        .action-buttons .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
         }
     </style>
 </head>
 <body>
-    <nav class="sidebar" id="sidebar">
+    <nav class="sidebar collapsed" id="sidebar">
         <div class="sidebar-toggle" id="sidebarToggle">
             <i class="fas fa-chevron-right"></i>
         </div>
@@ -798,382 +660,341 @@ try {
 
     <main class="main-content">
         <div class="container-fluid">
-            <!-- Page Header -->
-            <div class="row mb-4">
+            <div class="row mb-4 pt-3 pb-2 mb-3 border-bottom">
                 <div class="col-12">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h1 class="h3 mb-2">Forum Moderation Dashboard</h1>
-                            <p class="mb-0 text-muted">Welcome back, <?php echo $full_name; ?> <span class="badge bg-primary"><?php echo $role_title; ?></span></p>
-                        </div>
-                        <button class="btn btn-primary d-lg-none" id="mobileMenuToggle">
-                            <i class="fas fa-bars"></i>
-                        </button>
-                    </div>
-                    <hr>
+                    <h1 class="h2">Forum Moderation</h1>
+                    <p class="lead">Welcome, <?php echo $full_name; ?> <span class="badge bg-primary"><?php echo $role_title; ?></span></p>
                 </div>
             </div>
 
-            <!-- Stats Cards -->
-            <div class="row mb-4">
-                <div class="col-md-3">
-                    <div class="stat-card bg-light">
-                        <div class="stat-icon text-primary">
-                            <i class="fas fa-comment-alt fa-2x"></i>
-                        </div>
-                        <div class="stat-value text-primary"><?php echo htmlspecialchars($moderation_stats['posts_today'] ?? 0); ?></div>
-                        <div class="stat-label">Posts Today</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="stat-card bg-light">
-                        <div class="stat-icon text-warning">
-                            <i class="fas fa-flag fa-2x"></i>
-                        </div>
-                        <div class="stat-value text-warning"><?php echo htmlspecialchars($moderation_stats['pending_review'] ?? 0); ?></div>
-                        <div class="stat-label">Pending Review</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="stat-card bg-light">
-                        <div class="stat-icon text-success">
-                            <i class="fas fa-check-circle fa-2x"></i>
-                        </div>
-                        <div class="stat-value text-success"><?php echo htmlspecialchars($moderation_stats['resolved_today'] ?? 0); ?></div>
-                        <div class="stat-label">Resolved Today</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="stat-card bg-light">
-                        <div class="stat-icon text-info">
-                            <i class="fas fa-chart-line fa-2x"></i>
-                        </div>
-                        <div class="stat-value text-info"><?php echo count($reported_posts) + count($reported_comments) + count($reported_users); ?></div>
-                        <div class="stat-label">Total Reports</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Main Content Area -->
             <div class="row">
-                <div class="col-lg-8">
-                    <div class="card animate__animated animate__fadeIn">
-                        <div class="card-header d-flex flex-wrap justify-content-between align-items-center">
-                            <div>
-                                <i class="fas fa-flag me-2"></i>
-                                <span>Reported Content</span>
-                            </div>
-                            <div class="search-box mt-2 mt-md-0">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-flag me-2"></i> Reported Content</span>
+                            <div class="search-box">
                                 <i class="fas fa-search"></i>
-                                <input type="text" class="form-control" id="searchReports" placeholder="Search reports...">
+                                <input type="text" class="form-control" id="searchReports" placeholder="Search reported content...">
                             </div>
                         </div>
                         <div class="card-body">
                             <ul class="nav nav-tabs mb-4" id="reportedTabs" role="tablist">
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link active" id="posts-tab" data-bs-toggle="tab" data-bs-target="#posts" type="button" role="tab">
-                                        <i class="fas fa-comment-alt me-1"></i>
                                         Posts (<?php echo count($reported_posts); ?>)
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="comments-tab" data-bs-toggle="tab" data-bs-target="#comments" type="button" role="tab">
-                                        <i class="fas fa-comments me-1"></i>
                                         Comments (<?php echo count($reported_comments); ?>)
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">
-                                        <i class="fas fa-users me-1"></i>
                                         Users (<?php echo count($reported_users); ?>)
                                     </button>
                                 </li>
                             </ul>
                             
                             <div class="tab-content" id="reportedTabsContent">
-                                <!-- Posts Tab -->
-                                <div class="tab-pane fade show active" id="posts" role="tabpanel">
-                                    <?php if (!empty($reported_posts)): ?>
-                                        <div class="table-responsive">
-                                            <table class="table table-hover">
-                                                <thead>
-                                                    <tr>
-                                                        <th width="5%">ID</th>
-                                                        <th width="25%">Post Content</th>
-                                                        <th width="15%">Author</th>
-                                                        <th width="15%">Forum</th>
-                                                        <th width="10%">Reports</th>
-                                                        <th width="10%">Posted</th>
-                                                        <th width="10%">Actions</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <?php foreach ($reported_posts as $post): ?>
-                                                    <tr class="animate__animated animate__fadeIn">
-                                                        <td><?php echo htmlspecialchars($post['post_id']); ?></td>
-                                                        <td>
-                                                            <div class="content-container">
-                                                                <span class="short-text"><?php echo htmlspecialchars(substr($post['post_content'], 0, 100)); ?>...</span>
-                                                                <span class="full-text" style="display: none;"><?php echo nl2br(htmlspecialchars($post['post_content'])); ?></span>
-                                                                <a class="read-more" onclick="toggleReadMore(this)">Read more</a>
-                                                            </div>
-                                                        </td>
-                                                        <td>
-                                                            <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($post['user_first_name'].'+'.$post['user_last_name']); ?>&background=random" class="user-avatar" alt="User">
-                                                            <?php echo htmlspecialchars($post['user_first_name'] . ' ' . $post['user_last_name']); ?>
-                                                        </td>
-                                                        <td><?php echo htmlspecialchars($post['forum_name']); ?></td>
-                                                        <td>
-                                                            <span class="badge bg-danger rounded-pill" data-bs-toggle="tooltip" title="<?php echo htmlspecialchars($post['report_reasons']); ?>">
-                                                                <?php echo htmlspecialchars($post['report_count']); ?>
-                                                            </span>
-                                                        </td>
-                                                        <td>
-                                                            <small class="text-muted" data-bs-toggle="tooltip" title="<?php echo htmlspecialchars($post['created_at']); ?>">
-                                                                <?php echo time_elapsed_string($post['created_at']); ?>
-                                                            </small>
-                                                        </td>
-                                                        <td class="action-buttons">
-                                                            <button class="btn btn-sm btn-success" data-bs-toggle="tooltip" title="Approve" onclick="moderatePost(<?php echo $post['post_id']; ?>, 'approve')">
-                                                                <i class="fas fa-check"></i>
-                                                            </button>
-                                                            <button class="btn btn-sm btn-warning" data-bs-toggle="tooltip" title="Edit" onclick="editPost(<?php echo $post['post_id']; ?>)">
-                                                                <i class="fas fa-edit"></i>
-                                                            </button>
-                                                            <button class="btn btn-sm btn-danger" data-bs-toggle="tooltip" title="Delete" onclick="moderatePost(<?php echo $post['post_id']; ?>, 'delete')">
-                                                                <i class="fas fa-trash"></i>
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                    <?php endforeach; ?>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    <?php else: ?>
-                                        <div class="text-center py-4">
-                                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
-                                            <h5>No reported posts found</h5>
-                                            <p class="text-muted">All clear! No posts require moderation at this time.</p>
-                                        </div>
-                                    <?php endif; ?>
-                                </div>
+                            <div class="tab-pane fade show active" id="posts" role="tabpanel">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th width="5%">ID</th>
+                                            <th width="20%">Post</th>
+                                            <th width="15%">Author</th>
+                                            <th width="15%">Forum</th>
+                                            <th width="15%">Report Reasons</th>
+                                            <th width="10%">Reports</th>
+                                            <th width="10%">Posted</th>
+                                            <th width="10%">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($reported_posts as $post): ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars($post['post_id']); ?></td>
+                                            <td>
+                                                <div class="content-container">
+                                                    <span class="short-text"><?php echo htmlspecialchars(substr($post['post_content'], 0, 100)); ?>...</span>
+                                                    <span class="full-text" style="display: none;"><?php echo nl2br(htmlspecialchars($post['post_content'])); ?></span>
+                                                    <a href="#" class="read-more" onclick="toggleReadMore(this, 'post')">Read more</a>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <img src="https://via.placeholder.com/40" class="user-avatar" alt="User">
+                                                <?php echo htmlspecialchars($post['user_first_name'] . ' ' . $post['user_last_name']); ?>
+                                            </td>
+                                            <td><?php echo htmlspecialchars($post['forum_name']); ?></td>
+                                            <td>
+                                                <div class="content-container">
+                                                    <span class="short-text"><?php echo htmlspecialchars(substr($post['report_reasons'], 0, 50)); ?>...</span>
+                                                    <span class="full-text" style="display: none;"><?php echo nl2br(htmlspecialchars($post['report_reasons'])); ?></span>
+                                                    <a href="#" class="read-more" onclick="toggleReadMore(this, 'reason')">Read more</a>
+                                                </div>
+                                            </td>
+                                            <td><span class="badge bg-danger"><?php echo htmlspecialchars($post['report_count']); ?></span></td>
+                                            <td>
+                                                <span class="time-ago" title="<?php echo htmlspecialchars($post['created_at']); ?>">
+                                                    <?php echo time_elapsed_string($post['created_at']); ?>
+                                                </span>
+                                            </td>
+                                            <td class="action-buttons">
+                                                <button class="btn btn-sm btn-success" title="Approve" onclick="moderatePost(<?php echo $post['post_id']; ?>, 'approve')">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-warning" title="Edit" onclick="editPost(<?php echo $post['post_id']; ?>)">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-danger" title="Delete" onclick="moderatePost(<?php echo $post['post_id']; ?>, 'delete')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                        <?php if (empty($reported_posts)): ?>
+                                        <tr>
+                                            <td colspan="8" class="text-center">No reported posts found</td>
+                                        </tr>
+                                        <?php endif; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
                                 
-                                <!-- Comments Tab -->
                                 <div class="tab-pane fade" id="comments" role="tabpanel">
-                                    <?php if (!empty($reported_comments)): ?>
-                                        <div class="table-responsive">
-                                            <table class="table table-hover">
-                                                <thead>
-                                                    <tr>
-                                                        <th width="5%">ID</th>
-                                                        <th width="30%">Comment</th>
-                                                        <th width="15%">Author</th>
-                                                        <th width="15%">In Post</th>
-                                                        <th width="10%">Reports</th>
-                                                        <th width="15%">Posted</th>
-                                                        <th width="10%">Actions</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <?php foreach ($reported_comments as $comment): ?>
-                                                    <tr class="animate__animated animate__fadeIn">
-                                                        <td><?php echo htmlspecialchars($comment['comment_id']); ?></td>
-                                                        <td><?php echo htmlspecialchars(substr($comment['comment_content'], 0, 50)); ?>...</td>
-                                                        <td>
-                                                            <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($comment['user_first_name'].'+'.$comment['user_last_name']); ?>&background=random" class="user-avatar" alt="User">
-                                                            <?php echo htmlspecialchars($comment['user_first_name'] . ' ' . $comment['user_last_name']); ?>
-                                                        </td>
-                                                        <td><?php echo htmlspecialchars($comment['post_content']); ?></td>
-                                                        <td><span class="badge bg-danger rounded-pill"><?php echo htmlspecialchars($comment['report_count']); ?></span></td>
-                                                        <td>
-                                                            <small class="text-muted" data-bs-toggle="tooltip" title="<?php echo htmlspecialchars($comment['created_at']); ?>">
-                                                                <?php echo time_elapsed_string($comment['created_at']); ?>
-                                                            </small>
-                                                        </td>
-                                                        <td class="action-buttons">
-                                                            <button class="btn btn-sm btn-success" data-bs-toggle="tooltip" title="Approve" onclick="moderateComment(<?php echo $comment['comment_id']; ?>, 'approve')">
-                                                                <i class="fas fa-check"></i>
-                                                            </button>
-                                                            <button class="btn btn-sm btn-danger" data-bs-toggle="tooltip" title="Delete" onclick="moderateComment(<?php echo $comment['comment_id']; ?>, 'delete')">
-                                                                <i class="fas fa-trash"></i>
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                    <?php endforeach; ?>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    <?php else: ?>
-                                        <div class="text-center py-4">
-                                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
-                                            <h5>No reported comments found</h5>
-                                            <p class="text-muted">All clear! No comments require moderation at this time.</p>
-                                        </div>
-                                    <?php endif; ?>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th width="5%">ID</th>
+                                                    <th width="30%">Comment</th>
+                                                    <th width="15%">Author</th>
+                                                    <th width="15%">In Post</th>
+                                                    <th width="10%">Reports</th>
+                                                    <th width="15%">Posted</th>
+                                                    <th width="10%">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php foreach ($reported_comments as $comment): ?>
+                                                <tr>
+                                                    <td><?php echo htmlspecialchars($comment['comment_id']); ?></td>
+                                                    <td><?php echo htmlspecialchars(substr($comment['comment_content'], 0, 50)); ?>...</td>
+                                                    <td>
+                                                        <img src="https://via.placeholder.com/40" class="user-avatar" alt="User">
+                                                        <?php echo htmlspecialchars($comment['user_first_name'] . ' ' . $comment['user_last_name']); ?>
+                                                    </td>
+                                                    <td><?php echo htmlspecialchars($comment['post_title']); ?></td>
+                                                    <td><span class="badge bg-danger"><?php echo htmlspecialchars($comment['report_count']); ?></span></td>
+                                                    <td>
+                                                        <span class="time-ago" title="<?php echo htmlspecialchars($comment['created_at']); ?>">
+                                                            <?php echo time_elapsed_string($comment['created_at']); ?>
+                                                        </span>
+                                                    </td>
+                                                    <td class="action-buttons">
+                                                        <button class="btn btn-sm btn-success" title="Approve" onclick="moderateComment(<?php echo $comment['comment_id']; ?>, 'approve')">
+                                                            <i class="fas fa-check"></i>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-danger" title="Delete" onclick="moderateComment(<?php echo $comment['comment_id']; ?>, 'delete')">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                <?php endforeach; ?>
+                                                <?php if (empty($reported_comments)): ?>
+                                                <tr>
+                                                    <td colspan="7" class="text-center">No reported comments found</td>
+                                                </tr>
+                                                <?php endif; ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                                 
-                                <!-- Users Tab -->
                                 <div class="tab-pane fade" id="users" role="tabpanel">
-                                    <?php if (!empty($reported_users)): ?>
-                                        <div class="table-responsive">
-                                            <table class="table table-hover">
-                                                <thead>
-                                                    <tr>
-                                                        <th width="5%">ID</th>
-                                                        <th width="20%">User</th>
-                                                        <th width="15%">Email</th>
-                                                        <th width="10%">Role</th>
-                                                        <th width="10%">Reports</th>
-                                                        <th width="20%">Reasons</th>
-                                                        <th width="10%">Joined</th>
-                                                        <th width="10%">Actions</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <?php foreach ($reported_users as $user): ?>
-                                                    <tr class="animate__animated animate__fadeIn">
-                                                        <td><?php echo htmlspecialchars($user['id']); ?></td>
-                                                        <td>
-                                                            <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user['first_name'].'+'.$user['last_name']); ?>&background=random" class="user-avatar" alt="User">
-                                                            <?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name']); ?>
-                                                        </td>
-                                                        <td><?php echo htmlspecialchars($user['email']); ?></td>
-                                                        <td><?php echo htmlspecialchars($user['role']); ?></td>
-                                                        <td><span class="badge bg-danger rounded-pill"><?php echo htmlspecialchars($user['report_count']); ?></span></td>
-                                                        <td>
-                                                            <small class="report-reasons" data-bs-toggle="tooltip" title="<?php echo htmlspecialchars($user['reasons']); ?>">
-                                                                <?php echo htmlspecialchars(strlen($user['reasons']) > 30 ? substr($user['reasons'], 0, 30) . '...' : $user['reasons']); ?>
-                                                            </small>
-                                                        </td>
-                                                        <td>
-                                                            <small class="text-muted" data-bs-toggle="tooltip" title="<?php echo htmlspecialchars($user['created_at']); ?>">
-                                                                <?php echo time_elapsed_string($user['created_at']); ?>
-                                                            </small>
-                                                        </td>
-                                                        <td class="action-buttons">
-                                                            <button class="btn btn-sm btn-warning" data-bs-toggle="tooltip" title="Warn User" onclick="warnUser(<?php echo $user['id']; ?>, '<?php echo $user['user_type']; ?>')">
-                                                                <i class="fas fa-exclamation-triangle"></i>
-                                                            </button>
-                                                            <button class="btn btn-sm btn-danger" data-bs-toggle="tooltip" title="Ban User" onclick="banUser(<?php echo $user['id']; ?>, '<?php echo $user['user_type']; ?>')">
-                                                                <i class="fas fa-ban"></i>
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                    <?php endforeach; ?>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    <?php else: ?>
-                                        <div class="text-center py-4">
-                                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
-                                            <h5>No reported users found</h5>
-                                            <p class="text-muted">All clear! No users require moderation at this time.</p>
-                                        </div>
-                                    <?php endif; ?>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th width="5%">ID</th>
+                                                    <th width="20%">User</th>
+                                                    <th width="15%">Email</th>
+                                                    <th width="10%">Role</th>
+                                                    <th width="10%">Reports</th>
+                                                    <th width="20%">Reasons</th>
+                                                    <th width="10%">Joined</th>
+                                                    <th width="10%">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php foreach ($reported_users as $user): ?>
+                                                <tr>
+                                                    <td><?php echo htmlspecialchars($user['id']); ?></td>
+                                                    <td>
+                                                        <?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name']); ?>
+                                                    </td>
+                                                    <td><?php echo htmlspecialchars($user['email']); ?></td>
+                                                    <td><?php echo htmlspecialchars($user['role']); ?></td>
+                                                    <td><span class="badge bg-danger"><?php echo htmlspecialchars($user['report_count']); ?></span></td>
+                                                    <td>
+                                                        <span class="report-reasons" title="<?php echo htmlspecialchars($user['reasons']); ?>">
+                                                            <?php 
+                                                            // Show first 30 chars of reasons with ellipsis if longer
+                                                            $reasons = $user['reasons'];
+                                                            echo htmlspecialchars(strlen($reasons) > 30 ? substr($reasons, 0, 30) . '...' : $reasons); 
+                                                            ?>
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <span class="time-ago" title="<?php echo htmlspecialchars($user['created_at']); ?>">
+                                                            <?php echo time_elapsed_string($user['created_at']); ?>
+                                                        </span>
+                                                    </td>
+                                                    <td class="action-buttons">
+                                                        <button class="btn btn-sm btn-warning" title="Warn" onclick="warnUser(<?php echo $user['id']; ?>, '<?php echo $user['user_type']; ?>')">
+                                                            <i class="fas fa-exclamation-triangle"></i>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-danger" title="Ban" onclick="banUser(<?php echo $user['id']; ?>, '<?php echo $user['user_type']; ?>')">
+                                                            <i class="fas fa-ban"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                <?php endforeach; ?>
+                                                <?php if (empty($reported_users)): ?>
+                                                <tr>
+                                                    <td colspan="8" class="text-center">No reported users found</td>
+                                                </tr>
+                                                <?php endif; ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Right Sidebar -->
-                <div class="col-lg-4">
-                    <!-- Recent Activity -->
-                    <div class="card mb-4 animate__animated animate__fadeIn">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
                         <div class="card-header">
-                            <i class="fas fa-history me-2"></i> Recent Activity
+                            <i class="fas fa-comments me-2"></i> Recent Forum Activity
                         </div>
                         <div class="card-body">
-                            <ul class="activity-list">
+                            <div class="list-group">
                                 <?php foreach ($recent_activity as $activity): ?>
-                                    <li class="activity-item d-flex">
-                                        <div class="activity-icon <?php echo $activity['type']; ?>">
-                                            <?php if ($activity['type'] == 'post'): ?>
-                                                <i class="fas fa-comment-alt"></i>
-                                            <?php elseif ($activity['type'] == 'comment'): ?>
-                                                <i class="fas fa-comments"></i>
-                                            <?php else: ?>
-                                                <i class="fas fa-folder"></i>
-                                            <?php endif; ?>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <div class="d-flex justify-content-between">
-                                                <h6 class="mb-1">
-                                                    <?php 
-                                                        if ($activity['type'] == 'post') {
-                                                            echo 'New post in "' . htmlspecialchars($activity['forum_name']) . '"';
-                                                        } elseif ($activity['type'] == 'comment') {
-                                                            echo 'New comment on "' . htmlspecialchars($activity['title']) . '"';
-                                                        } else {
-                                                            echo 'New forum created: "' . htmlspecialchars($activity['title']) . '"';
-                                                        }
-                                                    ?>
-                                                </h6>
-                                                <small class="text-muted">
-                                                    <?php echo time_elapsed_string($activity['created_at']); ?>
-                                                </small>
-                                            </div>
-                                            <p class="mb-1 text-muted">
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between">
+                                            <h6 class="mb-1">
                                                 <?php 
                                                     if ($activity['type'] == 'post') {
-                                                        echo htmlspecialchars(substr($activity['title'], 0, 50));
+                                                        echo 'New post in "' . htmlspecialchars($activity['forum_name']) . '"';
                                                     } elseif ($activity['type'] == 'comment') {
-                                                        echo htmlspecialchars($activity['title']);
+                                                        echo 'New comment on "' . htmlspecialchars($activity['title']) . '"';
                                                     } else {
-                                                        echo 'Discussion about ' . htmlspecialchars($activity['title']);
+                                                        echo 'New forum created: "' . htmlspecialchars($activity['title']) . '"';
                                                     }
-                                                ?>...
-                                            </p>
-                                            <small class="text-muted">
-                                                <?php 
-                                                    if ($activity['type'] == 'forum') {
-                                                        echo 'Created by: ';
-                                                    } else {
-                                                        echo 'Posted by: ';
-                                                    }
-                                                    echo htmlspecialchars($activity['first_name'] . ' ' . $activity['last_name']);
                                                 ?>
+                                            </h6>
+                                            <small class="text-muted">
+                                                <?php echo time_elapsed_string($activity['created_at']); ?>
                                             </small>
                                         </div>
-                                    </li>
+                                        <p class="mb-1">
+                                            <?php 
+                                                if ($activity['type'] == 'post') {
+                                                    echo htmlspecialchars(substr($activity['title'], 0, 50));
+                                                } elseif ($activity['type'] == 'comment') {
+                                                    echo htmlspecialchars($activity['title']);
+                                                } else {
+                                                    echo 'Discussion about ' . htmlspecialchars($activity['title']);
+                                                }
+                                            ?>...
+                                        </p>
+                                        <small class="text-muted">
+                                            <?php 
+                                                if ($activity['type'] == 'forum') {
+                                                    echo 'Created by: ';
+                                                } else {
+                                                    echo 'Posted by: ';
+                                                }
+                                                echo htmlspecialchars($activity['first_name'] . ' ' . $activity['last_name']);
+                                            ?>
+                                        </small>
+                                    </div>
                                 <?php endforeach; ?>
                                 <?php if (empty($recent_activity)): ?>
-                                    <li class="activity-item text-center py-3">
-                                        <i class="fas fa-info-circle text-muted mb-2"></i>
-                                        <p class="mb-0 text-muted">No recent activity</p>
-                                    </li>
+                                    <div class="list-group-item">
+                                        <p class="mb-1 text-center">No recent activity found</p>
+                                    </div>
                                 <?php endif; ?>
-                            </ul>
+                            </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Moderation Stats -->
-                    <div class="card animate__animated animate__fadeIn">
+                <div class="col-md-6">
+                    <div class="card">
                         <div class="card-header">
-                            <i class="fas fa-chart-pie me-2"></i> Moderation Stats
+                            <i class="fas fa-chart-bar me-2"></i> Moderation Statistics
                         </div>
                         <div class="card-body">
-                            <div class="chart-container">
-                                <canvas id="moderationChart"></canvas>
+                            <div class="row text-center">
+                                <div class="col-md-4">
+                                    <div class="card bg-light mb-3">
+                                        <div class="card-body">
+                                            <h3 class="text-primary"><?php echo htmlspecialchars($moderation_stats['posts_today'] ?? 0); ?></h3>
+                                            <p class="mb-0">Posts Today</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card bg-light mb-3">
+                                        <div class="card-body">
+                                            <h3 class="text-warning"><?php echo htmlspecialchars($moderation_stats['pending_review'] ?? 0); ?></h3>
+                                            <p class="mb-0">Pending Review</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card bg-light mb-3">
+                                        <div class="card-body">
+                                            <h3 class="text-success"><?php echo htmlspecialchars($moderation_stats['resolved_today'] ?? 0); ?></h3>
+                                            <p class="mb-0">Resolved Today</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             <div class="mt-3">
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span class="text-success">
-                                        <i class="fas fa-check-circle"></i> Approved
-                                    </span>
-                                    <span class="fw-bold"><?php echo htmlspecialchars($moderation_stats['approved_count'] ?? 0); ?></span>
+                                <h6>Moderation Actions</h6>
+                                <?php 
+                                    $total = ($moderation_stats['approved_count'] ?? 0) + ($moderation_stats['edited_count'] ?? 0) + ($moderation_stats['deleted_count'] ?? 0);
+                                    $approved_percent = $total > 0 ? round(($moderation_stats['approved_count'] / $total) * 100) : 0;
+                                    $edited_percent = $total > 0 ? round(($moderation_stats['edited_count'] / $total) * 100) : 0;
+                                    $deleted_percent = $total > 0 ? round(($moderation_stats['deleted_count'] / $total) * 100) : 0;
+                                ?>
+                                <div class="progress mb-2">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: <?php echo $approved_percent; ?>%;" 
+                                         aria-valuenow="<?php echo $approved_percent; ?>" aria-valuemin="0" aria-valuemax="100">
+                                        Approved (<?php echo $approved_percent; ?>%)
+                                    </div>
                                 </div>
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span class="text-warning">
-                                        <i class="fas fa-edit"></i> Edited
-                                    </span>
-                                    <span class="fw-bold"><?php echo htmlspecialchars($moderation_stats['edited_count'] ?? 0); ?></span>
+                                <div class="progress mb-2">
+                                    <div class="progress-bar bg-warning" role="progressbar" style="width: <?php echo $edited_percent; ?>%;" 
+                                         aria-valuenow="<?php echo $edited_percent; ?>" aria-valuemin="0" aria-valuemax="100">
+                                        Edited (<?php echo $edited_percent; ?>%)
+                                    </div>
                                 </div>
-                                <div class="d-flex justify-content-between">
-                                    <span class="text-danger">
-                                        <i class="fas fa-trash"></i> Deleted
-                                    </span>
-                                    <span class="fw-bold"><?php echo htmlspecialchars($moderation_stats['deleted_count'] ?? 0); ?></span>
+                                <div class="progress">
+                                    <div class="progress-bar bg-danger" role="progressbar" style="width: <?php echo $deleted_percent; ?>%;" 
+                                         aria-valuenow="<?php echo $deleted_percent; ?>" aria-valuemin="0" aria-valuemax="100">
+                                        Deleted (<?php echo $deleted_percent; ?>%)
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1185,101 +1006,11 @@ try {
 
     <!-- SweetAlert2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
-    <!-- Bootstrap JS Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Custom JS -->
+    <script src="../assests/sidebar_toggle.js" defer></script>
     <script>
-        // Initialize tooltips
-        document.addEventListener('DOMContentLoaded', function() {
-            // Enable tooltips everywhere
-            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
-            });
-            
-            // Initialize chart
-            initModerationChart();
-            
-            // Mobile menu toggle
-            document.getElementById('mobileMenuToggle').addEventListener('click', function() {
-                document.getElementById('sidebar').classList.toggle('show');
-            });
-            
-            // Dark mode toggle
-            document.getElementById('darkModeToggle').addEventListener('click', function() {
-                document.body.classList.toggle('dark-mode');
-                localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
-                // Re-render chart with correct colors
-                initModerationChart();
-            });
-            
-            // Check for saved dark mode preference
-            if (localStorage.getItem('darkMode') === 'true') {
-                document.body.classList.add('dark-mode');
-            }
-        });
-        
-        // Initialize moderation chart
-        function initModerationChart() {
-            const ctx = document.getElementById('moderationChart').getContext('2d');
-            const isDarkMode = document.body.classList.contains('dark-mode');
-            
-            const approved = <?php echo $moderation_stats['approved_count'] ?? 0; ?>;
-            const edited = <?php echo $moderation_stats['edited_count'] ?? 0; ?>;
-            const deleted = <?php echo $moderation_stats['deleted_count'] ?? 0; ?>;
-            const total = approved + edited + deleted;
-            
-            const chart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Approved', 'Edited', 'Deleted'],
-                    datasets: [{
-                        data: [approved, edited, deleted],
-                        backgroundColor: [
-                            '#28a745',
-                            '#ffc107',
-                            '#dc3545'
-                        ],
-                        borderColor: isDarkMode ? '#444' : '#fff',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                color: isDarkMode ? '#e0e0e0' : '#333',
-                                font: {
-                                    family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
-                                }
-                            }
-                        },
-                        tooltip: {
-                            bodyFont: {
-                                family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
-                            },
-                            callbacks: {
-                                label: function(context) {
-                                    const label = context.label || '';
-                                    const value = context.raw || 0;
-                                    const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
-                                    return `${label}: ${value} (${percentage}%)`;
-                                }
-                            }
-                        }
-                    },
-                    cutout: '70%'
-                }
-            });
-        }
-        
-        // Toggle read more/less for content
-        function toggleReadMore(element) {
+        // Toggle read more/less for post content
+        function toggleReadMore(element, type) {
+            // Prevent default anchor behavior
             event.preventDefault();
             
             const container = element.parentElement;
@@ -1290,15 +1021,13 @@ try {
                 shortText.style.display = 'none';
                 fullText.style.display = 'inline';
                 element.textContent = 'Read less';
-                container.classList.add('expanded');
             } else {
                 shortText.style.display = 'inline';
                 fullText.style.display = 'none';
                 element.textContent = 'Read more';
-                container.classList.remove('expanded');
             }
         }
-        
+
         // Search functionality for reported content
         document.getElementById('searchReports').addEventListener('input', function(e) {
             const searchTerm = e.target.value.toLowerCase();
@@ -1309,19 +1038,19 @@ try {
                 row.style.display = text.includes(searchTerm) ? '' : 'none';
             });
         });
-        
+
         // Post moderation actions
         function moderatePost(postId, action) {
             let title, text, confirmButtonText, icon;
             
             if (action === 'approve') {
                 title = 'Approve Post';
-                text = 'This will mark the post as approved and clear all reports.';
+                text = 'Are you sure you want to approve this post?';
                 confirmButtonText = 'Yes, approve';
                 icon = 'success';
             } else {
                 title = 'Delete Post';
-                text = 'This will permanently delete the post and all associated content.';
+                text = 'Are you sure you want to delete this post? This action cannot be undone.';
                 confirmButtonText = 'Yes, delete';
                 icon = 'warning';
             }
@@ -1334,58 +1063,62 @@ try {
                 confirmButtonColor: '#3085d6',
                 cancelButtonColor: '#d33',
                 confirmButtonText: confirmButtonText,
-                showLoaderOnConfirm: true,
-                preConfirm: () => {
-                    return fetch('moderate_post.php', {
+                background: document.body.classList.contains('dark-mode') ? '#1a1a1a' : '#ffffff',
+                color: document.body.classList.contains('dark-mode') ? '#ffffff' : '#333333'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // AJAX call to handle the moderation action
+                    fetch('moderate_post.php', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
                         },
                         body: `post_id=${postId}&action=${action}`
                     })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                title: 'Success!',
+                                text: data.message,
+                                icon: 'success',
+                                confirmButtonText: 'OK'
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Error!',
+                                text: data.message,
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
                         }
-                        return response.json();
                     })
                     .catch(error => {
-                        Swal.showValidationMessage(
-                            `Request failed: ${error}`
-                        );
-                    });
-                },
-                allowOutsideClick: () => !Swal.isLoading(),
-                background: document.body.classList.contains('dark-mode') ? '#2d2d2d' : '#ffffff',
-                color: document.body.classList.contains('dark-mode') ? '#e0e0e0' : '#333333'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        title: 'Success!',
-                        text: result.value?.message || 'Action completed successfully',
-                        icon: 'success',
-                        confirmButtonText: 'OK',
-                        background: document.body.classList.contains('dark-mode') ? '#2d2d2d' : '#ffffff',
-                        color: document.body.classList.contains('dark-mode') ? '#e0e0e0' : '#333333'
-                    }).then(() => {
-                        location.reload();
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'An error occurred while processing your request.',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
                     });
                 }
             });
         }
-        
+
         // Comment moderation actions
         function moderateComment(commentId, action) {
             let title, text, confirmButtonText, icon;
             
             if (action === 'approve') {
                 title = 'Approve Comment';
-                text = 'This will mark the comment as approved and clear all reports.';
+                text = 'Are you sure you want to approve this comment?';
                 confirmButtonText = 'Yes, approve';
                 icon = 'success';
             } else {
                 title = 'Delete Comment';
-                text = 'This will permanently delete the comment.';
+                text = 'Are you sure you want to delete this comment? This action cannot be undone.';
                 confirmButtonText = 'Yes, delete';
                 icon = 'warning';
             }
@@ -1398,77 +1131,77 @@ try {
                 confirmButtonColor: '#3085d6',
                 cancelButtonColor: '#d33',
                 confirmButtonText: confirmButtonText,
-                showLoaderOnConfirm: true,
-                preConfirm: () => {
-                    return fetch('moderate_comment.php', {
+                background: document.body.classList.contains('dark-mode') ? '#1a1a1a' : '#ffffff',
+                color: document.body.classList.contains('dark-mode') ? '#ffffff' : '#333333'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // AJAX call to handle the moderation action
+                    fetch('moderate_comment.php', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
                         },
                         body: `comment_id=${commentId}&action=${action}`
                     })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                title: 'Success!',
+                                text: data.message,
+                                icon: 'success',
+                                confirmButtonText: 'OK'
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Error!',
+                                text: data.message,
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
                         }
-                        return response.json();
                     })
                     .catch(error => {
-                        Swal.showValidationMessage(
-                            `Request failed: ${error}`
-                        );
-                    });
-                },
-                allowOutsideClick: () => !Swal.isLoading(),
-                background: document.body.classList.contains('dark-mode') ? '#2d2d2d' : '#ffffff',
-                color: document.body.classList.contains('dark-mode') ? '#e0e0e0' : '#333333'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        title: 'Success!',
-                        text: result.value?.message || 'Action completed successfully',
-                        icon: 'success',
-                        confirmButtonText: 'OK',
-                        background: document.body.classList.contains('dark-mode') ? '#2d2d2d' : '#ffffff',
-                        color: document.body.classList.contains('dark-mode') ? '#e0e0e0' : '#333333'
-                    }).then(() => {
-                        location.reload();
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'An error occurred while processing your request.',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
                     });
                 }
             });
         }
-        
+
         // User moderation actions
-        function warnUser(userId, userType) {
+        function warnUser(userId) {
             Swal.fire({
                 title: 'Send Warning to User',
                 input: 'textarea',
                 inputLabel: 'Warning Message',
-                inputPlaceholder: 'Explain why this user is being warned...',
+                inputPlaceholder: 'Enter the warning message to send to this user...',
                 inputAttributes: {
-                    'aria-label': 'Enter warning message'
+                    'aria-label': 'Enter the warning message to send to this user'
                 },
                 showCancelButton: true,
                 confirmButtonText: 'Send Warning',
                 showLoaderOnConfirm: true,
                 preConfirm: (message) => {
-                    if (!message) {
-                        Swal.showValidationMessage('Please enter a warning message');
-                        return false;
-                    }
-                    
                     return fetch('warn_user.php', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
                         },
-                        body: `user_id=${userId}&user_type=${userType}&message=${encodeURIComponent(message)}`
+                        body: `user_id=${userId}&message=${encodeURIComponent(message)}`
                     })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success) {
+                            throw new Error(data.message);
                         }
-                        return response.json();
+                        return data;
                     })
                     .catch(error => {
                         Swal.showValidationMessage(
@@ -1477,35 +1210,33 @@ try {
                     });
                 },
                 allowOutsideClick: () => !Swal.isLoading(),
-                background: document.body.classList.contains('dark-mode') ? '#2d2d2d' : '#ffffff',
-                color: document.body.classList.contains('dark-mode') ? '#e0e0e0' : '#333333'
+                background: document.body.classList.contains('dark-mode') ? '#1a1a1a' : '#ffffff',
+                color: document.body.classList.contains('dark-mode') ? '#ffffff' : '#333333'
             }).then((result) => {
                 if (result.isConfirmed) {
                     Swal.fire({
-                        title: 'Warning Sent!',
-                        text: result.value?.message || 'The user has been warned.',
+                        title: 'Success!',
+                        text: result.value.message,
                         icon: 'success',
-                        confirmButtonText: 'OK',
-                        background: document.body.classList.contains('dark-mode') ? '#2d2d2d' : '#ffffff',
-                        color: document.body.classList.contains('dark-mode') ? '#e0e0e0' : '#333333'
+                        confirmButtonText: 'OK'
                     }).then(() => {
                         location.reload();
                     });
                 }
             });
         }
-        
-        function banUser(userId, userType) {
+
+        function banUser(userId) {
             Swal.fire({
                 title: 'Ban User',
                 html: `
-                    <div class="mb-3">
-                        <label for="banReason" class="form-label">Reason for Ban</label>
-                        <textarea id="banReason" class="form-control" placeholder="Enter the reason for banning this user..." rows="3"></textarea>
+                    <div class="form-group">
+                        <label for="banReason">Reason for Ban</label>
+                        <textarea id="banReason" class="form-control" placeholder="Enter the reason for banning this user..."></textarea>
                     </div>
-                    <div class="mb-3">
-                        <label for="banDuration" class="form-label">Duration</label>
-                        <select id="banDuration" class="form-select">
+                    <div class="form-group mt-3">
+                        <label for="banDuration">Duration</label>
+                        <select id="banDuration" class="form-control">
                             <option value="1">1 day</option>
                             <option value="7">1 week</option>
                             <option value="30">1 month</option>
@@ -1515,7 +1246,7 @@ try {
                     </div>
                 `,
                 showCancelButton: true,
-                confirmButtonText: 'Confirm Ban',
+                confirmButtonText: 'Ban User',
                 showLoaderOnConfirm: true,
                 preConfirm: () => {
                     const reason = document.getElementById('banReason').value;
@@ -1531,13 +1262,14 @@ try {
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
                         },
-                        body: `user_id=${userId}&user_type=${userType}&reason=${encodeURIComponent(reason)}&duration=${duration}`
+                        body: `user_id=${userId}&reason=${encodeURIComponent(reason)}&duration=${duration}`
                     })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success) {
+                            throw new Error(data.message);
                         }
-                        return response.json();
+                        return data;
                     })
                     .catch(error => {
                         Swal.showValidationMessage(
@@ -1546,48 +1278,28 @@ try {
                     });
                 },
                 allowOutsideClick: () => !Swal.isLoading(),
-                background: document.body.classList.contains('dark-mode') ? '#2d2d2d' : '#ffffff',
-                color: document.body.classList.contains('dark-mode') ? '#e0e0e0' : '#333333'
+                background: document.body.classList.contains('dark-mode') ? '#1a1a1a' : '#ffffff',
+                color: document.body.classList.contains('dark-mode') ? '#ffffff' : '#333333'
             }).then((result) => {
                 if (result.isConfirmed) {
                     Swal.fire({
-                        title: 'User Banned!',
-                        text: result.value?.message || 'The user has been banned.',
+                        title: 'Success!',
+                        text: result.value.message,
                         icon: 'success',
-                        confirmButtonText: 'OK',
-                        background: document.body.classList.contains('dark-mode') ? '#2d2d2d' : '#ffffff',
-                        color: document.body.classList.contains('dark-mode') ? '#e0e0e0' : '#333333'
+                        confirmButtonText: 'OK'
                     }).then(() => {
                         location.reload();
                     });
                 }
             });
         }
-        
+
         // Edit post functionality
         function editPost(postId) {
-            // Show loading state
-            Swal.fire({
-                title: 'Loading post content...',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                },
-                background: document.body.classList.contains('dark-mode') ? '#2d2d2d' : '#ffffff',
-                color: document.body.classList.contains('dark-mode') ? '#e0e0e0' : '#333333'
-            });
-            
-            // Fetch post content
+            // Fetch post content first
             fetch(`get_post.php?post_id=${postId}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
+                .then(response => response.json())
                 .then(data => {
-                    Swal.close();
-                    
                     if (data.success) {
                         Swal.fire({
                             title: 'Edit Post',
@@ -1607,11 +1319,12 @@ try {
                                     },
                                     body: `post_id=${postId}&content=${encodeURIComponent(editedContent)}`
                                 })
-                                .then(response => {
-                                    if (!response.ok) {
-                                        throw new Error('Network response was not ok');
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (!data.success) {
+                                        throw new Error(data.message);
                                     }
-                                    return response.json();
+                                    return data;
                                 })
                                 .catch(error => {
                                     Swal.showValidationMessage(
@@ -1620,17 +1333,15 @@ try {
                                 });
                             },
                             allowOutsideClick: () => !Swal.isLoading(),
-                            background: document.body.classList.contains('dark-mode') ? '#2d2d2d' : '#ffffff',
-                            color: document.body.classList.contains('dark-mode') ? '#e0e0e0' : '#333333'
+                            background: document.body.classList.contains('dark-mode') ? '#1a1a1a' : '#ffffff',
+                            color: document.body.classList.contains('dark-mode') ? '#ffffff' : '#333333'
                         }).then((result) => {
                             if (result.isConfirmed) {
                                 Swal.fire({
-                                    title: 'Post Updated!',
-                                    text: result.value?.message || 'The post has been successfully updated.',
+                                    title: 'Success!',
+                                    text: result.value.message,
                                     icon: 'success',
-                                    confirmButtonText: 'OK',
-                                    background: document.body.classList.contains('dark-mode') ? '#2d2d2d' : '#ffffff',
-                                    color: document.body.classList.contains('dark-mode') ? '#e0e0e0' : '#333333'
+                                    confirmButtonText: 'OK'
                                 }).then(() => {
                                     location.reload();
                                 });
@@ -1639,11 +1350,9 @@ try {
                     } else {
                         Swal.fire({
                             title: 'Error!',
-                            text: data.message || 'Failed to fetch post content.',
+                            text: data.message,
                             icon: 'error',
-                            confirmButtonText: 'OK',
-                            background: document.body.classList.contains('dark-mode') ? '#2d2d2d' : '#ffffff',
-                            color: document.body.classList.contains('dark-mode') ? '#e0e0e0' : '#333333'
+                            confirmButtonText: 'OK'
                         });
                     }
                 })
@@ -1652,46 +1361,48 @@ try {
                         title: 'Error!',
                         text: 'Failed to fetch post content.',
                         icon: 'error',
-                        confirmButtonText: 'OK',
-                        background: document.body.classList.contains('dark-mode') ? '#2d2d2d' : '#ffffff',
-                        color: document.body.classList.contains('dark-mode') ? '#e0e0e0' : '#333333'
+                        confirmButtonText: 'OK'
                     });
                 });
         }
-        
-        // Logout confirmation
+
+        // SweetAlert for logout confirmation
         function confirmLogout(e) {
             e.preventDefault();
             const logoutUrl = e.currentTarget.getAttribute('href');
             
             Swal.fire({
-                title: 'Ready to Logout?',
-                text: "You'll need to sign in again to access the dashboard.",
-                icon: 'question',
+                title: 'Are you sure?',
+                text: "You will be logged out of the system.",
+                icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
                 cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, logout',
-                background: document.body.classList.contains('dark-mode') ? '#2d2d2d' : '#ffffff',
-                color: document.body.classList.contains('dark-mode') ? '#e0e0e0' : '#333333'
+                confirmButtonText: 'Yes, logout!',
+                background: document.body.classList.contains('dark-mode') ? '#1a1a1a' : '#ffffff',
+                color: document.body.classList.contains('dark-mode') ? '#ffffff' : '#333333'
             }).then((result) => {
                 if (result.isConfirmed) {
                     window.location.href = logoutUrl;
                 }
             });
         }
-        
-        // Sidebar toggle functionality
-        document.getElementById('sidebarToggle').addEventListener('click', function() {
-            document.getElementById('sidebar').classList.toggle('collapsed');
-            localStorage.setItem('sidebarCollapsed', document.getElementById('sidebar').classList.contains('collapsed'));
+
+        // Initialize tooltips
+        document.addEventListener('DOMContentLoaded', function() {
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+            
+            // Time ago tooltips
+            document.querySelectorAll('.time-ago').forEach(el => {
+                new bootstrap.Tooltip(el);
+            });
         });
-        
-        // Check for saved sidebar state
-        if (localStorage.getItem('sidebarCollapsed') === 'true') {
-            document.getElementById('sidebar').classList.add('collapsed');
-        }
     </script>
+    <!-- Bootstrap JS (with Popper) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
 
