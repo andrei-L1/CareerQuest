@@ -41,7 +41,7 @@ try {
     $analytics['total_users'] = $stmt->fetch(PDO::FETCH_ASSOC)['total_users'];
     
     // Total Students Count
-    $stmt = $conn->query("SELECT COUNT(*) as total_students FROM student WHERE deleted_at IS NULL");
+    $stmt = $conn->query("SELECT COUNT(*) as total_students FROM student WHERE deleted_at IS NULL AND is_student = 1");
     $analytics['total_students'] = $stmt->fetch(PDO::FETCH_ASSOC)['total_students'];
     
     // Total Employers Count
@@ -49,7 +49,7 @@ try {
     $analytics['total_employers'] = $stmt->fetch(PDO::FETCH_ASSOC)['total_employers'];
     
     // Total Professionals Count
-    $stmt = $conn->query("SELECT COUNT(*) as total_professionals FROM professional WHERE deleted_at IS NULL");
+    $stmt = $conn->query("SELECT COUNT(*) as total_professionals FROM student WHERE deleted_at IS NULL AND is_student = 0");
     $analytics['total_professionals'] = $stmt->fetch(PDO::FETCH_ASSOC)['total_professionals'];
     
     // Total Job Postings Count
