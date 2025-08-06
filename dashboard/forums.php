@@ -162,7 +162,9 @@ if ($selectedForumId) {
             $query = "SELECT fp.*, 
                             CONCAT(COALESCE(u.user_first_name, s.stud_first_name), ' ', COALESCE(u.user_last_name, s.stud_last_name)) AS poster_name,
                             COALESCE(u.picture_file, s.profile_picture) AS poster_picture,
-                            COUNT(fc.comment_id) AS comment_count
+                            COUNT(fc.comment_id) AS comment_count,
+                            (SELECT COUNT(*) FROM post_like pl WHERE pl.post_id = fp.post_id) AS like_count,
+                            (SELECT COUNT(*) FROM post_like pl WHERE pl.post_id = fp.post_id AND pl.actor_id = ?) AS user_liked
                     FROM forum_post fp
                     LEFT JOIN actor a ON fp.poster_id = a.actor_id
                     LEFT JOIN user u ON (a.entity_type = 'user' AND a.entity_id = u.user_id)
@@ -175,7 +177,7 @@ if ($selectedForumId) {
                     GROUP BY fp.post_id
                     ORDER BY fp.is_announcement DESC, fp.is_pinned DESC, fp.posted_at DESC";
             $stmt = $conn->prepare($query);
-            $stmt->execute([$selectedForumId]);
+            $stmt->execute([$currentUser['actor_id'], $selectedForumId]);
             $forumPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
     }
@@ -193,9 +195,10 @@ $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Fetch notifications based on entity type
 if ($currentUser['entity_type'] === 'student') {
-    // Students: Fetch only 'announcement' notifications
+    // Students: Fetch 'announcement' and 'like' notifications
     $query = "SELECT * FROM notification 
-              WHERE actor_id = ? AND is_read = FALSE AND deleted_at IS NULL AND notification_type = 'announcement'
+              WHERE actor_id = ? AND is_read = FALSE AND deleted_at IS NULL 
+              AND notification_type IN ('announcement', 'like')
               ORDER BY created_at DESC
               LIMIT 5";
     $stmt = $conn->prepare($query);
@@ -204,15 +207,16 @@ if ($currentUser['entity_type'] === 'student') {
 
     // Count unread notifications for students
     $query = "SELECT COUNT(*) AS unread_count FROM notification 
-              WHERE actor_id = ? AND is_read = FALSE AND deleted_at IS NULL AND notification_type = 'announcement'";
+              WHERE actor_id = ? AND is_read = FALSE AND deleted_at IS NULL 
+              AND notification_type IN ('announcement', 'like')";
     $stmt = $conn->prepare($query);
     $stmt->execute([$currentUser['actor_id']]);
     $unreadCount = $stmt->fetch(PDO::FETCH_ASSOC)['unread_count'];
 } else {
-    // Users: Fetch 'announcement' and 'membership_request' notifications
+    // Users: Fetch 'announcement', 'membership_request', and 'like' notifications
     $query = "SELECT * FROM notification 
               WHERE actor_id = ? AND is_read = FALSE AND deleted_at IS NULL 
-              AND notification_type IN ('announcement', 'membership_request')
+              AND notification_type IN ('announcement', 'membership_request', 'like')
               ORDER BY created_at DESC
               LIMIT 5";
     $stmt = $conn->prepare($query);
@@ -222,7 +226,7 @@ if ($currentUser['entity_type'] === 'student') {
     // Count unread notifications for users
     $query = "SELECT COUNT(*) AS unread_count FROM notification 
               WHERE actor_id = ? AND is_read = FALSE AND deleted_at IS NULL 
-              AND notification_type IN ('announcement', 'membership_request')";
+              AND notification_type IN ('announcement', 'membership_request', 'like')";
     $stmt = $conn->prepare($query);
     $stmt->execute([$currentUser['actor_id']]);
     $unreadCount = $stmt->fetch(PDO::FETCH_ASSOC)['unread_count'];
@@ -1153,9 +1157,11 @@ $isModerator = $isSystemModerator || $isForumModerator;
                                     </div>
                                     <div class="post-footer">
                                         <div class="post-actions">
-                                            <a href="#" class="like-btn" data-post-id="<?php echo $post['post_id']; ?>" 
-                                            aria-label="Like Post (<?php echo $post['up_count']; ?> likes)">
-                                                <i class="bi bi-hand-thumbs-up"></i> Like (<span class="like-count"><?php echo $post['up_count']; ?></span>)
+                                            <a href="#" class="like-btn <?php echo $post['user_liked'] ? 'active' : ''; ?>" 
+                                            data-post-id="<?php echo $post['post_id']; ?>" 
+                                            aria-label="<?php echo $post['user_liked'] ? 'Unlike' : 'Like'; ?> Post (<?php echo $post['like_count']; ?> likes)">
+                                                <i class="bi bi-hand-thumbs-<?php echo $post['user_liked'] ? 'down' : 'up'; ?>"></i> 
+                                                <span><?php echo $post['user_liked'] ? 'Unlike' : 'Like'; ?></span> (<span class="like-count"><?php echo $post['like_count']; ?></span>)
                                             </a>
                                             <a href="../forum/post.php?post_id=<?php echo $post['post_id']; ?>" 
                                             aria-label="View Comments (<?php echo $post['comment_count']; ?> comments)">
@@ -1364,19 +1370,17 @@ $isModerator = $isSystemModerator || $isForumModerator;
                 // Like button handler with toast notification
                 document.querySelectorAll('.like-btn').forEach(button => {
                     const postId = button.dataset.postId;
+                    // Check if the user has liked the post
                     if (localStorage.getItem(`liked_post_${postId}`)) {
                         button.classList.add('active');
-                        button.style.pointerEvents = 'none';
+                        button.querySelector('i').className = 'bi bi-hand-thumbs-down';
+                        button.querySelector('span').textContent = `Unlike`;
                     }
 
                     button.addEventListener('click', function(e) {
                         e.preventDefault();
-                        if (localStorage.getItem(`liked_post_${postId}`)) {
-                            showToast('You already liked this post.', 'error');
-                            return;
-                        }
-
                         button.classList.add('disabled');
+
                         fetch('../forum/like_post.php', {
                             method: 'POST',
                             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
@@ -1388,12 +1392,22 @@ $isModerator = $isSystemModerator || $isForumModerator;
                             if (data.success) {
                                 const countSpan = button.querySelector('.like-count');
                                 countSpan.textContent = data.like_count;
-                                localStorage.setItem(`liked_post_${postId}`, 'true');
-                                button.classList.add('active');
-                                button.style.pointerEvents = 'none';
-                                showToast('Post liked successfully!', 'success');
+
+                                if (data.action === 'liked') {
+                                    localStorage.setItem(`liked_post_${postId}`, 'true');
+                                    button.classList.add('active');
+                                    button.querySelector('i').className = 'bi bi-hand-thumbs-down';
+                                    button.querySelector('span').textContent = `Unlike`;
+                                    showToast('Post liked successfully!', 'success');
+                                } else {
+                                    localStorage.removeItem(`liked_post_${postId}`);
+                                    button.classList.remove('active');
+                                    button.querySelector('i').className = 'bi bi-hand-thumbs-up';
+                                    button.querySelector('span').textContent = `Like`;
+                                    showToast('Post unliked successfully!', 'success');
+                                }
                             } else {
-                                showToast(data.message || 'Failed to like post.', 'error');
+                                showToast(data.message || 'Failed to process like/unlike.', 'error');
                             }
                         })
                         .catch(err => {

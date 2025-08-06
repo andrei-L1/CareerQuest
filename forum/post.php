@@ -18,15 +18,22 @@ if (!isset($_GET['post_id'])) {
     exit;
 }
 
-$post_id = $_GET['post_id'];
+$post_id = filter_input(INPUT_GET, 'post_id', FILTER_VALIDATE_INT);
+if ($post_id === false || $post_id <= 0) {
+    $_SESSION['error'] = "Invalid post ID";
+    header("Location: ../dashboard/forums.php");
+    exit;
+}
 
-// Get post details
+// Get post details with like count and user_liked status
 $query = "SELECT fp.*, 
                  f.title AS forum_title,
                  f.forum_id,
                  CONCAT(COALESCE(u.user_first_name, s.stud_first_name), ' ', COALESCE(u.user_last_name, s.stud_last_name)) AS poster_name,
                  COALESCE(u.picture_file, s.profile_picture) AS poster_picture,
-                 a.actor_id AS poster_actor_id
+                 a.actor_id AS poster_actor_id,
+                 (SELECT COUNT(*) FROM post_like pl WHERE pl.post_id = fp.post_id) AS like_count,
+                 (SELECT COUNT(*) FROM post_like pl WHERE pl.post_id = fp.post_id AND pl.actor_id = ?) AS user_liked
           FROM forum_post fp
           JOIN forum f ON fp.forum_id = f.forum_id
           LEFT JOIN actor a ON fp.poster_id = a.actor_id
@@ -34,7 +41,7 @@ $query = "SELECT fp.*,
           LEFT JOIN student s ON (a.entity_type = 'student' AND a.entity_id = s.stud_id)
           WHERE fp.post_id = ? AND fp.deleted_at IS NULL";
 $stmt = $conn->prepare($query);
-$stmt->execute([$post_id]);
+$stmt->execute([$currentUser['actor_id'] ?? 0, $post_id]);
 $post = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$post) {
@@ -146,21 +153,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment'])) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
         :root {
-            --primary-color: #3b82f6; /* Softer blue for modern look */
-            --secondary-color: #64748b; /* Neutral gray */
-            --accent-color: #10b981; /* Green for success states */
-            --danger-color: #ef4444; /* Red for errors */
-            --light-gray: #f1f5f9; /* Lighter background */
-            --dark-color: #1e293b; /* Darker text */
-            --announcement-bg: #fef3c7; /* Yellow background for announcements */
-            --announcement-border: #f59e0b; /* Amber border for announcements */
-            --border-radius: 8px; /* Modern radius */
+            --primary-color: #3b82f6;
+            --secondary-color: #64748b;
+            --accent-color: #10b981;
+            --danger-color: #ef4444;
+            --light-gray: #f1f5f9;
+            --dark-color: #1e293b;
+            --announcement-bg: #fef3c7;
+            --announcement-border: #f59e0b;
+            --border-radius: 8px;
             --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             --transition: all 0.2s ease-in-out;
         }
 
         body {
-            font-family: 'Inter', system-ui, sans-serif; /* Modern font stack */
+            font-family: 'Inter', system-ui, sans-serif;
             background-color: #f8fafc;
             color: var(--dark-color);
             min-height: 100vh;
@@ -456,7 +463,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment'])) {
             font-size: 1.25rem;
         }
 
-        /* Toast Notification */
         .toast-container {
             position: fixed;
             top: 1rem;
@@ -491,7 +497,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment'])) {
             border-left: 4px solid var(--danger-color);
         }
 
-        /* Responsive Design */
         @media (max-width: 768px) {
             .forum-container {
                 padding: 1rem;
@@ -516,7 +521,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment'])) {
             }
         }
 
-        /* Animations */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
@@ -526,12 +530,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment'])) {
             animation: fadeIn 0.3s ease-out forwards;
         }
 
-        /* Accessibility */
         .like-btn:focus, .btn-primary:focus, .btn-outline-secondary:focus, .report-btn:focus {
             outline: 2px solid var(--primary-color);
             outline-offset: 2px;
         }
-        /* Post actions dropdown */
+
         .post-actions-dropdown {
             position: relative;
             display: inline-block;
@@ -664,10 +667,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment'])) {
                 
                 <div class="post-footer card-footer">
                     <div class="stats">
-                        <div class="stat-item like-btn" role="button" data-post-id="<?php echo $post['post_id']; ?>" 
-                             aria-label="Like Post (<?php echo $post['up_count']; ?> likes)">
-                            <i class="bi bi-hand-thumbs-up"></i>
-                            <span class="like-count"><?php echo $post['up_count']; ?> Likes</span>
+                        <div class="stat-item like-btn <?php echo $post['user_liked'] ? 'active' : ''; ?>" role="button" 
+                             data-post-id="<?php echo $post['post_id']; ?>" 
+                             aria-label="<?php echo $post['user_liked'] ? 'Unlike' : 'Like'; ?> Post (<?php echo $post['like_count']; ?> likes)">
+                            <i class="bi bi-hand-thumbs-<?php echo $post['user_liked'] ? 'down' : 'up'; ?>"></i>
+                            <span><?php echo $post['user_liked'] ? 'Unlike' : 'Like'; ?></span> 
+                            (<span class="like-count"><?php echo $post['like_count']; ?></span>)
                         </div>
                         <div class="stat-item">
                             <i class="bi bi-eye"></i>
@@ -699,23 +704,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment'])) {
 
                         <?php if (!$isModerator): ?>
                             <a href="#" 
-                            class="btn btn-outline-danger report-btn" 
-                            data-bs-toggle="modal" 
-                            data-bs-target="#reportModal" 
-                            data-content-type="post" 
-                            data-content-id="<?php echo $post['post_id']; ?>" 
-                            aria-label="Report Post">
+                               class="btn btn-outline-danger report-btn" 
+                               data-bs-toggle="modal" 
+                               data-bs-target="#reportModal" 
+                               data-content-type="post" 
+                               data-content-id="<?php echo $post['post_id']; ?>" 
+                               aria-label="Report Post">
                                 <i class="bi bi-flag"></i> Report
                             </a>
                         <?php endif; ?>
 
                         <a href="../dashboard/forums.php?forum_id=<?php echo $post['forum_id']; ?>" 
-                        class="btn btn-outline-secondary" 
-                        aria-label="Back to Forum">
+                           class="btn btn-outline-secondary" 
+                           aria-label="Back to Forum">
                             <i class="bi bi-arrow-left"></i> Back to Forum
                         </a>
                     </div>
-
                 </div>
             </div>
             
@@ -848,28 +852,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment'])) {
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Like button handler with toast notification
+            // Like button handler with toggle functionality
             document.querySelectorAll('.like-btn').forEach(button => {
                 const postId = button.dataset.postId;
                 const icon = button.querySelector('i');
                 const countElement = button.querySelector('.like-count');
+                const textElement = button.querySelector('span:not(.like-count)');
 
-                // Check if already liked
+                // Initialize button state based on user_liked
                 if (localStorage.getItem(`liked_post_${postId}`)) {
                     button.classList.add('active');
                     icon.classList.remove('bi-hand-thumbs-up');
-                    icon.classList.add('bi-hand-thumbs-up-fill');
-                    button.style.pointerEvents = 'none';
+                    icon.classList.add('bi-hand-thumbs-down');
+                    textElement.textContent = 'Unlike';
                 }
 
                 button.addEventListener('click', function(e) {
                     e.preventDefault();
-                    if (localStorage.getItem(`liked_post_${postId}`)) {
-                        showToast('You already liked this post.', 'error');
-                        return;
-                    }
-
                     button.classList.add('disabled');
+
                     fetch('../forum/like_post.php', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
@@ -880,14 +881,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment'])) {
                         button.classList.remove('disabled');
                         if (data.success) {
                             countElement.textContent = data.like_count;
-                            button.classList.add('active');
-                            icon.classList.remove('bi-hand-thumbs-up');
-                            icon.classList.add('bi-hand-thumbs-up-fill');
-                            localStorage.setItem(`liked_post_${postId}`, 'true');
-                            button.style.pointerEvents = 'none';
-                            showToast('Post liked successfully!', 'success');
+                            if (data.action === 'liked') {
+                                button.classList.add('active');
+                                icon.classList.remove('bi-hand-thumbs-up');
+                                icon.classList.add('bi-hand-thumbs-down');
+                                textElement.textContent = 'Unlike';
+                                localStorage.setItem(`liked_post_${postId}`, 'true');
+                                showToast('Post liked successfully!', 'success');
+                            } else {
+                                button.classList.remove('active');
+                                icon.classList.remove('bi-hand-thumbs-down');
+                                icon.classList.add('bi-hand-thumbs-up');
+                                textElement.textContent = 'Like';
+                                localStorage.removeItem(`liked_post_${postId}`);
+                                showToast('Post unliked successfully!', 'success');
+                            }
                         } else {
-                            showToast(data.message || 'Failed to like post.', 'error');
+                            showToast(data.message || 'Failed to process like/unlike.', 'error');
                         }
                     })
                     .catch(err => {
@@ -957,51 +967,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment'])) {
                     behavior: 'smooth'
                 });
             }
-        });
-        // Post actions dropdown
-        document.addEventListener('click', function(e) {
-            // Close all dropdowns when clicking anywhere
-            if (!e.target.closest('.post-actions-dropdown')) {
-                document.querySelectorAll('.post-actions-menu').forEach(menu => {
-                    menu.classList.remove('show');
-                });
-            }
-            
-            // Toggle dropdown when clicking the button
-            if (e.target.closest('.post-actions-btn')) {
-                const dropdown = e.target.closest('.post-actions-dropdown');
-                const menu = dropdown.querySelector('.post-actions-menu');
-                menu.classList.toggle('show');
-                e.preventDefault();
-            }
-            
-            // Handle delete post action
-            if (e.target.closest('.delete-post-btn')) {
-                e.preventDefault();
-                const postId = e.target.closest('.delete-post-btn').dataset.postId;
-                if (confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
-                    fetch('../forum/delete_own_post.php', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                        body: `post_id=${postId}`
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            showToast('Post deleted successfully!', 'success');
-                            setTimeout(() => {
-                                window.location.href = '../dashboard/forums.php?forum_id=<?php echo $post['forum_id']; ?>';
-                            }, 1500);
-                        } else {
-                            showToast(data.message || 'Failed to delete post.', 'error');
-                        }
-                    })
-                    .catch(err => {
-                        showToast('An error occurred.', 'error');
-                        console.error('Error:', err);
+
+            // Post actions dropdown
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.post-actions-dropdown')) {
+                    document.querySelectorAll('.post-actions-menu').forEach(menu => {
+                        menu.classList.remove('show');
                     });
                 }
-            }
+                
+                if (e.target.closest('.post-actions-btn')) {
+                    const dropdown = e.target.closest('.post-actions-dropdown');
+                    const menu = dropdown.querySelector('.post-actions-menu');
+                    menu.classList.toggle('show');
+                    e.preventDefault();
+                }
+                
+                if (e.target.closest('.delete-post-btn')) {
+                    e.preventDefault();
+                    const postId = e.target.closest('.delete-post-btn').dataset.postId;
+                    if (confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+                        fetch('../forum/delete_own_post.php', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                            body: `post_id=${postId}`
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                showToast('Post deleted successfully!', 'success');
+                                setTimeout(() => {
+                                    window.location.href = '../dashboard/forums.php?forum_id=<?php echo $post['forum_id']; ?>';
+                                }, 1500);
+                            } else {
+                                showToast(data.message || 'Failed to delete post.', 'error');
+                            }
+                        })
+                        .catch(err => {
+                            showToast('An error occurred.', 'error');
+                            console.error('Error:', err);
+                        });
+                    }
+                }
+            });
         });
     </script>
 </body>

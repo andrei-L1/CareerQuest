@@ -81,6 +81,7 @@ CREATE TABLE IF NOT EXISTS employer (
     FOREIGN KEY (user_id) REFERENCES user(user_id)
 );
 
+/*
 -- Table: professional
 CREATE TABLE IF NOT EXISTS professional (
     professional_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -95,7 +96,7 @@ CREATE TABLE IF NOT EXISTS professional (
     deleted_at TIMESTAMP NULL,
     FOREIGN KEY (user_id) REFERENCES user(user_id)
 );
-
+*/
 -- Table: skill_masterlist
 CREATE TABLE IF NOT EXISTS skill_masterlist (
     skill_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -254,7 +255,6 @@ CREATE TABLE IF NOT EXISTS forum_post (
     is_pinned BOOLEAN DEFAULT FALSE,
     content TEXT,
     view_count INT DEFAULT 0,
-    up_count INT DEFAULT 0,
     posted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP NULL,
@@ -382,3 +382,13 @@ CREATE TABLE IF NOT EXISTS forum_membership (
     FOREIGN KEY (actor_id) REFERENCES actor(actor_id) ON DELETE CASCADE,
     UNIQUE KEY (forum_id, actor_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS post_like (
+    like_id INT AUTO_INCREMENT PRIMARY KEY,
+    post_id INT NOT NULL,
+    actor_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (post_id) REFERENCES forum_post(post_id) ON DELETE CASCADE,
+    FOREIGN KEY (actor_id) REFERENCES actor(actor_id) ON DELETE CASCADE,
+    UNIQUE KEY (post_id, actor_id)
+);
