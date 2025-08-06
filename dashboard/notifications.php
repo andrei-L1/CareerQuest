@@ -6,7 +6,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Check if both user_id and stud_id are not set simultaneously
+// Check if both user_id and stud_id are set simultaneously
 if (isset($_SESSION['user_id']) && isset($_SESSION['stud_id'])) {
     echo "Error: Both user and student IDs are set. Only one should be set.";
     exit;
@@ -18,7 +18,7 @@ if (!isset($_SESSION['user_id']) && !isset($_SESSION['stud_id'])) {
     exit;
 }
 
-// Initialize current user data (unchanged from your original code)
+// Initialize current user data
 if (isset($_SESSION['user_id'])) {
     $currentUser = [
         'entity_type' => 'user',
@@ -65,29 +65,27 @@ if (isset($_SESSION['user_id'])) {
     }
 }
 
-// Set reference type and ID
-$reference_type = $currentUser['entity_type'];
-$reference_id = $currentUser['entity_id'];
+// Get actor_id for the current user
+$stmt = $conn->prepare("SELECT actor_id FROM actor WHERE entity_type = ? AND entity_id = ?");
+$stmt->execute([$currentUser['entity_type'], $currentUser['entity_id']]);
+$actor = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// Handle actions (enhanced with bulk actions)
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // First get the actor_id for the current user
-    $stmt = $conn->prepare("SELECT actor_id FROM actor WHERE entity_type = ? AND entity_id = ?");
+if (!$actor) {
+    // Create actor record if it doesn't exist
+    $query = "INSERT INTO actor (entity_type, entity_id) VALUES (?, ?)";
+    $stmt = $conn->prepare($query);
     $stmt->execute([$currentUser['entity_type'], $currentUser['entity_id']]);
-    $actor = $stmt->fetch(PDO::FETCH_ASSOC);
-    
-    if (!$actor) {
-        $_SESSION['error_message'] = "Could not find your user record in the notification system";
-        header("Location: notifications.php");
-        exit;
-    }
-    
-    $actor_id = $actor['actor_id'];
+    $currentUser['actor_id'] = $conn->lastInsertId();
+} else {
+    $currentUser['actor_id'] = $actor['actor_id'];
+}
 
+// Handle actions
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['mark_all_read'])) {
         try {
             $stmt = $conn->prepare("UPDATE notification SET is_read = TRUE WHERE actor_id = ? AND deleted_at IS NULL");
-            $stmt->execute([$actor_id]);
+            $stmt->execute([$currentUser['actor_id']]);
             $_SESSION['success_message'] = "All notifications marked as read";
         } catch (PDOException $e) {
             $_SESSION['error_message'] = "Error marking notifications as read: " . $e->getMessage();
@@ -99,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['delete_all'])) {
         try {
             $stmt = $conn->prepare("UPDATE notification SET deleted_at = CURRENT_TIMESTAMP WHERE actor_id = ? AND deleted_at IS NULL");
-            $stmt->execute([$actor_id]);
+            $stmt->execute([$currentUser['actor_id']]);
             $_SESSION['success_message'] = "All notifications deleted";
         } catch (PDOException $e) {
             $_SESSION['error_message'] = "Error deleting notifications: " . $e->getMessage();
@@ -109,58 +107,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Handle single notification actions (unchanged)
+// Handle single notification actions
 if (isset($_GET['notification_id'])) {
-    $notification_id = $_GET['notification_id'];
-    $stmt = $conn->prepare("UPDATE notification SET is_read = TRUE WHERE notification_id = ?");
-    $stmt->execute([$notification_id]);
+    $notification_id = filter_input(INPUT_GET, 'notification_id', FILTER_VALIDATE_INT);
+    if ($notification_id !== false && $notification_id > 0) {
+        $stmt = $conn->prepare("UPDATE notification SET is_read = TRUE WHERE notification_id = ? AND actor_id = ?");
+        $stmt->execute([$notification_id, $currentUser['actor_id']]);
+    }
     header("Location: notifications.php");
     exit;
 }
 
 if (isset($_GET['delete_notification_id'])) {
-    $notification_id = $_GET['delete_notification_id'];
-    $stmt = $conn->prepare("UPDATE notification SET deleted_at = CURRENT_TIMESTAMP WHERE notification_id = ?");
-    $stmt->execute([$notification_id]);
+    $notification_id = filter_input(INPUT_GET, 'delete_notification_id', FILTER_VALIDATE_INT);
+    if ($notification_id !== false && $notification_id > 0) {
+        $stmt = $conn->prepare("UPDATE notification SET deleted_at = CURRENT_TIMESTAMP WHERE notification_id = ? AND actor_id = ?");
+        $stmt->execute([$notification_id, $currentUser['actor_id']]);
+    }
     header("Location: notifications.php");
     exit;
 }
 
-// Fetch notifications (corrected to match second system's logic)
+// Fetch notifications
 $query = "
     SELECT n.*, 
-        a.entity_type AS actor_entity_type,
-        a.entity_id AS actor_entity_id,
-        COALESCE(u.user_first_name, s.stud_first_name) AS actor_first_name,
-        COALESCE(u.user_last_name, s.stud_last_name) AS actor_last_name,
-        COALESCE(u.picture_file, s.profile_picture) AS actor_picture,
-        ref_a.entity_type AS reference_entity_type,
-        ref_a.entity_id AS reference_entity_id
+           a.entity_type AS actor_entity_type,
+           a.entity_id AS actor_entity_id,
+           COALESCE(u.user_first_name, s.stud_first_name) AS actor_first_name,
+           COALESCE(u.user_last_name, s.stud_last_name) AS actor_last_name,
+           COALESCE(u.picture_file, s.profile_picture) AS actor_picture
     FROM notification n
-    JOIN actor a ON n.actor_id = a.actor_id  -- Who receives the notification
+    LEFT JOIN actor a ON n.actor_id = a.actor_id
     LEFT JOIN user u ON a.entity_type = 'user' AND a.entity_id = u.user_id
     LEFT JOIN student s ON a.entity_type = 'student' AND a.entity_id = s.stud_id
-    LEFT JOIN actor ref_a ON n.reference_id = ref_a.actor_id  -- Who performed the action
-    WHERE a.entity_type = ? 
-    AND a.entity_id = ?
+    WHERE n.actor_id = ? 
     AND n.deleted_at IS NULL
     ORDER BY n.created_at DESC";
 
 $stmt = $conn->prepare($query);
-$stmt->execute([$currentUser['entity_type'], $currentUser['entity_id']]);
+$stmt->execute([$currentUser['actor_id']]);
 $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Process notifications (unchanged)
+// Process notifications
 foreach ($notifications as &$notification) {
-    if (!empty($notification['actor_id'])) {
-        $firstName = $notification['actor_first_name'] ?? '';
-        $lastName = $notification['actor_last_name'] ?? '';
-        $actorName = trim("$firstName $lastName");
-        $notification['message'] = str_replace('{actor}', $actorName, $notification['message']);
+    if ($notification['actor_id'] && $notification['actor_first_name'] && $notification['actor_last_name']) {
+        $actor_name = trim($notification['actor_first_name'] . ' ' . $notification['actor_last_name']);
+        $notification['message'] = str_replace('{actor}', htmlspecialchars($actor_name), $notification['message']);
+    } else {
+        $notification['message'] = str_replace('{actor}', 'Someone', $notification['message']);
     }
 }
 unset($notification);
-
 
 // Count unread notifications
 $unread_count = 0;
@@ -174,15 +171,10 @@ foreach ($notifications as $n) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notifications</title>
-
-    <!-- Bootstrap CSS -->
+    <title>Notifications - Career Platform</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
@@ -202,7 +194,7 @@ foreach ($notifications as $n) {
         
         body {
             background-color: #f8f9fa;
-            /* font-family: 'Poppins', sans-serif; */
+            font-family: 'Poppins', sans-serif;
         }
         
         .dashboard-container {
@@ -212,7 +204,6 @@ foreach ($notifications as $n) {
             margin: 0 auto;
         }
         
-        /* Notification Card */
         .notification-card {
             background: white;
             border-radius: var(--border-radius);
@@ -339,7 +330,6 @@ foreach ($notifications as $n) {
             color: white;
         }
         
-        /* Responsive Adjustments */
         @media (max-width: 768px) {
             .dashboard-container {
                 padding: 1rem;
@@ -360,7 +350,6 @@ foreach ($notifications as $n) {
             }
         }
         
-        /* Animation */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -369,45 +358,48 @@ foreach ($notifications as $n) {
         .fade-in {
             animation: fadeIn 0.4s ease-out forwards;
         }
-    </style>
-    <style>
+
         #notificationTabs .nav-link {
-            font-size: 0.75rem;  /* Smaller font size */
-            padding: 0.375rem 0.75rem;  /* Smaller padding for compact buttons */
-            height: 36px;  /* Reduced height */
-            line-height: 1.5;  /* Ensure text is vertically centered */
-            display: flex;  /* Use flexbox for centering */
-            align-items: center;  /* Vertically center content */
-            justify-content: center;  /* Horizontally center content */
+            font-size: 0.75rem;
+            padding: 0.375rem 0.75rem;
+            height: 36px;
+            line-height: 1.5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         #notificationTabs .nav-link i {
-            font-size: 1rem;  /* Slightly smaller icon */
-            margin-right: 0.25rem;  /* Space between icon and text */
+            font-size: 1rem;
+            margin-right: 0.25rem;
         }
 
         #notificationTabs .badge {
-            font-size: 0.7rem; /* Smaller badge text */
-            padding: 0.25rem 0.5rem;  /* Adjust badge padding */
+            font-size: 0.7rem;
+            padding: 0.25rem 0.5rem;
         }
 
         .btn-mark-read {
-            background-color: #1A4D8F;
+            background-color: var(--primary-color);
             color: white;
             font-weight: 300;
         }
 
         .btn-mark-read:hover {
-            background-color:rgb(120, 172, 245); 
-            color: #fff;
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .notification-icon {
+            font-size: 1.2rem;
+            margin-right: 0.5rem;
         }
     </style>
 </head>
 <body>
-
 <div class="container dashboard-container">
     <div class="d-flex justify-content-between align-items-center mb-4 fade-in">
-        <h2 class="fw-normal mb-0" style="color: #1A4D8F;">
+        <h2 class="fw-normal mb-0" style="color: var(--primary-color);">
             <i class="bi bi-bell-fill me-2"></i>Notifications
             <?php if ($unread_count > 0): ?>
                 <span class="badge bg-danger ms-2 align-middle"><?= $unread_count ?> unread</span>
@@ -447,87 +439,85 @@ foreach ($notifications as $n) {
     <?php if (isset($_SESSION['success_message'])): ?>
         <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
             <i class="bi bi-check-circle-fill me-2"></i>
-            <?= $_SESSION['success_message'] ?>
+            <?= htmlspecialchars($_SESSION['success_message']) ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         <?php unset($_SESSION['success_message']); ?>
     <?php endif; ?>
 
+    <?php if (isset($_SESSION['error_message'])): ?>
+        <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <?= htmlspecialchars($_SESSION['error_message']) ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <?php unset($_SESSION['error_message']); ?>
+    <?php endif; ?>
+
     <div class="tab-content fade-in" id="notificationTabContent">
         <div class="tab-pane fade show active" id="all" role="tabpanel">
-            <?php if (empty($notifications)) : ?>
+            <?php if (empty($notifications)): ?>
                 <div class="empty-state">
                     <i class="bi bi-bell-slash mb-3"></i>
                     <h4>No notifications found</h4>
                     <p>You're all caught up!</p>
                 </div>
-            <?php else : ?>
+            <?php else: ?>
                 <?php 
                 $current_date = null;
-                foreach ($notifications as $notification) : 
+                foreach ($notifications as $notification):
                     $notification_date = date("F j, Y", strtotime($notification['created_at']));
                     if ($notification_date !== $current_date) {
                         $current_date = $notification_date;
-                        echo '<div class="date-divider">' . $current_date . '</div>';
+                        echo '<div class="date-divider">' . htmlspecialchars($current_date) . '</div>';
                     }
+                    $icon_class = match ($notification['notification_type']) {
+                        'like' => 'bi-hand-thumbs-up-fill',
+                        'comment' => 'bi-chat-square-text-fill',
+                        'application' => 'bi-briefcase-fill',
+                        default => 'bi-info-circle-fill'
+                    };
                 ?>
                     <div class="card notification-card <?= $notification['is_read'] ? 'card-read' : 'card-unread' ?>">
                         <div class="card-body">
                             <div class="d-flex align-items-start">
-                                <?php if ($notification['actor_entity_type'] === 'user') : ?>
-                                    <?php if ($notification['actor_picture']) : ?>
-                                        <img src="<?= htmlspecialchars($notification['actor_picture']) ?>"
-                                            alt="Actor"
-                                            class="actor-image me-3">
-                                    <?php else : ?>
-                                        <div class="actor-image me-3 bg-primary-light d-flex align-items-center justify-content-center">
-                                            <i class="fas fa-user text-primary"></i>
-                                        </div>
-                                    <?php endif; ?>
-                                <?php endif; ?>
-                                
+                                <div class="flex-shrink-0 me-3">
+                                    <i class="bi <?= $icon_class ?> notification-icon text-primary"></i>
+                                </div>
                                 <div class="flex-grow-1">
-                                    <?php if ($notification['actor_entity_type'] === 'user') : ?>
-                                        <h6 class="mb-1 fw-semibold">
-                                            <?= htmlspecialchars($notification['actor_first_name'] . ' ' . $notification['actor_last_name']) ?>
-                                        </h6>
-                                    <?php endif; ?>
-
-                                    <?php if ($notification['actor_entity_type'] === 'student' || $notification['notification_type'] === 'application' ): ?>
-                                        <h6 class="mb-1 fw-semibold">
-                                            <span>Application</span>
+                                    <h6 class="mb-1 fw-semibold">
+                                        <span><?= htmlspecialchars(ucfirst($notification['notification_type'])) ?></span>
+                                        <?php if ($notification['actor_first_name'] && $notification['actor_last_name']): ?>
                                             <span class="mx-2">|</span>
                                             <span><?= htmlspecialchars($notification['actor_first_name'] . ' ' . $notification['actor_last_name']) ?></span>
-                                        </h6>
-                                    <?php endif; ?>
-                                    
+                                        <?php endif; ?>
+                                    </h6>
                                     <p class="notification-message mb-2">
                                         <?= htmlspecialchars($notification['message']) ?>
                                     </p>
-                                    
                                     <div class="d-flex justify-content-between align-items-center">
                                         <span class="notification-time">
                                             <i class="bi bi-clock me-1"></i>
                                             <?= date("g:i a", strtotime($notification['created_at'])) ?>
-                                            • <?= ucfirst($notification['notification_type']) ?>
+                                            • <?= htmlspecialchars(ucfirst($notification['notification_type'])) ?>
                                         </span>
-                                        
                                         <div class="action-buttons d-flex gap-2">
-                                            <?php if (!$notification['is_read']) : ?>
-                                                <a href="notifications.php?notification_id=<?= $notification['notification_id'] ?>"
-                                                   class="btn btn-sm btn-success">
+                                            <?php if (!$notification['is_read']): ?>
+                                                <a href="notifications.php?notification_id=<?= $notification['notification_id'] ?>" 
+                                                   class="btn btn-sm btn-success" 
+                                                   aria-label="Mark notification as read">
                                                     <i class="bi bi-check-circle me-1"></i> Read
                                                 </a>
                                             <?php endif; ?>
-                                            
-                                            <a href="notifications.php?delete_notification_id=<?= $notification['notification_id'] ?>"
-                                               class="btn btn-sm btn-outline-danger">
+                                            <a href="notifications.php?delete_notification_id=<?= $notification['notification_id'] ?>" 
+                                               class="btn btn-sm btn-outline-danger" 
+                                               aria-label="Delete notification">
                                                 <i class="bi bi-trash me-1"></i> Delete
                                             </a>
-                                            
-                                            <?php if ($notification['action_url']) : ?>
-                                                <a href="<?= htmlspecialchars($notification['action_url']) ?>"
-                                                   class="btn btn-sm btn-primary">
+                                            <?php if ($notification['action_url']): ?>
+                                                <a href="<?= htmlspecialchars($notification['action_url']) ?>" 
+                                                   class="btn btn-sm btn-primary" 
+                                                   aria-label="View notification details">
                                                     <i class="bi bi-arrow-right-circle me-1"></i> View
                                                 </a>
                                             <?php endif; ?>
@@ -543,74 +533,67 @@ foreach ($notifications as $n) {
 
         <div class="tab-pane fade" id="unread" role="tabpanel">
             <?php 
-            $unread_notifications = array_filter($notifications, function($n) {
-                return !$n['is_read'];
-            });
-            
-            if (empty($unread_notifications)) : ?>
+            $unread_notifications = array_filter($notifications, fn($n) => !$n['is_read']);
+            if (empty($unread_notifications)): ?>
                 <div class="empty-state">
                     <i class="bi bi-check-circle mb-3"></i>
                     <h4>No unread notifications</h4>
                     <p>You've read all your notifications!</p>
                 </div>
-            <?php else : ?>
+            <?php else: ?>
                 <?php 
                 $current_date = null;
-                foreach ($unread_notifications as $notification) : 
+                foreach ($unread_notifications as $notification):
                     $notification_date = date("F j, Y", strtotime($notification['created_at']));
                     if ($notification_date !== $current_date) {
                         $current_date = $notification_date;
-                        echo '<div class="date-divider">' . $current_date . '</div>';
+                        echo '<div class="date-divider">' . htmlspecialchars($current_date) . '</div>';
                     }
+                    $icon_class = match ($notification['notification_type']) {
+                        'like' => 'bi-hand-thumbs-up-fill',
+                        'comment' => 'bi-chat-square-text-fill',
+                        'application' => 'bi-briefcase-fill',
+                        default => 'bi-info-circle-fill'
+                    };
                 ?>
                     <div class="card notification-card card-unread">
                         <div class="card-body">
                             <div class="d-flex align-items-start">
-                                <!--
-                                <?php if ($notification['actor_id']) : ?>
-                                    <?php if ($notification['actor_picture']) : ?>
-                                        <img src="<?= htmlspecialchars($notification['actor_picture']) ?>"
-                                            alt="Actor"
-                                            class="actor-image me-3">
-                                    <?php else : ?>
-                                        <div class="actor-image me-3 bg-primary-light d-flex align-items-center justify-content-center">
-                                            <i class="fas fa-user text-primary"></i>
-                                        </div>
-                                    <?php endif; ?>
-                                <?php endif; ?>
-                                    -->
+                                <div class="flex-shrink-0 me-3">
+                                    <i class="bi <?= $icon_class ?> notification-icon text-primary"></i>
+                                </div>
                                 <div class="flex-grow-1">
-                                    <?php if ($notification['actor_id']) : ?>
-                                        <h6 class="mb-1 fw-semibold">
-                                            <?= htmlspecialchars($notification['actor_first_name'] . ' ' . $notification['actor_last_name']) ?>
-                                        </h6>
-                                    <?php endif; ?>
-                                    
+                                    <h6 class="mb-1 fw-semibold">
+                                        <span><?= htmlspecialchars(ucfirst($notification['notification_type'])) ?></span>
+                                        <?php if ($notification['actor_first_name'] && $notification['actor_last_name']): ?>
+                                            <span class="mx-2">|</span>
+                                            <span><?= htmlspecialchars($notification['actor_first_name'] . ' ' . $notification['actor_last_name']) ?></span>
+                                        <?php endif; ?>
+                                    </h6>
                                     <p class="notification-message mb-2">
                                         <?= htmlspecialchars($notification['message']) ?>
                                     </p>
-                                    
                                     <div class="d-flex justify-content-between align-items-center">
                                         <span class="notification-time">
                                             <i class="bi bi-clock me-1"></i>
                                             <?= date("g:i a", strtotime($notification['created_at'])) ?>
-                                            • <?= ucfirst($notification['notification_type']) ?>
+                                            • <?= htmlspecialchars(ucfirst($notification['notification_type'])) ?>
                                         </span>
-                                        
                                         <div class="action-buttons d-flex gap-2">
-                                            <a href="notifications.php?notification_id=<?= $notification['notification_id'] ?>"
-                                               class="btn btn-sm btn-success">
+                                            <a href="notifications.php?notification_id=<?= $notification['notification_id'] ?>" 
+                                               class="btn btn-sm btn-success" 
+                                               aria-label="Mark notification as read">
                                                 <i class="bi bi-check-circle me-1"></i> Read
                                             </a>
-                                            
-                                            <a href="notifications.php?delete_notification_id=<?= $notification['notification_id'] ?>"
-                                               class="btn btn-sm btn-outline-danger">
+                                            <a href="notifications.php?delete_notification_id=<?= $notification['notification_id'] ?>" 
+                                               class="btn btn-sm btn-outline-danger" 
+                                               aria-label="Delete notification">
                                                 <i class="bi bi-trash me-1"></i> Delete
                                             </a>
-                                            
-                                            <?php if ($notification['action_url']) : ?>
-                                                <a href="<?= htmlspecialchars($notification['action_url']) ?>"
-                                                   class="btn btn-sm btn-primary">
+                                            <?php if ($notification['action_url']): ?>
+                                                <a href="<?= htmlspecialchars($notification['action_url']) ?>" 
+                                                   class="btn btn-sm btn-primary" 
+                                                   aria-label="View notification details">
                                                     <i class="bi bi-arrow-right-circle me-1"></i> View
                                                 </a>
                                             <?php endif; ?>
@@ -625,14 +608,11 @@ foreach ($notifications as $n) {
         </div>
     </div>
 </div>
+
 <?php include '../includes/stud_footer.php'; ?>
-<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
 <script>
-
 // Real-time notification updates
 function checkNewNotifications() {
     $.ajax({
@@ -640,44 +620,45 @@ function checkNewNotifications() {
         type: 'GET',
         data: {
             action: 'get_notifications',
-            reference_type: '<?= $reference_type ?>',
-            reference_id: '<?= $reference_id ?>',
+            actor_id: '<?= $currentUser['actor_id'] ?>',
             last_check: new Date().toISOString()
         },
+        dataType: 'json',
         success: function(response) {
-            if (response.new_count > 0) {
-                // Update badge
+            if (response.success && response.new_count > 0 && response.latest_notification) {
                 $('.nav-link#unread-tab .badge').text(response.new_count);
-                
-                // Show toast notification
-                if (response.latest_notification) {
-                    showToastNotification(response.latest_notification);
-                }
+                showToastNotification(response.latest_notification);
             }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error checking notifications:', error);
         }
     });
 }
 
 function showToastNotification(notification) {
-    // Create toast element
+    const icon_class = {
+        'like': 'bi-hand-thumbs-up-fill',
+        'comment': 'bi-chat-square-text-fill',
+        'application': 'bi-briefcase-fill'
+    }[notification.notification_type] || 'bi-info-circle-fill';
+
     const toast = $(`
         <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
             <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
                 <div class="toast-header bg-primary text-white">
-                    <strong class="me-auto"><i class="bi bi-bell-fill me-2"></i>New Notification</strong>
+                    <strong class="me-auto"><i class="bi bi-bell-fill me-2"></i>New ${notification.notification_type.charAt(0).toUpperCase() + notification.notification_type.slice(1)} Notification</strong>
                     <small class="text-white">Just now</small>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
                 </div>
                 <div class="toast-body bg-white">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0 me-3">
-                            <i class="bi bi-info-circle-fill text-primary fs-4"></i>
+                            <i class="bi ${icon_class} text-primary fs-4"></i>
                         </div>
                         <div class="flex-grow-1">
                             <p class="mb-1">${notification.message}</p>
-                            <a href="${notification.action_url || '#'}" class="btn btn-sm btn-primary mt-2">
-                                <i class="bi bi-arrow-right-circle me-1"></i> View
-                            </a>
+                            ${notification.action_url ? `<a href="${notification.action_url}" class="btn btn-sm btn-primary mt-2"><i class="bi bi-arrow-right-circle me-1"></i> View</a>` : ''}
                         </div>
                     </div>
                 </div>
@@ -685,29 +666,18 @@ function showToastNotification(notification) {
         </div>
     `);
     
-    // Add to body and auto-remove after 5 seconds
     $('body').append(toast);
     setTimeout(() => toast.remove(), 5000);
 }
 
-// Check every 30 seconds
 setInterval(checkNewNotifications, 30000);
-
-// Initial check when page loads
 $(document).ready(function() {
     checkNewNotifications();
-    
-    // Add hover effects dynamically
     $('.notification-card').hover(
-        function() {
-            $(this).css('transform', 'translateY(-3px)');
-        },
-        function() {
-            $(this).css('transform', 'translateY(0)');
-        }
+        function() { $(this).css('transform', 'translateY(-3px)'); },
+        function() { $(this).css('transform', 'translateY(0)'); }
     );
 });
 </script>
-
 </body>
 </html>
