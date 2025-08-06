@@ -5,7 +5,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Check if both user_id and stud_id are not set simultaneously
+// Check if both user_id and stud_id are set simultaneously
 if (isset($_SESSION['user_id']) && isset($_SESSION['stud_id'])) {
     echo "Error: Both user and student IDs are set. Only one should be set.";
     exit;
@@ -49,7 +49,6 @@ if (isset($_SESSION['user_id'])) {
     $actor = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if (!$actor) {
-        // Create actor record if it doesn't exist
         $query = "INSERT INTO actor (entity_type, entity_id) VALUES ('user', ?)";
         $stmt = $conn->prepare($query);
         $stmt->execute([$user_id]);
@@ -58,7 +57,6 @@ if (isset($_SESSION['user_id'])) {
         $currentUser['actor_id'] = $actor['actor_id'];
     }
 } else {
-    // Student is logged in
     $currentUser = [
         'entity_type' => 'student',
         'entity_id' => $_SESSION['stud_id'],
@@ -68,7 +66,6 @@ if (isset($_SESSION['user_id'])) {
         'picture' => $_SESSION['profile_picture'] ?? ''
     ];
 
-    // Fetch additional details from the student table
     $stud_id = $currentUser['entity_id'];
     $query = "SELECT * FROM student WHERE stud_id = ?";
     $stmt = $conn->prepare($query);
@@ -82,14 +79,12 @@ if (isset($_SESSION['user_id'])) {
         $currentUser['status'] = $studentDetails['status'];
     }
     
-    // Ensure actor record exists
     $query = "SELECT actor_id FROM actor WHERE entity_type = 'student' AND entity_id = ?";
     $stmt = $conn->prepare($query);
     $stmt->execute([$stud_id]);
     $actor = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if (!$actor) {
-        // Create actor record if it doesn't exist
         $query = "INSERT INTO actor (entity_type, entity_id) VALUES ('student', ?)";
         $stmt = $conn->prepare($query);
         $stmt->execute([$stud_id]);
@@ -108,7 +103,7 @@ $query = "SELECT f.*,
           LEFT JOIN actor a ON f.created_by = a.actor_id
           LEFT JOIN user u ON (a.entity_type = 'user' AND a.entity_id = u.user_id)
           LEFT JOIN student s ON (a.entity_type = 'student' AND a.entity_id = s.stud_id)
-          LEFT JOIN forum_post fp ON f.forum_id = fp.forum_id
+          LEFT JOIN forum_post fp ON f.forum_id = fp.forum_id AND fp.deleted_at IS NULL
           WHERE f.deleted_at IS NULL
           GROUP BY f.forum_id
           ORDER BY f.title ASC";
@@ -116,10 +111,12 @@ $stmt = $conn->prepare($query);
 $stmt->execute();
 $forums = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Check if a specific forum is selected
-$selectedForumId = $_GET['forum_id'] ?? null;
+// Check if a specific forum or view is selected
+$selectedForumId = filter_input(INPUT_GET, 'forum_id', FILTER_VALIDATE_INT) ?: null;
+$view = filter_input(INPUT_GET, 'view', FILTER_SANITIZE_STRING) ?: null;
 $selectedForum = null;
 $forumPosts = [];
+$userPosts = [];
 $bannedFromForum = false;
 $isPrivateForum = false;
 $announcementsOnly = isset($_GET['announcements_only']) && $_GET['announcements_only'] == 1;
@@ -160,12 +157,14 @@ if ($selectedForumId) {
         // Get posts for this forum (only if not banned and either not private or a member)
         if (!$bannedFromForum && (!$isPrivateForum || $currentUser['forum_role'] || $currentUser['is_pending'])) {
             $query = "SELECT fp.*, 
+                            f.title AS forum_title,
                             CONCAT(COALESCE(u.user_first_name, s.stud_first_name), ' ', COALESCE(u.user_last_name, s.stud_last_name)) AS poster_name,
                             COALESCE(u.picture_file, s.profile_picture) AS poster_picture,
                             COUNT(fc.comment_id) AS comment_count,
                             (SELECT COUNT(*) FROM post_like pl WHERE pl.post_id = fp.post_id) AS like_count,
                             (SELECT COUNT(*) FROM post_like pl WHERE pl.post_id = fp.post_id AND pl.actor_id = ?) AS user_liked
                     FROM forum_post fp
+                    LEFT JOIN forum f ON fp.forum_id = f.forum_id
                     LEFT JOIN actor a ON fp.poster_id = a.actor_id
                     LEFT JOIN user u ON (a.entity_type = 'user' AND a.entity_id = u.user_id)
                     LEFT JOIN student s ON (a.entity_type = 'student' AND a.entity_id = s.stud_id)
@@ -181,6 +180,29 @@ if ($selectedForumId) {
             $forumPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
     }
+} elseif ($view === 'my_posts') {
+    // Fetch all posts by the current user across all forums
+    $query = "SELECT fp.*, 
+                     f.title AS forum_title,
+                     CONCAT(COALESCE(u.user_first_name, s.stud_first_name), ' ', COALESCE(u.user_last_name, s.stud_last_name)) AS poster_name,
+                     COALESCE(u.picture_file, s.profile_picture) AS poster_picture,
+                     COUNT(fc.comment_id) AS comment_count,
+                     (SELECT COUNT(*) FROM post_like pl WHERE pl.post_id = fp.post_id) AS like_count,
+                     (SELECT COUNT(*) FROM post_like pl WHERE pl.post_id = fp.post_id AND pl.actor_id = ?) AS user_liked
+              FROM forum_post fp
+              LEFT JOIN forum f ON fp.forum_id = f.forum_id
+              LEFT JOIN actor a ON fp.poster_id = a.actor_id
+              LEFT JOIN user u ON (a.entity_type = 'user' AND a.entity_id = u.user_id)
+              LEFT JOIN student s ON (a.entity_type = 'student' AND a.entity_id = s.stud_id)
+              LEFT JOIN forum_comment fc ON fp.post_id = fc.post_id AND fc.deleted_at IS NULL
+              WHERE fp.poster_id = ? 
+                  AND fp.deleted_at IS NULL
+                  AND f.deleted_at IS NULL
+              GROUP BY fp.post_id
+              ORDER BY fp.posted_at DESC";
+    $stmt = $conn->prepare($query);
+    $stmt->execute([$currentUser['actor_id'], $currentUser['actor_id']]);
+    $userPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 // Fetch forums where user is a member for the sidebar
@@ -195,7 +217,6 @@ $memberForums = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Fetch notifications based on entity type
 if ($currentUser['entity_type'] === 'student') {
-    // Students: Fetch 'announcement' and 'like' notifications
     $query = "SELECT * FROM notification 
               WHERE actor_id = ? AND is_read = FALSE AND deleted_at IS NULL 
               AND notification_type IN ('announcement', 'like')
@@ -205,7 +226,6 @@ if ($currentUser['entity_type'] === 'student') {
     $stmt->execute([$currentUser['actor_id']]);
     $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Count unread notifications for students
     $query = "SELECT COUNT(*) AS unread_count FROM notification 
               WHERE actor_id = ? AND is_read = FALSE AND deleted_at IS NULL 
               AND notification_type IN ('announcement', 'like')";
@@ -213,7 +233,6 @@ if ($currentUser['entity_type'] === 'student') {
     $stmt->execute([$currentUser['actor_id']]);
     $unreadCount = $stmt->fetch(PDO::FETCH_ASSOC)['unread_count'];
 } else {
-    // Users: Fetch 'announcement', 'membership_request', and 'like' notifications
     $query = "SELECT * FROM notification 
               WHERE actor_id = ? AND is_read = FALSE AND deleted_at IS NULL 
               AND notification_type IN ('announcement', 'membership_request', 'like')
@@ -223,7 +242,6 @@ if ($currentUser['entity_type'] === 'student') {
     $stmt->execute([$currentUser['actor_id']]);
     $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Count unread notifications for users
     $query = "SELECT COUNT(*) AS unread_count FROM notification 
               WHERE actor_id = ? AND is_read = FALSE AND deleted_at IS NULL 
               AND notification_type IN ('announcement', 'membership_request', 'like')";
@@ -278,14 +296,13 @@ $isModerator = $isSystemModerator || $isForumModerator;
         }
 
         .forum-container {
-            width: calc(100% - 70px); /* Account for sidebar-nav width */
-            margin-left: 70px; /* Shift to accommodate sidebar-nav */
+            width: calc(100% - 70px);
+            margin-left: 70px;
             display: flex;
             background-color: white;
             min-height: 100vh;
         }
 
-        /* Sidebar Styles */
         .forum-sidebar {
             width: 280px;
             background-color: white;
@@ -293,9 +310,9 @@ $isModerator = $isSystemModerator || $isForumModerator;
             transition: var(--transition);
             position: fixed;
             top: 0;
-            left: 70px; /* Position to the right of sidebar-nav */
+            left: 70px;
             height: 100vh;
-            z-index: 1100; /* Below sidebar-nav */
+            z-index: 1100;
         }
 
         .sidebar-header {
@@ -404,7 +421,6 @@ $isModerator = $isSystemModerator || $isForumModerator;
             font-weight: 500;
         }
 
-        /* Main Content Area */
         .forum-content {
             flex: 1;
             padding: 1.5rem;
@@ -629,9 +645,9 @@ $isModerator = $isSystemModerator || $isForumModerator;
         }
 
         .announcement-badge {
-            background-color: #fef3c7; /* Matches post-item.announcement */
-            color: #1e293b; /* Matches --dark-color */
-            border: 1px solid #f59e0b; /* Matches border-left */
+            background-color: #fef3c7;
+            color: #1e293b;
+            border: 1px solid #f59e0b;
             padding: 0.2rem 0.5rem;
             border-radius: 6px;
             font-size: 0.75rem;
@@ -676,12 +692,11 @@ $isModerator = $isSystemModerator || $isForumModerator;
             font-weight: 600;
         }
 
-        /* Toast Notification */
         .toast-container {
             position: fixed;
             top: 1rem;
             right: 1rem;
-            z-index: 1300; /* Above both sidebars */
+            z-index: 1300;
         }
 
         .toast {
@@ -711,7 +726,6 @@ $isModerator = $isSystemModerator || $isForumModerator;
             border-left: 4px solid var(--danger-color);
         }
 
-        /* Notification Dropdown Styles */
         .notification-dropdown {
             width: 350px;
             max-height: 500px;
@@ -769,13 +783,12 @@ $isModerator = $isSystemModerator || $isForumModerator;
             background-color: #e2e8f0;
         }
 
-        /* Responsive Design */
         @media (max-width: 767px) {
             .forum-container {
                 width: 100%;
-                margin-left: 0; /* Remove sidebar-nav offset on mobile */
+                margin-left: 0;
                 flex-direction: column;
-                padding-bottom: 60px; /* Space for bottom sidebar-nav */
+                padding-bottom: 60px;
             }
 
             .forum-sidebar {
@@ -784,7 +797,7 @@ $isModerator = $isSystemModerator || $isForumModerator;
                 overflow: hidden;
                 transition: max-height 0.3s ease-in-out;
                 position: relative;
-                left: 0; /* Reset position for mobile */
+                left: 0;
                 z-index: 1100;
             }
 
@@ -816,11 +829,10 @@ $isModerator = $isSystemModerator || $isForumModerator;
                 font-size: 1.5rem;
                 color: var(--primary-color);
                 cursor: pointer;
-                z-index: 1150; /* Above forum-sidebar but below sidebar-nav */
+                z-index: 1150;
             }
         }
 
-        /* Animations */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
@@ -843,7 +855,6 @@ $isModerator = $isSystemModerator || $isForumModerator;
             transform: scale(1.2);
         }
 
-        /* Accessibility */
         .nav-item a:focus {
             outline: 2px solid var(--primary-color);
             outline-offset: 2px;
@@ -853,6 +864,7 @@ $isModerator = $isSystemModerator || $isForumModerator;
             outline: 2px solid var(--primary-color);
             outline-offset: 2px;
         }
+
         .report-btn {
             color: var(--secondary-color);
             text-decoration: none;
@@ -860,21 +872,23 @@ $isModerator = $isSystemModerator || $isForumModerator;
             align-items: center;
             transition: var(--transition);
         }
+
         .report-btn:hover {
             color: var(--danger-color);
         }
+
         .report-btn i {
             margin-right: 0.4rem;
         }
+
         .post-item.announcement {
-            background-color: #fef3c7; /* Light yellow for visibility */
-            border-left: 4px solid #f59e0b; /* Amber border */
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
         }
     </style>
 </head>
 <body>
     <div class="forum-container">
-        <!-- Sidebar Navigation -->
         <?php require '../includes/forum_sidebar.php'; ?>
         <div class="forum-sidebar">
             <button class="sidebar-toggle d-none" aria-label="Toggle Sidebar">
@@ -905,10 +919,16 @@ $isModerator = $isSystemModerator || $isForumModerator;
                         <h6 class="nav-title mb-0">MAIN NAVIGATION</h6>
                     </div>
                     <ul class="nav-links">
-                        <li class="nav-item <?php echo !$selectedForumId ? 'active' : ''; ?>">
-                            <a href="forums.php" class="d-flex align-items-center" aria-current="<?php echo !$selectedForumId ? 'page' : ''; ?>">
+                        <li class="nav-item <?php echo !$selectedForumId && $view !== 'my_posts' ? 'active' : ''; ?>">
+                            <a href="forums.php" class="d-flex align-items-center" aria-current="<?php echo !$selectedForumId && $view !== 'my_posts' ? 'page' : ''; ?>">
                                 <i class="bi bi-house-door"></i>
                                 <span>Home</span>
+                            </a>
+                        </li>
+                        <li class="nav-item <?php echo $view === 'my_posts' ? 'active' : ''; ?>">
+                            <a href="forums.php?view=my_posts" class="d-flex align-items-center" aria-current="<?php echo $view === 'my_posts' ? 'page' : ''; ?>">
+                                <i class="bi bi-file-text"></i>
+                                <span>My Posts</span>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -929,7 +949,6 @@ $isModerator = $isSystemModerator || $isForumModerator;
                                                     $now = new DateTime();
                                                     $createdAt = new DateTime($notification['created_at']);
                                                     $interval = $now->diff($createdAt);
-                                                    
                                                     if ($interval->y > 0) {
                                                         echo $interval->y . ' year' . ($interval->y > 1 ? 's' : '') . ' ago';
                                                     } elseif ($interval->m > 0) {
@@ -1040,9 +1059,94 @@ $isModerator = $isSystemModerator || $isForumModerator;
             </div>
         </div>
         
-        <!-- Main Forum Content -->
         <div class="forum-content">
-            <?php if ($selectedForum): ?>
+            <?php if ($view === 'my_posts'): ?>
+                <div class="forum-header">
+                    <h2 class="forum-title">My Posts</h2>
+                    <p class="text-muted">View all your posts across all forums</p>
+                </div>
+                <?php if (count($userPosts) > 0): ?>
+                    <ul class="post-list">
+                        <?php foreach ($userPosts as $post): ?>
+                            <li class="post-item <?php echo $post['is_announcement'] ? 'announcement' : ''; ?>" 
+                                id="post-<?php echo $post['post_id']; ?>" 
+                                data-post-id="<?php echo $post['post_id']; ?>" role="article">
+                                <div class="post-header">
+                                    <div class="post-author-avatar" aria-hidden="true">
+                                        <?php if (!empty($post['poster_picture'])): ?>
+                                            <img src="../Uploads/<?php echo htmlspecialchars($post['poster_picture']); ?>" 
+                                                 alt="Profile Picture of <?php echo htmlspecialchars($post['poster_name']); ?>">
+                                        <?php else: ?>
+                                            <i class="bi bi-person-fill text-muted"></i>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="post-author-info">
+                                        <div class="post-author-name"><?php echo htmlspecialchars($post['poster_name']); ?></div>
+                                        <div class="post-date"><?php echo date('M j, Y g:i a', strtotime($post['posted_at'])); ?></div>
+                                        <div class="post-forum text-muted" style="font-size: 0.8rem;">
+                                            <a href="forums.php?forum_id=<?php echo $post['forum_id']; ?>">
+                                                <?php echo htmlspecialchars($post['forum_title']); ?>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <?php if ($post['is_announcement']): ?>
+                                        <span class="announcement-badge"><i class="bi bi-megaphone"></i> Announcement</span>
+                                    <?php elseif ($post['is_pinned']): ?>
+                                        <span class="pinned-badge"><i class="bi bi-pin-angle"></i> Pinned</span>
+                                    <?php endif; ?>
+                                </div>
+                                <h3 class="post-title">
+                                    <a href="../forum/post.php?post_id=<?php echo $post['post_id']; ?>" 
+                                       style="color: inherit; text-decoration: none;" 
+                                       aria-label="View Post: <?php echo htmlspecialchars($post['post_title']); ?>">
+                                        <?php echo htmlspecialchars($post['post_title']); ?>
+                                    </a>
+                                </h3>
+                                <div class="post-content">
+                                    <?php echo nl2br(htmlspecialchars(substr($post['content'], 0, 200))); ?>
+                                    <?php if (strlen($post['content']) > 200): ?>... 
+                                        <a href="../forum/post.php?post_id=<?php echo $post['post_id']; ?>">Read more</a>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="post-footer">
+                                    <div class="post-actions">
+                                        <a href="#" class="like-btn <?php echo $post['user_liked'] ? 'active' : ''; ?>" 
+                                           data-post-id="<?php echo $post['post_id']; ?>" 
+                                           aria-label="<?php echo $post['user_liked'] ? 'Unlike' : 'Like'; ?> Post (<?php echo $post['like_count']; ?> likes)">
+                                            <i class="bi bi-hand-thumbs-<?php echo $post['user_liked'] ? 'down' : 'up'; ?>"></i> 
+                                            <span><?php echo $post['user_liked'] ? 'Unlike' : 'Like'; ?></span> (<span class="like-count"><?php echo $post['like_count']; ?></span>)
+                                        </a>
+                                        <a href="../forum/post.php?post_id=<?php echo $post['post_id']; ?>" 
+                                           aria-label="View Comments (<?php echo $post['comment_count']; ?> comments)">
+                                            <i class="bi bi-chat"></i> Comments (<?php echo $post['comment_count']; ?>)
+                                        </a>
+                                        <?php if (!$isModerator): ?>
+                                            <a href="#" class="report-btn" 
+                                               data-bs-toggle="modal" 
+                                               data-bs-target="#reportModal" 
+                                               data-content-type="post" 
+                                               data-content-id="<?php echo $post['post_id']; ?>" 
+                                               aria-label="Report Post">
+                                                <i class="bi bi-flag"></i> Report
+                                            </a>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="post-views">
+                                        <i class="bi bi-eye"></i> <?php echo $post['view_count'] ?? 0; ?> views
+                                    </div>
+                                </div>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php else: ?>
+                    <div class="alert alert-info mt-3">
+                        <i class="bi bi-info-circle"></i>
+                        <div>
+                            You haven't created any posts yet. Start sharing in a forum!
+                        </div>
+                    </div>
+                <?php endif; ?>
+            <?php elseif ($selectedForum): ?>
                 <?php if ($bannedFromForum): ?>
                     <div class="alert alert-danger">
                         <i class="bi bi-slash-circle"></i>
@@ -1179,7 +1283,7 @@ $isModerator = $isSystemModerator || $isForumModerator;
                                             <?php endif; ?>
                                         </div>
                                         <div class="post-views">
-                                            <i class="bi bi-eye"></i> <?php echo $post['view_count']; ?> views
+                                            <i class="bi bi-eye"></i> <?php echo $post['view_count'] ?? 0; ?> views
                                         </div>
                                     </div>
                                 </li>
@@ -1243,7 +1347,7 @@ $isModerator = $isSystemModerator || $isForumModerator;
                     <?php endif; ?>
                 <?php endif; ?>
             </div>
-            <!-- Report Content Modal -->
+            
             <div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
@@ -1269,243 +1373,181 @@ $isModerator = $isSystemModerator || $isForumModerator;
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- New Forum Modal -->
-        <div class="modal fade" id="newForumModal" tabindex="-1" aria-labelledby="newForumModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="newForumModalLabel">Create New Forum</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal fade" id="newForumModal" tabindex="-1" aria-labelledby="newForumModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="newForumModalLabel">Create New Forum</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form action="../forum/create_forum.php" method="POST">
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="forumTitle" class="form-label">Forum Title <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="forumTitle" name="title" required aria-describedby="forumTitleHelp">
+                                    <div id="forumTitleHelp" class="form-text">Enter a concise and descriptive title for your forum.</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="forumDescription" class="form-label">Description <span class="text-danger">*</span></label>
+                                    <textarea class="form-control" id="forumDescription" name="description" rows="4" required aria-describedby="forumDescriptionHelp"></textarea>
+                                    <div id="forumDescriptionHelp" class="form-text">Provide a brief description of the forum's purpose.</div>
+                                </div>
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="forumPrivate" name="is_private" aria-describedby="forumPrivateHelp">
+                                    <label class="form-check-label" for="forumPrivate">Make this a private forum</label>
+                                    <div id="forumPrivateHelp" class="form-text">Private forums require approval to join.</div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-primary new-post-btn">Create Forum</button>
+                            </div>
+                        </form>
                     </div>
-                    <form action="../forum/create_forum.php" method="POST">
-                        <div class="modal-body">
-                            <div class="mb-3">
-                                <label for="forumTitle" class="form-label">Forum Title <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="forumTitle" name="title" required aria-describedby="forumTitleHelp">
-                                <div id="forumTitleHelp" class="form-text">Enter a concise and descriptive title for your forum.</div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="forumDescription" class="form-label">Description <span class="text-danger">*</span></label>
-                                <textarea class="form-control" id="forumDescription" name="description" rows="4" required aria-describedby="forumDescriptionHelp"></textarea>
-                                <div id="forumDescriptionHelp" class="form-text">Provide a brief description of the forum's purpose.</div>
-                            </div>
-                            <div class="mb-3 form-check">
-                                <input type="checkbox" class="form-check-input" id="forumPrivate" name="is_private" aria-describedby="forumPrivateHelp">
-                                <label class="form-check-label" for="forumPrivate">Make this a private forum</label>
-                                <div id="forumPrivateHelp" class="form-text">Private forums require approval to join.</div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-primary new-post-btn">Create Forum</button>
-                        </div>
-                    </form>
                 </div>
             </div>
-        </div>
 
-        <!-- Toast Container -->
-        <div class="toast-container"></div>
+            <div class="toast-container"></div>
 
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-        <script>
-        // Toast notification function (defined globally)
-            function showToast(message, type = 'success') {
-                const toastContainer = document.querySelector('.toast-container');
-                const toast = document.createElement('div');
-                toast.className = `toast toast-${type} show`;
-                toast.innerHTML = `
-                    <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
-                    <span>${message}</span>
-                `;
-                toastContainer.appendChild(toast);
-                setTimeout(() => {
-                    toast.classList.remove('show');
-                    setTimeout(() => toast.remove(), 300);
-                }, 3000);
-            }
-
-            document.addEventListener('DOMContentLoaded', function() {
-                // Initialize Bootstrap tooltips for sidebar-nav
-                const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-                const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
-
-                // Sidebar toggle for mobile
-                const sidebar = document.querySelector('.forum-sidebar');
-                const toggleBtn = document.querySelector('.sidebar-toggle');
-                if (toggleBtn) {
-                    toggleBtn.addEventListener('click', () => {
-                        sidebar.classList.toggle('active');
-                        toggleBtn.innerHTML = sidebar.classList.contains('active') 
-                            ? '<i class="bi bi-x-lg"></i>' 
-                            : '<i class="bi bi-list"></i>';
-                    });
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+            <script>
+                function showToast(message, type = 'success') {
+                    const toastContainer = document.querySelector('.toast-container');
+                    const toast = document.createElement('div');
+                    toast.className = `toast toast-${type} show`;
+                    toast.innerHTML = `
+                        <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                        <span>${message}</span>
+                    `;
+                    toastContainer.appendChild(toast);
+                    setTimeout(() => {
+                        toast.classList.remove('show');
+                        setTimeout(() => toast.remove(), 300);
+                    }, 3000);
                 }
 
-                // Navigation item click handlers
-                document.querySelectorAll('.nav-item a').forEach(item => {
-                    item.addEventListener('click', function() {
-                        document.querySelectorAll('.nav-item').forEach(navItem => {
-                            navItem.classList.remove('active');
+                document.addEventListener('DOMContentLoaded', function() {
+                    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+                    const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+
+                    const sidebar = document.querySelector('.forum-sidebar');
+                    const toggleBtn = document.querySelector('.sidebar-toggle');
+                    if (toggleBtn) {
+                        toggleBtn.addEventListener('click', () => {
+                            sidebar.classList.toggle('active');
+                            toggleBtn.innerHTML = sidebar.classList.contains('active') 
+                                ? '<i class="bi bi-x-lg"></i>' 
+                                : '<i class="bi bi-list"></i>';
                         });
-                        this.parentElement.classList.add('active');
-                        if (window.innerWidth <= 767) {
-                            sidebar.classList.remove('active');
-                            toggleBtn.innerHTML = '<i class="bi bi-list"></i>';
-                        }
-                    });
-                });
-
-                // Post click handler
-                document.querySelectorAll('.clickable-post').forEach(post => {
-                    post.addEventListener('click', function(e) {
-                        if (e.target.closest('a, button')) return;
-                        const postId = this.dataset.postId;
-                        window.location.href = `../forum/post.php?post_id=${postId}`;
-                    });
-                });
-
-                // Like button handler with toast notification
-                document.querySelectorAll('.like-btn').forEach(button => {
-                    const postId = button.dataset.postId;
-                    // Check if the user has liked the post
-                    if (localStorage.getItem(`liked_post_${postId}`)) {
-                        button.classList.add('active');
-                        button.querySelector('i').className = 'bi bi-hand-thumbs-down';
-                        button.querySelector('span').textContent = `Unlike`;
                     }
 
-                    button.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        button.classList.add('disabled');
-
-                        fetch('../forum/like_post.php', {
-                            method: 'POST',
-                            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                            body: `post_id=${postId}`
-                        })
-                        .then(res => res.json())
-                        .then(data => {
-                            button.classList.remove('disabled');
-                            if (data.success) {
-                                const countSpan = button.querySelector('.like-count');
-                                countSpan.textContent = data.like_count;
-
-                                if (data.action === 'liked') {
-                                    localStorage.setItem(`liked_post_${postId}`, 'true');
-                                    button.classList.add('active');
-                                    button.querySelector('i').className = 'bi bi-hand-thumbs-down';
-                                    button.querySelector('span').textContent = `Unlike`;
-                                    showToast('Post liked successfully!', 'success');
-                                } else {
-                                    localStorage.removeItem(`liked_post_${postId}`);
-                                    button.classList.remove('active');
-                                    button.querySelector('i').className = 'bi bi-hand-thumbs-up';
-                                    button.querySelector('span').textContent = `Like`;
-                                    showToast('Post unliked successfully!', 'success');
-                                }
-                            } else {
-                                showToast(data.message || 'Failed to process like/unlike.', 'error');
+                    document.querySelectorAll('.nav-item a').forEach(item => {
+                        item.addEventListener('click', function() {
+                            document.querySelectorAll('.nav-item').forEach(navItem => {
+                                navItem.classList.remove('active');
+                            });
+                            this.parentElement.classList.add('active');
+                            if (window.innerWidth <= 767) {
+                                sidebar.classList.remove('active');
+                                toggleBtn.innerHTML = '<i class="bi bi-list"></i>';
                             }
-                        })
-                        .catch(err => {
-                            button.classList.remove('disabled');
-                            showToast('An error occurred.', 'error');
-                            console.error('Error:', err);
                         });
                     });
-                });
 
-                // Report button handler
-                document.querySelectorAll('.report-btn').forEach(button => {
-                    button.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        const contentType = this.dataset.contentType;
-                        const contentId = this.dataset.contentId;
-                        document.getElementById('reportContentType').value = contentType;
-                        document.getElementById('reportContentId').value = contentId;
-                    });
-                });
-
-                // Report form submission
-                document.getElementById('reportForm').addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    const form = this;
-                    const formData = new FormData(form);
-                    const submitButton = form.querySelector('button[type="submit"]');
-                    submitButton.classList.add('disabled');
-                    
-                    fetch('../forum/report_content.php', {
-                        method: 'POST',
-                        body: new URLSearchParams(formData)
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        submitButton.classList.remove('disabled');
-                        if (data.success) {
-                            showToast('Report submitted successfully!', 'success');
-                            bootstrap.Modal.getInstance(document.getElementById('reportModal')).hide();
-                            form.reset();
-                        } else {
-                            showToast(data.message || 'Failed to submit report.', 'error');
+                    document.querySelectorAll('.like-btn').forEach(button => {
+                        const postId = button.dataset.postId;
+                        if (localStorage.getItem(`liked_post_${postId}`)) {
+                            button.classList.add('active');
+                            button.querySelector('i').className = 'bi bi-hand-thumbs-down';
+                            button.querySelector('span').textContent = `Unlike`;
                         }
-                    })
-                    .catch(err => {
-                        submitButton.classList.remove('disabled');
-                        showToast('An error occurred.', 'error');
-                        console.error('Error:', err);
-                    });
-                });
 
-                // Mark notification as read
-                document.querySelectorAll('.mark-read-btn').forEach(button => {
-                    button.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        const notificationId = this.dataset.notificationId;
-                        const notificationItem = this.closest('.notification-item');
-                        
-                        fetch('../forum/mark_notification_read.php', {
-                            method: 'POST',
-                            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                            body: `notification_id=${notificationId}`
-                        })
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.success) {
-                                notificationItem.classList.remove('unread');
-                                // Update unread count in the badge
-                                const badge = document.querySelector('#notificationDropdown .badge');
-                                if (badge) {
-                                    const currentCount = parseInt(badge.textContent);
-                                    if (currentCount > 1) {
-                                        badge.textContent = currentCount - 1;
+                        button.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            button.classList.add('disabled');
+
+                            fetch('../forum/like_post.php', {
+                                method: 'POST',
+                                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                                body: `post_id=${postId}`
+                            })
+                            .then(res => res.json())
+                            .then(data => {
+                                button.classList.remove('disabled');
+                                if (data.success) {
+                                    const countSpan = button.querySelector('.like-count');
+                                    countSpan.textContent = data.like_count;
+
+                                    if (data.action === 'liked') {
+                                        localStorage.setItem(`liked_post_${postId}`, 'true');
+                                        button.classList.add('active');
+                                        button.querySelector('i').className = 'bi bi-hand-thumbs-down';
+                                        button.querySelector('span').textContent = `Unlike`;
+                                        showToast('Post liked successfully!', 'success');
                                     } else {
-                                        badge.remove();
+                                        localStorage.removeItem(`liked_post_${postId}`);
+                                        button.classList.remove('active');
+                                        button.querySelector('i').className = 'bi bi-hand-thumbs-up';
+                                        button.querySelector('span').textContent = `Like`;
+                                        showToast('Post unliked successfully!', 'success');
                                     }
+                                } else {
+                                    showToast(data.message || 'Failed to process like/unlike.', 'error');
                                 }
+                            })
+                            .catch(err => {
+                                button.classList.remove('disabled');
+                                showToast('An error occurred.', 'error');
+                                console.error('Error:', err);
+                            });
+                        });
+                    });
+
+                    document.querySelectorAll('.report-btn').forEach(button => {
+                        button.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const contentType = this.dataset.contentType;
+                            const contentId = this.dataset.contentId;
+                            document.getElementById('reportContentType').value = contentType;
+                            document.getElementById('reportContentId').value = contentId;
+                        });
+                    });
+
+                    document.getElementById('reportForm').addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        const form = this;
+                        const formData = new FormData(form);
+                        const submitButton = form.querySelector('button[type="submit"]');
+                        submitButton.classList.add('disabled');
+                        
+                        fetch('../forum/report_content.php', {
+                            method: 'POST',
+                            body: new URLSearchParams(formData)
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            submitButton.classList.remove('disabled');
+                            if (data.success) {
+                                showToast('Report submitted successfully!', 'success');
+                                bootstrap.Modal.getInstance(document.getElementById('reportModal')).hide();
+                                form.reset();
                             } else {
-                                showToast('Failed to mark notification as read.', 'error');
+                                showToast(data.message || 'Failed to submit report.', 'error');
                             }
                         })
                         .catch(err => {
+                            submitButton.classList.remove('disabled');
                             showToast('An error occurred.', 'error');
                             console.error('Error:', err);
                         });
                     });
-                });
 
-                // Clicking on a notification marks it as read
-                document.querySelectorAll('.notification-item a').forEach(link => {
-                    link.addEventListener('click', function(e) {
-                        if (this.classList.contains('mark-read-btn') || this.classList.contains('view-all-notifications')) {
-                            return;
-                        }
-                        
-                        const notificationItem = this.closest('.notification-item');
-                        if (notificationItem.classList.contains('unread')) {
-                            const notificationId = notificationItem.dataset.notificationId;
+                    document.querySelectorAll('.mark-read-btn').forEach(button => {
+                        button.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const notificationId = this.dataset.notificationId;
+                            const notificationItem = this.closest('.notification-item');
                             
                             fetch('../forum/mark_notification_read.php', {
                                 method: 'POST',
@@ -1516,7 +1558,6 @@ $isModerator = $isSystemModerator || $isForumModerator;
                             .then(data => {
                                 if (data.success) {
                                     notificationItem.classList.remove('unread');
-                                    // Update unread count in the badge
                                     const badge = document.querySelector('#notificationDropdown .badge');
                                     if (badge) {
                                         const currentCount = parseInt(badge.textContent);
@@ -1526,15 +1567,54 @@ $isModerator = $isSystemModerator || $isForumModerator;
                                             badge.remove();
                                         }
                                     }
+                                } else {
+                                    showToast('Failed to mark notification as read.', 'error');
                                 }
                             })
                             .catch(err => {
+                                showToast('An error occurred.', 'error');
                                 console.error('Error:', err);
                             });
-                        }
+                        });
+                    });
+
+                    document.querySelectorAll('.notification-item a').forEach(link => {
+                        link.addEventListener('click', function(e) {
+                            if (this.classList.contains('mark-read-btn') || this.classList.contains('view-all-notifications')) {
+                                return;
+                            }
+                            
+                            const notificationItem = this.closest('.notification-item');
+                            if (notificationItem.classList.contains('unread')) {
+                                const notificationId = notificationItem.dataset.notificationId;
+                                
+                                fetch('../forum/mark_notification_read.php', {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                                    body: `notification_id=${notificationId}`
+                                })
+                                .then(res => res.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        notificationItem.classList.remove('unread');
+                                        const badge = document.querySelector('#notificationDropdown .badge');
+                                        if (badge) {
+                                            const currentCount = parseInt(badge.textContent);
+                                            if (currentCount > 1) {
+                                                badge.textContent = currentCount - 1;
+                                            } else {
+                                                badge.remove();
+                                            }
+                                        }
+                                    }
+                                })
+                                .catch(err => {
+                                    console.error('Error:', err);
+                                });
+                            }
+                        });
                     });
                 });
-            });
-        </script>
+            </script>
 </body>
 </html>
