@@ -630,14 +630,14 @@ include '../includes/stud_navbar.php';
                                     <div class="col-md-6">
                                         <label class="form-label">Profile Picture</label>
                                         <div class="file-upload-wrapper">
-                                            <label for="profilePictureInput" class="file-upload-label">
+                                            <label for="profilePictureInputMedia" class="file-upload-label">
                                                 <i class="fas fa-cloud-upload-alt fa-2x mb-2"></i>
                                                 <p class="mb-1">Click to upload or drag and drop</p>
                                                 <p class="small text-muted">JPG, PNG or GIF (Max. 2MB)</p>
                                             </label>
-                                            <input type="file" class="file-upload-input" id="profilePictureInput" name="profile_picture" accept="image/*">
+                                            <input type="file" class="file-upload-input" id="profilePictureInputMedia" name="profile_picture" accept="image/*">
                                         </div>
-                                        <div class="progress d-none" id="profilePictureProgress">
+                                        <div class="progress d-none" id="profilePictureProgressMedia">
                                             <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
                                         </div>
                                     </div>
@@ -706,69 +706,114 @@ include '../includes/stud_navbar.php';
     <script>
     $(document).ready(function() {
         // Profile picture preview
-        $('#profilePictureInput').change(function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                // Show loading state
-                $('#profilePictureProgress').removeClass('d-none');
-                
-                // Simulate upload progress (in a real app, you'd use actual upload progress)
-                let progress = 0;
-                const progressInterval = setInterval(() => {
-                    progress += 5;
-                    $('#profilePictureProgress .progress-bar').css('width', progress + '%');
-                    
-                    if (progress >= 100) {
-                        clearInterval(progressInterval);
-                        $('#profilePictureProgress').addClass('d-none');
+        function handleFileUpload(inputSelector, progressSelector, previewSelector) {
+                $(inputSelector).change(function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        // Show loading state
+                        $(progressSelector).removeClass('d-none');
                         
-                        // Preview the image
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            $('#profilePicturePreview').attr('src', e.target.result);
+                        // Simulate upload progress
+                        let progress = 0;
+                        const progressInterval = setInterval(() => {
+                            progress += 5;
+                            $(progressSelector + ' .progress-bar').css('width', progress + '%');
                             
-                            // Show success message
+                            if (progress >= 100) {
+                                clearInterval(progressInterval);
+                                $(progressSelector).addClass('d-none');
+                                
+                                // Preview the image if a preview element is provided
+                                if (previewSelector) {
+                                    const reader = new FileReader();
+                                    reader.onload = function(e) {
+                                        $(previewSelector).attr('src', e.target.result);
+                                        
+                                        // Show success message
+                                        Swal.fire({
+                                            icon: 'success',
+                                            title: 'Profile picture updated!',
+                                            showConfirmButton: false,
+                                            timer: 1500
+                                        });
+                                    }
+                                    reader.readAsDataURL(file);
+                                } else {
+                                    // Show success message without preview
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Profile picture uploaded!',
+                                        showConfirmButton: false,
+                                        timer: 1500
+                                    });
+                                }
+                            }
+                        }, 100);
+                    }
+                });
+            }
+
+            // Apply to card avatar upload
+            handleFileUpload('#profilePictureInput', '#profilePictureProgress', '#profilePicturePreview');
+            
+            // Apply to profile media section
+            handleFileUpload('#profilePictureInputMedia', '#profilePictureProgressMedia', null); // No preview for media section
+            
+            // Resume upload progress (unchanged)
+            $('#resumeInput').change(function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    $('#resumeProgress').removeClass('d-none');
+                    
+                    let progress = 0;
+                    const progressInterval = setInterval(() => {
+                        progress += 5;
+                        $('#resumeProgress .progress-bar').css('width', progress + '%');
+                        
+                        if (progress >= 100) {
+                            clearInterval(progressInterval);
+                            $('#resumeProgress').addClass('d-none');
+                            
                             Swal.fire({
                                 icon: 'success',
-                                title: 'Profile picture updated!',
+                                title: 'Resume uploaded!',
                                 showConfirmButton: false,
                                 timer: 1500
                             });
                         }
-                        reader.readAsDataURL(file);
-                    }
-                }, 100);
-            }
-        });
-        
-        // Resume upload progress
-        $('#resumeInput').change(function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                // Show loading state
-                $('#resumeProgress').removeClass('d-none');
+                    }, 100);
+                }
+            });
+
+            // Drag and drop functionality (updated to handle both inputs)
+            $('.file-upload-label').on('dragover', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $(this).css('border-color', '#3A7BD5');
+                $(this).css('background-color', 'rgba(58, 123, 213, 0.1)');
+            });
+
+            $('.file-upload-label').on('dragleave', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $(this).css('border-color', '#ced4da');
+                $(this).css('background-color', 'transparent');
+            });
+
+            $('.file-upload-label').on('drop', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $(this).css('border-color', '#ced4da');
+                $(this).css('background-color', 'transparent');
                 
-                // Simulate upload progress
-                let progress = 0;
-                const progressInterval = setInterval(() => {
-                    progress += 5;
-                    $('#resumeProgress .progress-bar').css('width', progress + '%');
-                    
-                    if (progress >= 100) {
-                        clearInterval(progressInterval);
-                        $('#resumeProgress').addClass('d-none');
-                        
-                        // Show success message
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Resume uploaded!',
-                            showConfirmButton: false,
-                            timer: 1500
-                        });
-                    }
-                }, 100);
-            }
-        });
+                const files = e.originalEvent.dataTransfer.files;
+                if (files.length > 0) {
+                    const input = $(this).siblings('.file-upload-input');
+                    input[0].files = files;
+                    input.trigger('change');
+                }
+            });
+        
         
         // Delete resume button
         $('#deleteResumeBtn').click(function() {
@@ -782,15 +827,34 @@ include '../includes/stud_navbar.php';
                 confirmButtonText: 'Yes, delete it!'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // In a real app, you would make an AJAX call to delete the file
-                    // For now, we'll just show a success message
-                    Swal.fire(
-                        'Deleted!',
-                        'Your resume has been deleted.',
-                        'success'
-                    );
-                    // Hide the download and delete buttons
-                    $(this).parent().fadeOut();
+                    $.ajax({
+                        url: '../controllers/delete_resume.php',
+                        type: 'POST',
+                        data: {
+                            stud_id: '<?= $stud_id ?>',
+                            csrf_token: '<?= $_SESSION['csrf_token'] ?>'
+                        },
+                        dataType: 'json', // Ensure response is parsed as JSON
+                        success: function(response) {
+                            if (response.status === 'success') {
+                                Swal.fire('Deleted!', 'Your resume has been deleted.', 'success');
+                                // Fade out the resume download/delete buttons container
+                                $('#deleteResumeBtn').parent().fadeOut();
+                            } else {
+                                Swal.fire('Error', response.message || 'Failed to delete resume.', 'error');
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            let errorMsg = 'An error occurred while deleting the resume.';
+                            try {
+                                const response = JSON.parse(xhr.responseText);
+                                errorMsg = response.message || errorMsg;
+                            } catch (e) {
+                                errorMsg = xhr.statusText || errorMsg;
+                            }
+                            Swal.fire('Error', errorMsg, 'error');
+                        }
+                    });
                 }
             });
         });
