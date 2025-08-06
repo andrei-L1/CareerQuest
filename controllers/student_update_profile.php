@@ -192,7 +192,7 @@ if (isset($_POST['skills']) && is_array($_POST['skills'])) {
         }
     }
     
-    // Only proceed with deletion if we have skills to exclude
+    // Soft-delete skills that are no longer in the submitted list
     if (!empty($processedSkills)) {
         // Create named parameters for each skill ID
         $placeholders = array_map(function($i) {
@@ -214,7 +214,14 @@ if (isset($_POST['skills']) && is_array($_POST['skills'])) {
 
         $deleteStmt->execute($params);
     }
+} else {
+    // If no skills are submitted, soft-delete all existing skills
+    $deleteAllStmt = $conn->prepare("UPDATE stud_skill SET 
+        deleted_at = NOW()
+        WHERE stud_id = :stud_id AND deleted_at IS NULL");
+    $deleteAllStmt->execute([':stud_id' => $stud_id]);
 }
+
 
     // Commit all changes if everything succeeded
     $conn->commit();
