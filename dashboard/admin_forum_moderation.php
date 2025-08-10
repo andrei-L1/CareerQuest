@@ -1,12 +1,11 @@
-<?php 
+<?php
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-require "../config/dbcon.php"; 
-require "../auth/auth_check.php"; 
+require "../config/dbcon.php";
+require "../auth/auth_check.php";
 include "../includes/sidebar.php";
-
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../auth/login.php");
@@ -15,10 +14,24 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-try {
+// Define constants
+const UPLOADS_DIR = '../uploads/';
+const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
 
+
+
+
+// Validate file path to prevent directory traversal
+function getSafeProfilePicture($filePath) {
+    if (!$filePath || strpos($filePath, '..') !== false || !file_exists(UPLOADS_DIR . $filePath)) {
+        return DEFAULT_AVATAR;
+    }
+    return UPLOADS_DIR . $filePath;
+}
+
+try {
     $stmt = $conn->prepare("
-        SELECT u.user_first_name, u.user_last_name, r.role_title
+        SELECT u.user_first_name, u.user_last_name, u.picture_file, r.role_title
         FROM user u
         JOIN role r ON u.role_id = r.role_id
         WHERE u.user_id = :user_id
@@ -34,6 +47,7 @@ try {
 
     $full_name = htmlspecialchars($user['user_first_name'] . " " . $user['user_last_name']);
     $role_title = htmlspecialchars($user['role_title']);
+    $user_profile_picture = getSafeProfilePicture($user['picture_file']);
 
 } catch (Exception $e) {
     error_log("Dashboard Error: " . $e->getMessage());
@@ -41,7 +55,12 @@ try {
     exit();
 }
 
-// Fetch reported posts
+// Pagination settings
+$posts_per_page = 10;
+$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$offset = ($page - 1) * $posts_per_page;
+
+// Fetch reported posts with profile pictures
 $reported_posts = [];
 try {
     $stmt = $conn->prepare("
@@ -61,7 +80,12 @@ try {
                 WHEN a.entity_type = 'user' THEN u.user_last_name
                 WHEN a.entity_type = 'student' THEN s.stud_last_name
             END AS user_last_name,
-            a.actor_id
+            CASE 
+                WHEN a.entity_type = 'user' THEN u.picture_file
+                WHEN a.entity_type = 'student' THEN s.profile_picture
+            END AS profile_picture,
+            a.actor_id,
+            a.entity_type
         FROM forum_post fp
         JOIN report r ON r.content_type = 'post' AND r.content_id = fp.post_id
         JOIN forum f ON fp.forum_id = f.forum_id
@@ -71,12 +95,21 @@ try {
         WHERE r.status = 'pending'
         GROUP BY fp.post_id, fp.content, f.forum_id, f.title, fp.posted_at, 
                  a.entity_type, u.user_first_name, u.user_last_name, 
-                 s.stud_first_name, s.stud_last_name, a.actor_id
+                 s.stud_first_name, s.stud_last_name, u.picture_file, s.profile_picture, a.actor_id
         ORDER BY report_count DESC
+        LIMIT :limit OFFSET :offset
     ");
+    $stmt->bindParam(':limit', $posts_per_page, PDO::PARAM_INT);
+    $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
     $stmt->execute();
     $reported_posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
+    // Get total count for pagination
+    $stmt = $conn->prepare("SELECT COUNT(DISTINCT fp.post_id) as total FROM forum_post fp JOIN report r ON r.content_type = 'post' AND r.content_id = fp.post_id WHERE r.status = 'pending'");
+    $stmt->execute();
+    $total_posts = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    $total_pages = ceil($total_posts / $posts_per_page);
+
 } catch (PDOException $e) {
     error_log("Error fetching reported posts: " . $e->getMessage());
 }
@@ -85,12 +118,19 @@ try {
 $reported_comments = [];
 try {
     $stmt = $conn->prepare("
-        SELECT fc.comment_id, fc.content as comment_content, fc.commented_at as created_at,
-               a.entity_id as user_id, u.user_first_name, u.user_last_name,
-               fp.content as post_content, COUNT(r.report_id) as report_count
+        SELECT 
+            fc.comment_id,
+            fc.content AS comment_content,
+            fc.commented_at AS created_at,
+            COALESCE(u.user_first_name, s.stud_first_name) AS user_first_name,
+            COALESCE(u.user_last_name, s.stud_last_name) AS user_last_name,
+            COALESCE(u.picture_file, s.profile_picture) AS profile_picture,
+            fp.content AS post_content,
+            COUNT(r.report_id) AS report_count
         FROM forum_comment fc
         JOIN actor a ON fc.commenter_id = a.actor_id
-        JOIN user u ON a.entity_id = u.user_id AND a.entity_type = 'user'
+        LEFT JOIN user u ON a.entity_type = 'user' AND a.entity_id = u.user_id
+        LEFT JOIN student s ON a.entity_type = 'student' AND a.entity_id = s.stud_id
         JOIN forum_post fp ON fc.post_id = fp.post_id
         JOIN report r ON fc.comment_id = r.content_id AND r.content_type = 'comment'
         WHERE r.status = 'pending'
@@ -100,51 +140,61 @@ try {
     ");
     $stmt->execute();
     $reported_comments = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Debugging: Log the number of rows fetched
+    error_log("Fetched " . count($reported_comments) . " reported comments.");
 } catch (PDOException $e) {
     error_log("Error fetching reported comments: " . $e->getMessage());
 }
-
-// Fetch reported users
 $reported_users = [];
 try {
     $stmt = $conn->prepare("
         SELECT 
-            u.user_id AS id,
-            u.user_first_name AS first_name,
-            u.user_last_name AS last_name,
-            u.user_email AS email,
-            r.role_title AS role,
+            CASE 
+                WHEN a.entity_type = 'user' THEN u.user_id
+                WHEN a.entity_type = 'student' THEN s.stud_id
+            END AS id,
+            CASE 
+                WHEN a.entity_type = 'user' THEN u.user_first_name
+                WHEN a.entity_type = 'student' THEN s.stud_first_name
+            END AS first_name,
+            CASE 
+                WHEN a.entity_type = 'user' THEN u.user_last_name
+                WHEN a.entity_type = 'student' THEN s.stud_last_name
+            END AS last_name,
+            CASE 
+                WHEN a.entity_type = 'user' THEN u.user_email
+                WHEN a.entity_type = 'student' THEN s.stud_email
+            END AS email,
+            CASE 
+                WHEN a.entity_type = 'user' THEN u.picture_file
+                WHEN a.entity_type = 'student' THEN s.profile_picture
+            END AS profile_picture,
+            CASE 
+                WHEN a.entity_type = 'user' THEN r.role_title
+                WHEN a.entity_type = 'student' THEN 'Student'
+            END AS role,
             COUNT(re.report_id) AS report_count,
             GROUP_CONCAT(DISTINCT re.reason SEPARATOR ', ') AS reasons,
-            u.created_at,
-            'user' AS user_type
-        FROM user u
-        JOIN role r ON u.role_id = r.role_id
-        JOIN actor a ON a.entity_id = u.user_id AND a.entity_type = 'user'
-        JOIN report re ON a.actor_id = re.content_id AND re.content_type = 'user'
+            CASE 
+                WHEN a.entity_type = 'user' THEN u.created_at
+                WHEN a.entity_type = 'student' THEN s.created_at
+            END AS created_at,
+            a.entity_type AS user_type
+        FROM report re
+        LEFT JOIN actor a 
+            ON re.content_id = a.actor_id
+        LEFT JOIN user u 
+            ON a.entity_type = 'user' AND a.entity_id = u.user_id
+        LEFT JOIN role r 
+            ON u.role_id = r.role_id
+        LEFT JOIN student s 
+            ON a.entity_type = 'student' AND a.entity_id = s.stud_id
         WHERE re.status = 'pending'
-        GROUP BY u.user_id
-
-        UNION
-
-        SELECT 
-            s.stud_id AS id,
-            s.stud_first_name AS first_name,
-            s.stud_last_name AS last_name,
-            s.stud_email AS email,
-            'Student' AS role,
-            COUNT(re.report_id) AS report_count,
-            GROUP_CONCAT(DISTINCT re.reason SEPARATOR ', ') AS reasons,
-            s.created_at,
-            'student' AS user_type
-        FROM student s
-        JOIN actor a ON a.entity_id = s.stud_id AND a.entity_type = 'student'
-        JOIN report re ON a.actor_id = re.content_id AND re.content_type = 'student'
-        WHERE re.status = 'pending'
-        GROUP BY s.stud_id
-
+          AND (a.entity_type = 'user' OR a.entity_type = 'student')
+        GROUP BY id, first_name, last_name, email, profile_picture, role, created_at, user_type
         ORDER BY report_count DESC
-        LIMIT 2
+        LIMIT 10
     ");
     $stmt->execute();
     $reported_users = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -157,13 +207,14 @@ $recent_activity = [];
 try {
     $stmt = $conn->prepare("
         (
-            SELECT 'post' as type,
-                fp.post_id as id,
-                fp.content as title,
-                fp.posted_at as created_at,
-                COALESCE(u.user_first_name, s.stud_first_name) as first_name,
-                COALESCE(u.user_last_name, s.stud_last_name) as last_name,
-                f.title as forum_name
+            SELECT 'post' AS type,
+                fp.post_id AS id,
+                fp.content AS title,
+                fp.posted_at AS created_at,
+                COALESCE(u.user_first_name, s.stud_first_name) AS first_name,
+                COALESCE(u.user_last_name, s.stud_last_name) AS last_name,
+                COALESCE(u.picture_file, s.profile_picture) AS profile_picture,
+                f.title AS forum_name
             FROM forum_post fp
             JOIN actor a ON fp.poster_id = a.actor_id
             LEFT JOIN user u ON a.entity_type = 'user' AND a.entity_id = u.user_id
@@ -174,13 +225,14 @@ try {
         )
         UNION
         (
-            SELECT 'comment' as type,
-                fc.comment_id as id,
-                CONCAT('Comment on: ', SUBSTRING(fp.content, 1, 20)) as title,
-                fc.commented_at as created_at,
-                COALESCE(u.user_first_name, s.stud_first_name) as first_name,
-                COALESCE(u.user_last_name, s.stud_last_name) as last_name,
-                f.title as forum_name
+            SELECT 'comment' AS type,
+                fc.comment_id AS id,
+                CONCAT('Comment on: ', SUBSTRING(fp.content, 1, 20)) AS title,
+                fc.commented_at AS created_at,
+                COALESCE(u.user_first_name, s.stud_first_name) AS first_name,
+                COALESCE(u.user_last_name, s.stud_last_name) AS last_name,
+                COALESCE(u.picture_file, s.profile_picture) AS profile_picture,
+                f.title AS forum_name
             FROM forum_comment fc
             JOIN actor a ON fc.commenter_id = a.actor_id
             LEFT JOIN user u ON a.entity_type = 'user' AND a.entity_id = u.user_id
@@ -192,13 +244,14 @@ try {
         )
         UNION
         (
-            SELECT 'forum' as type,
-                f.forum_id as id,
-                f.title as title,
+            SELECT 'forum' AS type,
+                f.forum_id AS id,
+                f.title AS title,
                 f.created_at,
-                COALESCE(u.user_first_name, s.stud_first_name) as first_name,
-                COALESCE(u.user_last_name, s.stud_last_name) as last_name,
-                '' as forum_name
+                COALESCE(u.user_first_name, s.stud_first_name) AS first_name,
+                COALESCE(u.user_last_name, s.stud_last_name) AS last_name,
+                COALESCE(u.picture_file, s.profile_picture) AS profile_picture,
+                '' AS forum_name
             FROM forum f
             JOIN actor a ON f.created_by = a.actor_id
             LEFT JOIN user u ON a.entity_type = 'user' AND a.entity_id = u.user_id
@@ -206,8 +259,7 @@ try {
             ORDER BY f.created_at DESC
             LIMIT 1
         )
-        ORDER BY created_at DESC;
-
+        ORDER BY created_at DESC
     ");
     $stmt->execute();
     $recent_activity = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -220,12 +272,12 @@ $moderation_stats = [];
 try {
     $stmt = $conn->prepare("
         SELECT 
-            (SELECT COUNT(*) FROM forum_post WHERE posted_at >= CURDATE()) as posts_today,
-            (SELECT COUNT(*) FROM report WHERE status = 'pending') as pending_review,
-            (SELECT COUNT(*) FROM report WHERE status = 'resolved' AND resolved_at >= CURDATE()) as resolved_today,
-            (SELECT COUNT(*) FROM report WHERE resolution = 'approved') as approved_count,
-            (SELECT COUNT(*) FROM report WHERE resolution = 'edited') as edited_count,
-            (SELECT COUNT(*) FROM report WHERE resolution = 'deleted') as deleted_count
+            (SELECT COUNT(*) FROM forum_post WHERE posted_at >= CURDATE()) AS posts_today,
+            (SELECT COUNT(*) FROM report WHERE status = 'pending') AS pending_review,
+            (SELECT COUNT(*) FROM report WHERE status = 'resolved' AND resolved_at >= CURDATE()) AS resolved_today,
+            (SELECT COUNT(*) FROM report WHERE resolution = 'approved') AS approved_count,
+            (SELECT COUNT(*) FROM report WHERE resolution = 'edited') AS edited_count,
+            (SELECT COUNT(*) FROM report WHERE resolution = 'deleted') AS deleted_count
     ");
     $stmt->execute();
     $moderation_stats = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -239,27 +291,19 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forum content moderation</title>
-
+    <title>Forum Content Moderation</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- SweetAlert2 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome (for icons) -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-
     <style>
-       :root {
-            --primary-color: #0A2647; /* Navy Blue */
-            --secondary-color: #2C7865; /* Teal */
-            --accent-color: #FFD700; /* Gold */
-            --background-light: #F5F5F5; /* Light Gray */
-            --text-dark: #333333; /* Dark Gray */
+        :root {
+            --primary-color: #0A2647;
+            --secondary-color: #2C7865;
+            --accent-color: #FFD700;
+            --background-light: #F5F5F5;
+            --text-dark: #333333;
             --shadow-color: rgba(0, 0, 0, 0.1);
             --font-family: 'Poppins', sans-serif;
-
-
             --sidebar-width: 280px;
             --sidebar-collapsed-width: 80px;
             --sidebar-bg: #2c3e50;
@@ -274,15 +318,11 @@ try {
         body {
             background-color: var(--background-light);
             color: var(--text-dark);
-            /* font-family: var(--font-family);*/
-            transition: background-color 0.3s ease, color 0.3s ease;
-
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow-x: hidden;
             transition: var(--sidebar-transition);
         }
 
-        /* Sidebar Styles */
         .sidebar {
             position: fixed;
             top: 0;
@@ -401,7 +441,6 @@ try {
             transform: translate(10px, -50%);
         }
 
-        /* Main Content */
         .main-content {
             margin-left: 350px;
             margin-right: 150px;
@@ -413,7 +452,6 @@ try {
             margin-left: 200px;
         }
 
-        /* Dark Mode Toggle */
         .dark-mode-toggle {
             padding: 15px;
             display: flex;
@@ -434,7 +472,6 @@ try {
             color: var(--sidebar-active-text);
         }
 
-        /* Dark Mode Styles */
         body.dark-mode {
             background-color: #121212;
             color: #ffffff;
@@ -452,7 +489,6 @@ try {
             background-color: #2a2a2a;
         }
 
-        /* Logout button styling */
         .logout-link {
             color: #e74c3c;
             transition: color 0.2s;
@@ -471,7 +507,6 @@ try {
             color: #ff5252;
         }
 
-        /* Responsive Adjustments */
         @media (max-width: 768px) {
             .sidebar {
                 transform: translateX(-100%);
@@ -487,9 +522,7 @@ try {
                 margin-left: 0;
             }
         }
-    </style>
 
-    <style>
         .badge-moderation {
             background-color: #dc3545;
         }
@@ -507,10 +540,12 @@ try {
         .post-content.expanded {
             max-height: none;
         }
+
         .content-container {
             position: relative;
-            padding-bottom: 40px; 
+            padding-bottom: 40px;
         }
+
         .read-more {
             position: absolute;
             bottom: 10px;
@@ -535,6 +570,7 @@ try {
         .read-more:active {
             transform: translateY(1px);
         }
+
         .moderation-action {
             cursor: pointer;
             transition: all 0.2s;
@@ -625,6 +661,15 @@ try {
             padding: 0.25rem 0.5rem;
             font-size: 0.75rem;
         }
+
+        .loading-spinner {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+        }
     </style>
 </head>
 <body>
@@ -635,7 +680,7 @@ try {
         <div class="sidebar-nav">
             <ul class="nav flex-column">
                 <?php foreach ($sidebar_menu as $item): ?>
-                    <?php 
+                    <?php
                         $is_active = ($current_page == basename($item[2])) ? 'active' : '';
                         $icon = $item[1];
                         $title = $item[0];
@@ -663,7 +708,9 @@ try {
             <div class="row mb-4 pt-3 pb-2 mb-3 border-bottom">
                 <div class="col-12">
                     <h1 class="h2">Forum Moderation</h1>
-                    <p class="lead">Welcome, <?php echo $full_name; ?> <span class="badge bg-primary"><?php echo $role_title; ?></span></p>
+                    <p class="lead">
+                        Welcome, <?php echo $full_name; ?> <span class="badge bg-primary"><?php echo $role_title; ?></span>
+                    </p>
                 </div>
             </div>
 
@@ -695,76 +742,112 @@ try {
                                     </button>
                                 </li>
                             </ul>
-                            
-                            <div class="tab-content" id="reportedTabsContent">
-                            <div class="tab-pane fade show active" id="posts" role="tabpanel">
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th width="5%">ID</th>
-                                            <th width="20%">Post</th>
-                                            <th width="15%">Author</th>
-                                            <th width="15%">Forum</th>
-                                            <th width="15%">Report Reasons</th>
-                                            <th width="10%">Reports</th>
-                                            <th width="10%">Posted</th>
-                                            <th width="10%">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php foreach ($reported_posts as $post): ?>
-                                        <tr>
-                                            <td><?php echo htmlspecialchars($post['post_id']); ?></td>
-                                            <td>
-                                                <div class="content-container">
-                                                    <span class="short-text"><?php echo htmlspecialchars(substr($post['post_content'], 0, 100)); ?>...</span>
-                                                    <span class="full-text" style="display: none;"><?php echo nl2br(htmlspecialchars($post['post_content'])); ?></span>
-                                                    <a href="#" class="read-more" onclick="toggleReadMore(this, 'post')">Read more</a>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <img src="https://via.placeholder.com/40" class="user-avatar" alt="User">
-                                                <?php echo htmlspecialchars($post['user_first_name'] . ' ' . $post['user_last_name']); ?>
-                                            </td>
-                                            <td><?php echo htmlspecialchars($post['forum_name']); ?></td>
-                                            <td>
-                                                <div class="content-container">
-                                                    <span class="short-text"><?php echo htmlspecialchars(substr($post['report_reasons'], 0, 50)); ?>...</span>
-                                                    <span class="full-text" style="display: none;"><?php echo nl2br(htmlspecialchars($post['report_reasons'])); ?></span>
-                                                    <a href="#" class="read-more" onclick="toggleReadMore(this, 'reason')">Read more</a>
-                                                </div>
-                                            </td>
-                                            <td><span class="badge bg-danger"><?php echo htmlspecialchars($post['report_count']); ?></span></td>
-                                            <td>
-                                                <span class="time-ago" title="<?php echo htmlspecialchars($post['created_at']); ?>">
-                                                    <?php echo time_elapsed_string($post['created_at']); ?>
-                                                </span>
-                                            </td>
-                                            <td class="action-buttons">
-                                                <button class="btn btn-sm btn-success" title="Approve" onclick="moderatePost(<?php echo $post['post_id']; ?>, 'approve')">
-                                                    <i class="fas fa-check"></i>
-                                                </button>
-                                                <button class="btn btn-sm btn-warning" title="Edit" onclick="editPost(<?php echo $post['post_id']; ?>)">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
-                                                <button class="btn btn-sm btn-danger" title="Delete" onclick="moderatePost(<?php echo $post['post_id']; ?>, 'delete')">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        <?php endforeach; ?>
-                                        <?php if (empty($reported_posts)): ?>
-                                        <tr>
-                                            <td colspan="8" class="text-center">No reported posts found</td>
-                                        </tr>
-                                        <?php endif; ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
 
-                                
+                            <div class="tab-content" id="reportedTabsContent">
+                                <div class="tab-pane fade show active" id="posts" role="tabpanel">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th width="5%">ID</th>
+                                                    <th width="20%">Post</th>
+                                                    <th width="15%">Author</th>
+                                                    <th width="15%">Forum</th>
+                                                    <th width="15%">Report Reasons</th>
+                                                    <th width="10%">Reports</th>
+                                                    <th width="10%">Posted</th>
+                                                    <th width="10%">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php foreach ($reported_posts as $post): ?>
+                                                    <?php
+                                                        $profile_picture = getSafeProfilePicture($post['profile_picture']);
+                                                        $content = htmlspecialchars($post['post_content']);
+                                                        $short_content = strlen($content) > 100 ? substr($content, 0, 100) . '...' : $content;
+                                                        $show_read_more = strlen($content) > 100;
+                                                    ?>
+                                                    <tr>
+                                                        <td><?php echo htmlspecialchars($post['post_id']); ?></td>
+                                                        <td>
+                                                            <div class="content-container">
+                                                                <span class="short-text"><?php echo $short_content; ?></span>
+                                                                <?php if ($show_read_more): ?>
+                                                                    <span class="full-text" style="display: none;"><?php echo nl2br($content); ?></span>
+                                                                    <a href="#" class="read-more" onclick="toggleReadMore(this, 'post')">Read more</a>
+                                                                <?php endif; ?>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <img src="<?php echo $profile_picture; ?>" class="user-avatar" alt="User">
+                                                            <?php echo htmlspecialchars($post['user_first_name'] . ' ' . $post['user_last_name']); ?>
+                                                        </td>
+                                                        <td><?php echo htmlspecialchars($post['forum_name']); ?></td>
+                                                        <td>
+                                                            <div class="content-container">
+                                                                <?php
+                                                                    $reasons = htmlspecialchars($post['report_reasons']);
+                                                                    $short_reasons = strlen($reasons) > 50 ? substr($reasons, 0, 50) . '...' : $reasons;
+                                                                    $show_reasons_read_more = strlen($reasons) > 50;
+                                                                ?>
+                                                                <span class="short-text"><?php echo $short_reasons; ?></span>
+                                                                <?php if ($show_reasons_read_more): ?>
+                                                                    <span class="full-text" style="display: none;"><?php echo nl2br($reasons); ?></span>
+                                                                    <a href="#" class="read-more" onclick="toggleReadMore(this, 'reason')">Read more</a>
+                                                                <?php endif; ?>
+                                                            </div>
+                                                        </td>
+                                                        <td><span class="badge bg-danger"><?php echo htmlspecialchars($post['report_count']); ?></span></td>
+                                                        <td>
+                                                            <span class="time-ago" title="<?php echo htmlspecialchars($post['created_at']); ?>">
+                                                                <?php echo time_elapsed_string($post['created_at']); ?>
+                                                            </span>
+                                                        </td>
+                                                        <td class="action-buttons">
+                                                            <button class="btn btn-sm btn-success moderation-action" title="Approve" onclick="moderatePost(<?php echo $post['post_id']; ?>, 'approve')">
+                                                                <i class="fas fa-check"></i>
+                                                            </button>
+                                                            <button class="btn btn-sm btn-warning moderation-action" title="Edit" onclick="editPost(<?php echo $post['post_id']; ?>)">
+                                                                <i class="fas fa-edit"></i>
+                                                            </button>
+                                                            <button class="btn btn-sm btn-danger moderation-action" title="Delete" onclick="moderatePost(<?php echo $post['post_id']; ?>, 'delete')">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                                <?php if (empty($reported_posts)): ?>
+                                                    <tr>
+                                                        <td colspan="8" class="text-center">No reported posts found</td>
+                                                    </tr>
+                                                <?php endif; ?>
+                                            </tbody>
+                                        </table>
+                                        <!-- Pagination -->
+                                        <?php if ($total_pages > 1): ?>
+                                            <nav aria-label="Page navigation">
+                                                <ul class="pagination justify-content-center">
+                                                    <li class="page-item <?php echo $page <= 1 ? 'disabled' : ''; ?>">
+                                                        <a class="page-link" href="?page=<?php echo $page - 1; ?>" aria-label="Previous">
+                                                            <span aria-hidden="true">&laquo;</span>
+                                                        </a>
+                                                    </li>
+                                                    <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                                                        <li class="page-item <?php echo $page == $i ? 'active' : ''; ?>">
+                                                            <a class="page-link" href="?page=<?php echo $i; ?>"><?php echo $i; ?></a>
+                                                        </li>
+                                                    <?php endfor; ?>
+                                                    <li class="page-item <?php echo $page >= $total_pages ? 'disabled' : ''; ?>">
+                                                        <a class="page-link" href="?page=<?php echo $page + 1; ?>" aria-label="Next">
+                                                            <span aria-hidden="true">&raquo;</span>
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </nav>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+
                                 <div class="tab-pane fade" id="comments" role="tabpanel">
                                     <div class="table-responsive">
                                         <table class="table table-hover">
@@ -781,40 +864,53 @@ try {
                                             </thead>
                                             <tbody>
                                                 <?php foreach ($reported_comments as $comment): ?>
-                                                <tr>
-                                                    <td><?php echo htmlspecialchars($comment['comment_id']); ?></td>
-                                                    <td><?php echo htmlspecialchars(substr($comment['comment_content'], 0, 50)); ?>...</td>
-                                                    <td>
-                                                        <img src="https://via.placeholder.com/40" class="user-avatar" alt="User">
-                                                        <?php echo htmlspecialchars($comment['user_first_name'] . ' ' . $comment['user_last_name']); ?>
-                                                    </td>
-                                                    <td><?php echo htmlspecialchars($comment['post_title']); ?></td>
-                                                    <td><span class="badge bg-danger"><?php echo htmlspecialchars($comment['report_count']); ?></span></td>
-                                                    <td>
-                                                        <span class="time-ago" title="<?php echo htmlspecialchars($comment['created_at']); ?>">
-                                                            <?php echo time_elapsed_string($comment['created_at']); ?>
-                                                        </span>
-                                                    </td>
-                                                    <td class="action-buttons">
-                                                        <button class="btn btn-sm btn-success" title="Approve" onclick="moderateComment(<?php echo $comment['comment_id']; ?>, 'approve')">
-                                                            <i class="fas fa-check"></i>
-                                                        </button>
-                                                        <button class="btn btn-sm btn-danger" title="Delete" onclick="moderateComment(<?php echo $comment['comment_id']; ?>, 'delete')">
-                                                            <i class="fas fa-trash"></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>
+                                                    <?php
+                                                        $profile_picture = getSafeProfilePicture($comment['profile_picture']);
+                                                        $comment_content = htmlspecialchars($comment['comment_content']);
+                                                        $short_comment = strlen($comment_content) > 50 ? substr($comment_content, 0, 50) . '...' : $comment_content;
+                                                    ?>
+                                                    <tr>
+                                                        <td><?php echo htmlspecialchars($comment['comment_id']); ?></td>
+                                                        <td>
+                                                            <div class="content-container">
+                                                                <span class="short-text"><?php echo $short_comment; ?></span>
+                                                                <?php if (strlen($comment_content) > 50): ?>
+                                                                    <span class="full-text" style="display: none;"><?php echo nl2br($comment_content); ?></span>
+                                                                    <a href="#" class="read-more" onclick="toggleReadMore(this, 'comment')">Read more</a>
+                                                                <?php endif; ?>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <img src="<?php echo $profile_picture; ?>" class="user-avatar" alt="User">
+                                                            <?php echo htmlspecialchars($comment['user_first_name'] . ' ' . $comment['user_last_name']); ?>
+                                                        </td>
+                                                        <td><?php echo htmlspecialchars(substr($comment['post_content'], 0, 50)); ?>...</td>
+                                                        <td><span class="badge bg-danger"><?php echo htmlspecialchars($comment['report_count']); ?></span></td>
+                                                        <td>
+                                                            <span class="time-ago" title="<?php echo htmlspecialchars($comment['created_at']); ?>">
+                                                                <?php echo time_elapsed_string($comment['created_at']); ?>
+                                                            </span>
+                                                        </td>
+                                                        <td class="action-buttons">
+                                                            <button class="btn btn-sm btn-success moderation-action" title="Approve" onclick="moderateComment(<?php echo $comment['comment_id']; ?>, 'approve')">
+                                                                <i class="fas fa-check"></i>
+                                                            </button>
+                                                            <button class="btn btn-sm btn-danger moderation-action" title="Delete" onclick="moderateComment(<?php echo $comment['comment_id']; ?>, 'delete')">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
                                                 <?php endforeach; ?>
                                                 <?php if (empty($reported_comments)): ?>
-                                                <tr>
-                                                    <td colspan="7" class="text-center">No reported comments found</td>
-                                                </tr>
+                                                    <tr>
+                                                        <td colspan="7" class="text-center">No reported comments found</td>
+                                                    </tr>
                                                 <?php endif; ?>
                                             </tbody>
                                         </table>
                                     </div>
                                 </div>
-                                
+
                                 <div class="tab-pane fade" id="users" role="tabpanel">
                                     <div class="table-responsive">
                                         <table class="table table-hover">
@@ -832,42 +928,44 @@ try {
                                             </thead>
                                             <tbody>
                                                 <?php foreach ($reported_users as $user): ?>
-                                                <tr>
-                                                    <td><?php echo htmlspecialchars($user['id']); ?></td>
-                                                    <td>
-                                                        <?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name']); ?>
-                                                    </td>
-                                                    <td><?php echo htmlspecialchars($user['email']); ?></td>
-                                                    <td><?php echo htmlspecialchars($user['role']); ?></td>
-                                                    <td><span class="badge bg-danger"><?php echo htmlspecialchars($user['report_count']); ?></span></td>
-                                                    <td>
-                                                        <span class="report-reasons" title="<?php echo htmlspecialchars($user['reasons']); ?>">
-                                                            <?php 
-                                                            // Show first 30 chars of reasons with ellipsis if longer
-                                                            $reasons = $user['reasons'];
-                                                            echo htmlspecialchars(strlen($reasons) > 30 ? substr($reasons, 0, 30) . '...' : $reasons); 
-                                                            ?>
-                                                        </span>
-                                                    </td>
-                                                    <td>
-                                                        <span class="time-ago" title="<?php echo htmlspecialchars($user['created_at']); ?>">
-                                                            <?php echo time_elapsed_string($user['created_at']); ?>
-                                                        </span>
-                                                    </td>
-                                                    <td class="action-buttons">
-                                                        <button class="btn btn-sm btn-warning" title="Warn" onclick="warnUser(<?php echo $user['id']; ?>, '<?php echo $user['user_type']; ?>')">
-                                                            <i class="fas fa-exclamation-triangle"></i>
-                                                        </button>
-                                                        <button class="btn btn-sm btn-danger" title="Ban" onclick="banUser(<?php echo $user['id']; ?>, '<?php echo $user['user_type']; ?>')">
-                                                            <i class="fas fa-ban"></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>
+                                                    <?php
+                                                        $profile_picture = getSafeProfilePicture($user['profile_picture']);
+                                                        $reasons = htmlspecialchars($user['reasons']);
+                                                        $short_reasons = strlen($reasons) > 30 ? substr($reasons, 0, 30) . '...' : $reasons;
+                                                    ?>
+                                                    <tr>
+                                                        <td><?php echo htmlspecialchars($user['id']); ?></td>
+                                                        <td>
+                                                            <img src="<?php echo $profile_picture; ?>" class="user-avatar" alt="User">
+                                                            <?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name']); ?>
+                                                        </td>
+                                                        <td><?php echo htmlspecialchars($user['email']); ?></td>
+                                                        <td><?php echo htmlspecialchars($user['role']); ?></td>
+                                                        <td><span class="badge bg-danger"><?php echo htmlspecialchars($user['report_count']); ?></span></td>
+                                                        <td>
+                                                            <span class="report-reasons" title="<?php echo $reasons; ?>">
+                                                                <?php echo $short_reasons; ?>
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <span class="time-ago" title="<?php echo htmlspecialchars($user['created_at']); ?>">
+                                                                <?php echo time_elapsed_string($user['created_at']); ?>
+                                                            </span>
+                                                        </td>
+                                                        <td class="action-buttons">
+                                                            <button class="btn btn-sm btn-warning moderation-action" title="Warn" onclick="warnUser(<?php echo $user['id']; ?>, '<?php echo $user['user_type']; ?>')">
+                                                                <i class="fas fa-exclamation-triangle"></i>
+                                                            </button>
+                                                            <button class="btn btn-sm btn-danger moderation-action" title="Ban" onclick="banUser(<?php echo $user['id']; ?>, '<?php echo $user['user_type']; ?>')">
+                                                                    <i class="fas fa-ban"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
                                                 <?php endforeach; ?>
                                                 <?php if (empty($reported_users)): ?>
-                                                <tr>
-                                                    <td colspan="8" class="text-center">No reported users found</td>
-                                                </tr>
+                                                    <tr>
+                                                        <td colspan="8" class="text-center">No reported users found</td>
+                                                    </tr>
                                                 <?php endif; ?>
                                             </tbody>
                                         </table>
@@ -888,10 +986,13 @@ try {
                         <div class="card-body">
                             <div class="list-group">
                                 <?php foreach ($recent_activity as $activity): ?>
+                                    <?php
+                                        $profile_picture = getSafeProfilePicture($activity['profile_picture']);
+                                    ?>
                                     <div class="list-group-item">
                                         <div class="d-flex justify-content-between">
                                             <h6 class="mb-1">
-                                                <?php 
+                                                <?php
                                                     if ($activity['type'] == 'post') {
                                                         echo 'New post in "' . htmlspecialchars($activity['forum_name']) . '"';
                                                     } elseif ($activity['type'] == 'comment') {
@@ -906,7 +1007,7 @@ try {
                                             </small>
                                         </div>
                                         <p class="mb-1">
-                                            <?php 
+                                            <?php
                                                 if ($activity['type'] == 'post') {
                                                     echo htmlspecialchars(substr($activity['title'], 0, 50));
                                                 } elseif ($activity['type'] == 'comment') {
@@ -917,7 +1018,8 @@ try {
                                             ?>...
                                         </p>
                                         <small class="text-muted">
-                                            <?php 
+                                            <img src="<?php echo $profile_picture; ?>" class="user-avatar" alt="User">
+                                            <?php
                                                 if ($activity['type'] == 'forum') {
                                                     echo 'Created by: ';
                                                 } else {
@@ -972,26 +1074,26 @@ try {
                             </div>
                             <div class="mt-3">
                                 <h6>Moderation Actions</h6>
-                                <?php 
+                                <?php
                                     $total = ($moderation_stats['approved_count'] ?? 0) + ($moderation_stats['edited_count'] ?? 0) + ($moderation_stats['deleted_count'] ?? 0);
                                     $approved_percent = $total > 0 ? round(($moderation_stats['approved_count'] / $total) * 100) : 0;
                                     $edited_percent = $total > 0 ? round(($moderation_stats['edited_count'] / $total) * 100) : 0;
                                     $deleted_percent = $total > 0 ? round(($moderation_stats['deleted_count'] / $total) * 100) : 0;
                                 ?>
                                 <div class="progress mb-2">
-                                    <div class="progress-bar bg-success" role="progressbar" style="width: <?php echo $approved_percent; ?>%;" 
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: <?php echo $approved_percent; ?>%;"
                                          aria-valuenow="<?php echo $approved_percent; ?>" aria-valuemin="0" aria-valuemax="100">
                                         Approved (<?php echo $approved_percent; ?>%)
                                     </div>
                                 </div>
                                 <div class="progress mb-2">
-                                    <div class="progress-bar bg-warning" role="progressbar" style="width: <?php echo $edited_percent; ?>%;" 
+                                    <div class="progress-bar bg-warning" role="progressbar" style="width: <?php echo $edited_percent; ?>%;"
                                          aria-valuenow="<?php echo $edited_percent; ?>" aria-valuemin="0" aria-valuemax="100">
                                         Edited (<?php echo $edited_percent; ?>%)
                                     </div>
                                 </div>
                                 <div class="progress">
-                                    <div class="progress-bar bg-danger" role="progressbar" style="width: <?php echo $deleted_percent; ?>%;" 
+                                    <div class="progress-bar bg-danger" role="progressbar" style="width: <?php echo $deleted_percent; ?>%;"
                                          aria-valuenow="<?php echo $deleted_percent; ?>" aria-valuemin="0" aria-valuemax="100">
                                         Deleted (<?php echo $deleted_percent; ?>%)
                                     </div>
@@ -1002,21 +1104,72 @@ try {
                 </div>
             </div>
         </div>
+        <div class="loading-spinner">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
     </main>
 
-    <!-- SweetAlert2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="../assests/sidebar_toggle.js" defer></script>
     <script>
-        // Toggle read more/less for post content
+        // Modularized AJAX handler
+        const ajaxHandler = {
+            async sendRequest(url, data) {
+                const spinner = document.querySelector('.loading-spinner');
+                spinner.style.display = 'block';
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: new URLSearchParams(data).toString()
+                    });
+                    const result = await response.json();
+                    spinner.style.display = 'none';
+                    return result;
+                } catch (error) {
+                    spinner.style.display = 'none';
+                    throw error;
+                }
+            },
+
+            showError(message) {
+                Swal.fire({
+                    title: 'Error!',
+                    text: message,
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+                    background: document.body.classList.contains('dark-mode') ? '#1a1a1a' : '#ffffff',
+                    color: document.body.classList.contains('dark-mode') ? '#ffffff' : '#333333'
+                });
+            },
+
+            showSuccess(message) {
+                Swal.fire({
+                    title: 'Success!',
+                    text: message,
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                    background: document.body.classList.contains('dark-mode') ? '#1a1a1a' : '#ffffff',
+                    color: document.body.classList.contains('dark-mode') ? '#ffffff' : '#333333'
+                }).then(() => {
+                    location.reload();
+                });
+            }
+        };
+
+        // Toggle read more/less
         function toggleReadMore(element, type) {
-            // Prevent default anchor behavior
             event.preventDefault();
-            
             const container = element.parentElement;
             const shortText = container.querySelector('.short-text');
             const fullText = container.querySelector('.full-text');
             
+            if (!fullText) return; // Skip if no full text
+
             if (fullText.style.display === 'none') {
                 shortText.style.display = 'none';
                 fullText.style.display = 'inline';
@@ -1028,349 +1181,252 @@ try {
             }
         }
 
-        // Search functionality for reported content
+        // Debounced search
+        let searchTimeout;
         document.getElementById('searchReports').addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
-            const activeTab = document.querySelector('.tab-pane.active');
-            
-            activeTab.querySelectorAll('tbody tr').forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(searchTerm) ? '' : 'none';
-            });
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const searchTerm = e.target.value.toLowerCase();
+                const activeTab = document.querySelector('.tab-pane.active');
+                
+                activeTab.querySelectorAll('tbody tr').forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(searchTerm) ? '' : 'none';
+                });
+            }, 300);
         });
 
         // Post moderation actions
-        function moderatePost(postId, action) {
-            let title, text, confirmButtonText, icon;
-            
-            if (action === 'approve') {
-                title = 'Approve Post';
-                text = 'Are you sure you want to approve this post?';
-                confirmButtonText = 'Yes, approve';
-                icon = 'success';
-            } else {
-                title = 'Delete Post';
-                text = 'Are you sure you want to delete this post? This action cannot be undone.';
-                confirmButtonText = 'Yes, delete';
-                icon = 'warning';
-            }
-            
-            Swal.fire({
-                title: title,
-                text: text,
-                icon: icon,
+        async function moderatePost(postId, action) {
+            const config = {
+                approve: {
+                    title: 'Approve Post',
+                    text: 'Are you sure you want to approve this post?',
+                    confirmButtonText: 'Yes, approve',
+                    icon: 'success'
+                },
+                delete: {
+                    title: 'Delete Post',
+                    text: 'Are you sure you want to delete this post? This action cannot be undone.',
+                    confirmButtonText: 'Yes, delete',
+                    icon: 'warning'
+                }
+            }[action];
+
+            const result = await Swal.fire({
+                title: config.title,
+                text: config.text,
+                icon: config.icon,
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
                 cancelButtonColor: '#d33',
-                confirmButtonText: confirmButtonText,
+                confirmButtonText: config.confirmButtonText,
                 background: document.body.classList.contains('dark-mode') ? '#1a1a1a' : '#ffffff',
                 color: document.body.classList.contains('dark-mode') ? '#ffffff' : '#333333'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // AJAX call to handle the moderation action
-                    fetch('moderate_post.php', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                        body: `post_id=${postId}&action=${action}`
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            Swal.fire({
-                                title: 'Success!',
-                                text: data.message,
-                                icon: 'success',
-                                confirmButtonText: 'OK'
-                            }).then(() => {
-                                location.reload();
-                            });
-                        } else {
-                            Swal.fire({
-                                title: 'Error!',
-                                text: data.message,
-                                icon: 'error',
-                                confirmButtonText: 'OK'
-                            });
-                        }
-                    })
-                    .catch(error => {
-                        Swal.fire({
-                            title: 'Error!',
-                            text: 'An error occurred while processing your request.',
-                            icon: 'error',
-                            confirmButtonText: 'OK'
-                        });
-                    });
-                }
             });
+
+            if (result.isConfirmed) {
+                try {
+                    const data = await ajaxHandler.sendRequest('../controllers/moderate_post.php', { post_id: postId, action });
+                    if (data.success) {
+                        ajaxHandler.showSuccess(data.message);
+                    } else {
+                        ajaxHandler.showError(data.message);
+                    }
+                } catch (error) {
+                    ajaxHandler.showError('An error occurred while processing your request.');
+                }
+            }
         }
 
         // Comment moderation actions
-        function moderateComment(commentId, action) {
-            let title, text, confirmButtonText, icon;
-            
-            if (action === 'approve') {
-                title = 'Approve Comment';
-                text = 'Are you sure you want to approve this comment?';
-                confirmButtonText = 'Yes, approve';
-                icon = 'success';
-            } else {
-                title = 'Delete Comment';
-                text = 'Are you sure you want to delete this comment? This action cannot be undone.';
-                confirmButtonText = 'Yes, delete';
-                icon = 'warning';
-            }
-            
-            Swal.fire({
-                title: title,
-                text: text,
-                icon: icon,
+        async function moderateComment(commentId, action) {
+            const config = {
+                approve: {
+                    title: 'Approve Comment',
+                    text: 'Are you sure you want to approve this comment?',
+                    confirmButtonText: 'Yes, approve',
+                    icon: 'success'
+                },
+                delete: {
+                    title: 'Delete Comment',
+                    text: 'Are you sure you want to delete this comment? This action cannot be undone.',
+                    confirmButtonText: 'Yes, delete',
+                    icon: 'warning'
+                }
+            }[action];
+
+            const result = await Swal.fire({
+                title: config.title,
+                text: config.text,
+                icon: config.icon,
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
                 cancelButtonColor: '#d33',
-                confirmButtonText: confirmButtonText,
+                confirmButtonText: config.confirmButtonText,
                 background: document.body.classList.contains('dark-mode') ? '#1a1a1a' : '#ffffff',
                 color: document.body.classList.contains('dark-mode') ? '#ffffff' : '#333333'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // AJAX call to handle the moderation action
-                    fetch('moderate_comment.php', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                        body: `comment_id=${commentId}&action=${action}`
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            Swal.fire({
-                                title: 'Success!',
-                                text: data.message,
-                                icon: 'success',
-                                confirmButtonText: 'OK'
-                            }).then(() => {
-                                location.reload();
-                            });
-                        } else {
-                            Swal.fire({
-                                title: 'Error!',
-                                text: data.message,
-                                icon: 'error',
-                                confirmButtonText: 'OK'
-                            });
-                        }
-                    })
-                    .catch(error => {
-                        Swal.fire({
-                            title: 'Error!',
-                            text: 'An error occurred while processing your request.',
-                            icon: 'error',
-                            confirmButtonText: 'OK'
-                        });
-                    });
-                }
             });
+
+            if (result.isConfirmed) {
+                try {
+                    const data = await ajaxHandler.sendRequest('../controllers/moderate_comment.php', { comment_id: commentId, action });
+                    if (data.success) {
+                        ajaxHandler.showSuccess(data.message);
+                    } else {
+                        ajaxHandler.showError(data.message);
+                    }
+                } catch (error) {
+                    ajaxHandler.showError('An error occurred while processing your request.');
+                }
+            }
         }
 
         // User moderation actions
-        function warnUser(userId) {
-            Swal.fire({
+        async function warnUser(userId, userType) {
+            console.log('warnUser params:', { userId, userType });
+            const result = await Swal.fire({
                 title: 'Send Warning to User',
                 input: 'textarea',
                 inputLabel: 'Warning Message',
                 inputPlaceholder: 'Enter the warning message to send to this user...',
-                inputAttributes: {
-                    'aria-label': 'Enter the warning message to send to this user'
-                },
                 showCancelButton: true,
                 confirmButtonText: 'Send Warning',
                 showLoaderOnConfirm: true,
-                preConfirm: (message) => {
-                    return fetch('warn_user.php', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                        body: `user_id=${userId}&message=${encodeURIComponent(message)}`
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (!data.success) {
-                            throw new Error(data.message);
-                        }
-                        return data;
-                    })
-                    .catch(error => {
-                        Swal.showValidationMessage(
-                            `Request failed: ${error}`
+                preConfirm: async (message) => {
+                    try {
+                        return await ajaxHandler.sendRequest(
+                            '../controllers/warn_user.php', 
+                            { user_id: userId, user_type: userType, message }
                         );
-                    });
+                    } catch (error) {
+                        Swal.showValidationMessage(`Request failed: ${error}`);
+                    }
                 },
                 allowOutsideClick: () => !Swal.isLoading(),
                 background: document.body.classList.contains('dark-mode') ? '#1a1a1a' : '#ffffff',
                 color: document.body.classList.contains('dark-mode') ? '#ffffff' : '#333333'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        title: 'Success!',
-                        text: result.value.message,
-                        icon: 'success',
-                        confirmButtonText: 'OK'
-                    }).then(() => {
-                        location.reload();
-                    });
-                }
             });
+
+            if (result.isConfirmed) {
+                ajaxHandler.showSuccess(result.value.message);
+            }
         }
 
-        function banUser(userId) {
-            Swal.fire({
+
+        async function banUser(userId, userType) {
+            console.log('banUser params:', { userId, userType }); // Debug
+            const result = await Swal.fire({
                 title: 'Ban User',
                 html: `
                     <div class="form-group">
                         <label for="banReason">Reason for Ban</label>
                         <textarea id="banReason" class="form-control" placeholder="Enter the reason for banning this user..."></textarea>
                     </div>
-                    <div class="form-group mt-3">
-                        <label for="banDuration">Duration</label>
-                        <select id="banDuration" class="form-control">
-                            <option value="1">1 day</option>
-                            <option value="7">1 week</option>
-                            <option value="30">1 month</option>
-                            <option value="365">1 year</option>
-                            <option value="permanent">Permanent</option>
-                        </select>
-                    </div>
                 `,
                 showCancelButton: true,
                 confirmButtonText: 'Ban User',
                 showLoaderOnConfirm: true,
-                preConfirm: () => {
+                preConfirm: async () => {
                     const reason = document.getElementById('banReason').value;
-                    const duration = document.getElementById('banDuration').value;
-                    
+                    console.log('Sending to ban_user.php:', { user_id: userId, user_type: userType, reason }); // Debug
                     if (!reason) {
                         Swal.showValidationMessage('Please enter a reason for the ban');
                         return false;
                     }
-                    
-                    return fetch('ban_user.php', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                        body: `user_id=${userId}&reason=${encodeURIComponent(reason)}&duration=${duration}`
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (!data.success) {
-                            throw new Error(data.message);
-                        }
-                        return data;
-                    })
-                    .catch(error => {
-                        Swal.showValidationMessage(
-                            `Request failed: ${error}`
-                        );
-                    });
+                    try {
+                        return await ajaxHandler.sendRequest('../controllers/ban_user.php', {
+                            user_id: userId,
+                            user_type: userType,
+                            reason
+                        });
+                    } catch (error) {
+                        Swal.showValidationMessage(`Request failed: ${error}`);
+                    }
                 },
                 allowOutsideClick: () => !Swal.isLoading(),
                 background: document.body.classList.contains('dark-mode') ? '#1a1a1a' : '#ffffff',
                 color: document.body.classList.contains('dark-mode') ? '#ffffff' : '#333333'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire({
-                        title: 'Success!',
-                        text: result.value.message,
-                        icon: 'success',
-                        confirmButtonText: 'OK'
-                    }).then(() => {
-                        location.reload();
-                    });
-                }
             });
+
+            if (result.isConfirmed) {
+                ajaxHandler.showSuccess(result.value.message);
+            }
         }
 
-        // Edit post functionality
-        function editPost(postId) {
-            // Fetch post content first
-            fetch(`get_post.php?post_id=${postId}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        Swal.fire({
-                            title: 'Edit Post',
-                            input: 'textarea',
-                            inputValue: data.content,
-                            inputAttributes: {
-                                'aria-label': 'Edit the post content'
-                            },
-                            showCancelButton: true,
-                            confirmButtonText: 'Save Changes',
-                            showLoaderOnConfirm: true,
-                            preConfirm: (editedContent) => {
-                                return fetch('edit_post.php', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/x-www-form-urlencoded',
-                                    },
-                                    body: `post_id=${postId}&content=${encodeURIComponent(editedContent)}`
-                                })
-                                .then(response => response.json())
-                                .then(data => {
-                                    if (!data.success) {
-                                        throw new Error(data.message);
-                                    }
-                                    return data;
-                                })
-                                .catch(error => {
-                                    Swal.showValidationMessage(
-                                        `Request failed: ${error}`
-                                    );
-                                });
-                            },
-                            allowOutsideClick: () => !Swal.isLoading(),
-                            background: document.body.classList.contains('dark-mode') ? '#1a1a1a' : '#ffffff',
-                            color: document.body.classList.contains('dark-mode') ? '#ffffff' : '#333333'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                Swal.fire({
-                                    title: 'Success!',
-                                    text: result.value.message,
-                                    icon: 'success',
-                                    confirmButtonText: 'OK'
-                                }).then(() => {
-                                    location.reload();
-                                });
+        async function editPost(postId) {
+            try {
+                const data = await ajaxHandler.sendRequest(`../controllers/get_post.php?post_id=${postId}`);
+                if (!data.success) {
+                    ajaxHandler.showError(data.message);
+                    return;
+                }
+
+                const post = data.post;
+                
+                const result = await Swal.fire({
+                    title: 'Edit Post',
+                    html: `
+                        <div class="mb-3">
+                            <label class="form-label">Post Title</label>
+                            <input type="text" id="postTitle" class="form-control" value="${post.post_title || ''}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Content</label>
+                            <textarea id="postContent" class="form-control" rows="5">${post.content || ''}</textarea>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="isPinned" ${post.is_pinned ? 'checked' : ''}>
+                            <label class="form-check-label" for="isPinned">Pin this post</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="isAnnouncement" ${post.is_announcement ? 'checked' : ''}>
+                            <label class="form-check-label" for="isAnnouncement">Mark as announcement</label>
+                        </div>
+                    `,
+                    showCancelButton: true,
+                    confirmButtonText: 'Save Changes',
+                    showLoaderOnConfirm: true,
+                    preConfirm: async () => {
+                        try {
+                            const postTitle = document.getElementById('postTitle').value;
+                            const postContent = document.getElementById('postContent').value;
+                            const isPinned = document.getElementById('isPinned').checked;
+                            const isAnnouncement = document.getElementById('isAnnouncement').checked;
+                            
+                            if (!postTitle || !postContent) {
+                                Swal.showValidationMessage('Title and content are required');
+                                return false;
                             }
-                        });
-                    } else {
-                        Swal.fire({
-                            title: 'Error!',
-                            text: data.message,
-                            icon: 'error',
-                            confirmButtonText: 'OK'
-                        });
-                    }
-                })
-                .catch(error => {
-                    Swal.fire({
-                        title: 'Error!',
-                        text: 'Failed to fetch post content.',
-                        icon: 'error',
-                        confirmButtonText: 'OK'
-                    });
+                            
+                            return await ajaxHandler.sendRequest('../controllers/edit_post.php', {
+                                post_id: postId,
+                                content: postContent,
+                                post_title: postTitle,
+                                is_pinned: isPinned,
+                                is_announcement: isAnnouncement
+                            });
+                        } catch (error) {
+                            Swal.showValidationMessage(`Request failed: ${error}`);
+                        }
+                    },
+                    allowOutsideClick: () => !Swal.isLoading(),
+                    background: document.body.classList.contains('dark-mode') ? '#1a1a1a' : '#ffffff',
+                    color: document.body.classList.contains('dark-mode') ? '#ffffff' : '#333333'
                 });
+
+                if (result.isConfirmed) {
+                    ajaxHandler.showSuccess(result.value.message);
+                }
+            } catch (error) {
+                ajaxHandler.showError('Failed to fetch post details.');
+            }
         }
 
-        // SweetAlert for logout confirmation
         function confirmLogout(e) {
             e.preventDefault();
             const logoutUrl = e.currentTarget.getAttribute('href');
-            
+
             Swal.fire({
                 title: 'Are you sure?',
                 text: "You will be logged out of the system.",
@@ -1391,34 +1447,25 @@ try {
         // Initialize tooltips
         document.addEventListener('DOMContentLoaded', function() {
             const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
-            });
-            
-            // Time ago tooltips
-            document.querySelectorAll('.time-ago').forEach(el => {
-                new bootstrap.Tooltip(el);
-            });
+            tooltipTriggerList.forEach(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+
+            document.querySelectorAll('.time-ago').forEach(el => new bootstrap.Tooltip(el));
         });
     </script>
-    <!-- Bootstrap JS (with Popper) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
 
 <?php
-// Helper function to display time in "time ago" format
 function time_elapsed_string($datetime, $full = false) {
-    $now = new DateTime;
+    $now = new DateTime();
     $ago = new DateTime($datetime);
     $diff = $now->diff($ago);
 
-    // Manually calculate weeks from days
     $weeks = floor($diff->d / 7);
-    $remaining_days = $diff->d % 7;  // Get the remaining days
+    $remaining_days = $diff->d % 7;
 
-    // Prepare the time units for output
-    $string = array(
+    $string = [
         'y' => 'year',
         'm' => 'month',
         'w' => 'week',
@@ -1426,32 +1473,23 @@ function time_elapsed_string($datetime, $full = false) {
         'h' => 'hour',
         'i' => 'minute',
         's' => 'second',
-    );
+    ];
 
-    // Adjust for the week and day outputs
-    foreach ($string as $k => &$v) {
-        if ($k === 'w') {
-            // Use the manually calculated weeks
-            if ($weeks > 0) {
-                $v = $weeks . ' ' . $v . ($weeks > 1 ? 's' : '');
-            } else {
-                unset($string[$k]); // Remove weeks if no weeks
-            }
-        } elseif ($k === 'd') {
-            // Use the remaining days instead of $diff->d
-            $v = $remaining_days . ' ' . $v . ($remaining_days > 1 ? 's' : '');
-        } elseif ($diff->$k) {
-            $v = $diff->$k . ' ' . $v . ($diff->$k > 1 ? 's' : '');
-        } else {
-            unset($string[$k]);
+    $output = [];
+    foreach ($string as $k => $v) {
+        if ($k === 'w' && $weeks > 0) {
+            $output[] = $weeks . ' ' . $v . ($weeks > 1 ? 's' : '');
+        } elseif ($k === 'd' && $remaining_days > 0) {
+            $output[] = $remaining_days . ' ' . $v . ($remaining_days > 1 ? 's' : '');
+        } elseif ($k !== 'w' && $diff->$k) {
+            $output[] = $diff->$k . ' ' . $v . ($diff->$k > 1 ? 's' : '');
         }
     }
 
-    // If full time is not required, slice to show only the first unit
-    if (!$full) $string = array_slice($string, 0, 1);
+    if (!$full) {
+        $output = array_slice($output, 0, 1);
+    }
 
-    // Return the final output
-    return $string ? implode(', ', $string) . ' ago' : 'just now';
+    return $output ? implode(', ', $output) . ' ago' : 'just now';
 }
-
 ?>
