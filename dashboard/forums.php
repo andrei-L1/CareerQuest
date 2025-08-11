@@ -316,7 +316,7 @@ $isModerator = $isSystemModerator || $isForumModerator;
         }
 
         .sidebar-header {
-            padding: 1rem;
+            padding: 15px;
             border-bottom: 1px solid var(--light-gray);
             display: flex;
             justify-content: space-between;
@@ -326,18 +326,19 @@ $isModerator = $isSystemModerator || $isForumModerator;
         .user-info {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
         }
 
         .user-avatar {
-            width: 36px;
-            height: 36px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
+            margin-right: 10px;
             overflow: hidden;
             background-color: var(--light-gray);
             display: flex;
             align-items: center;
             justify-content: center;
+            position: relative;
         }
 
         .user-avatar img {
@@ -346,14 +347,45 @@ $isModerator = $isSystemModerator || $isForumModerator;
             object-fit: cover;
         }
 
+        .user-avatar-toggle {
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .user-avatar-toggle:hover {
+            transform: scale(1.05);
+        }
+
+        .user-avatar-toggle::after {
+            content: '\f0c9'; /* Font Awesome hamburger icon (Unicode for bi-list) */
+            font-family: 'Bootstrap Icons';
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            display: none; /* Hidden by default, shown in mobile view */
+        }
+
+        .user-avatar-toggle.active::after {
+            content: '\f00d'; /* Font Awesome close icon (Unicode for bi-x-lg) */
+        }
+
         .user-name {
             font-weight: 600;
-            font-size: 0.95rem;
+            font-size: 14px;
             color: var(--dark-color);
         }
 
         .user-role {
-            font-size: 0.8rem;
+            font-size: 12px;
             color: var(--secondary-color);
         }
 
@@ -489,25 +521,50 @@ $isModerator = $isSystemModerator || $isForumModerator;
         }
 
         @media (max-width: 767px) {
-            .forum-header {
-                padding: 1rem 0.75rem;
+            .forum-container {
+                width: 100%;
+                margin-left: 0;
+                flex-direction: column;
+                padding-bottom: 60px;
             }
-            
-            .forum-title {
-                font-size: 1.3rem;
+
+            .forum-sidebar {
+                width: 100%;
+                max-height: 60px;
+                overflow: hidden;
+                transition: max-height 0.3s ease-in-out;
+                position: fixed;
+                left: 0;
+                top: 0;
+                z-index: 1100;
             }
-            
-            .forum-info p {
-                font-size: 0.85rem;
+
+            .forum-sidebar.active {
+                max-height: 100vh;
+                overflow-y: auto;
             }
-            
-            .forum-action-btn {
-                flex: 1;
-                min-width: 0;
+
+            .forum-content {
+                padding: 1rem;
+                margin-top: 60px;
             }
-            .new-post-btn {
-                padding: 0.6rem 1.2rem;
-                font-size: 1rem;
+
+            .forum-list {
+                grid-template-columns: 1fr;
+            }
+
+            .notification-dropdown {
+                width: 280px;
+                right: 0.5rem !important;
+                left: auto !important;
+            }
+
+            .user-avatar-toggle::after {
+                display: flex;
+            }
+
+            .sidebar-header {
+                padding: 1rem;
             }
         }
 
@@ -854,56 +911,6 @@ $isModerator = $isSystemModerator || $isForumModerator;
             background-color: #e2e8f0;
         }
 
-        @media (max-width: 767px) {
-            .forum-container {
-                width: 100%;
-                margin-left: 0;
-                flex-direction: column;
-                padding-bottom: 60px;
-            }
-
-            .forum-sidebar {
-                width: 100%;
-                max-height: 60px;
-                overflow: hidden;
-                transition: max-height 0.3s ease-in-out;
-                position: relative;
-                left: 0;
-                z-index: 1100;
-            }
-
-            .forum-sidebar.active {
-                max-height: 100vh;
-            }
-
-            .forum-content {
-                padding: 1rem;
-            }
-
-            .forum-list {
-                grid-template-columns: 1fr;
-            }
-
-            .notification-dropdown {
-                width: 280px;
-                right: 0.5rem !important;
-                left: auto !important;
-            }
-
-            .sidebar-toggle {
-                display: block;
-                position: absolute;
-                top: 1rem;
-                right: 1rem;
-                background: none;
-                border: none;
-                font-size: 1.5rem;
-                color: var(--primary-color);
-                cursor: pointer;
-                z-index: 1150;
-            }
-        }
-
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
@@ -962,12 +969,9 @@ $isModerator = $isSystemModerator || $isForumModerator;
     <div class="forum-container">
         <?php require '../includes/forum_sidebar.php'; ?>
         <div class="forum-sidebar">
-            <button class="sidebar-toggle d-none" aria-label="Toggle Sidebar">
-                <i class="bi bi-list"></i>
-            </button>
             <div class="sidebar-header">
                 <div class="user-info">
-                    <div class="user-avatar" aria-label="User Profile Picture">
+                    <div class="user-avatar user-avatar-toggle" aria-label="Toggle Sidebar">
                         <?php if (!empty($currentUser['picture'])): ?>
                             <img src="../Uploads/<?php echo htmlspecialchars($currentUser['picture']); ?>" alt="Profile Picture of <?php echo htmlspecialchars($currentUser['name']); ?>">
                         <?php else: ?>
@@ -1507,13 +1511,11 @@ $isModerator = $isSystemModerator || $isForumModerator;
                     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
 
                     const sidebar = document.querySelector('.forum-sidebar');
-                    const toggleBtn = document.querySelector('.sidebar-toggle');
+                    const toggleBtn = document.querySelector('.user-avatar-toggle');
                     if (toggleBtn) {
                         toggleBtn.addEventListener('click', () => {
                             sidebar.classList.toggle('active');
-                            toggleBtn.innerHTML = sidebar.classList.contains('active') 
-                                ? '<i class="bi bi-x-lg"></i>' 
-                                : '<i class="bi bi-list"></i>';
+                            toggleBtn.classList.toggle('active');
                         });
                     }
 
@@ -1525,7 +1527,7 @@ $isModerator = $isSystemModerator || $isForumModerator;
                             this.parentElement.classList.add('active');
                             if (window.innerWidth <= 767) {
                                 sidebar.classList.remove('active');
-                                toggleBtn.innerHTML = '<i class="bi bi-list"></i>';
+                                toggleBtn.classList.remove('active');
                             }
                         });
                     });
