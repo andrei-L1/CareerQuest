@@ -1555,36 +1555,79 @@ require '../controllers/update_due_interviews.php';
         function updateApplicantStatus(applicantId, newStatus) {
             console.log(`Updating applicant ${applicantId} to ${newStatus}`);
             
-            const card = document.querySelector(`.application-card[data-applicant-id="${applicantId}"]`);
-            if (card) {
+            // Update pipeline view card
+            const pipelineCard = document.querySelector(`.pipeline-container .application-card[data-applicant-id="${applicantId}"]`);
+            if (pipelineCard) {
                 // Remove all known status classes
                 const allStatusClasses = [
                     'pending', 'under-review', 'interview-scheduled', 'interview',
                     'offered', 'accepted', 'rejected', 'withdrawn'
                 ];
-                card.classList.remove(...allStatusClasses);
+                pipelineCard.classList.remove(...allStatusClasses);
 
                 // Add new normalized class
-                card.classList.add(toClassName(newStatus));
+                pipelineCard.classList.add(toClassName(newStatus));
 
                 // Update the status badge
-                const statusBadge = card.querySelector('.status-badge');
+                const statusBadge = pipelineCard.querySelector('.status-badge');
                 if (statusBadge) {
                     statusBadge.className = `status-badge ${getStatusBadgeClass(newStatus)}`;
                     statusBadge.textContent = formatStatusLabel(newStatus);
                 }
 
                 // Update the Schedule Interview button visibility
-                let scheduleButtonContainer = card.querySelector('.text-center.mt-2');
+                let scheduleButtonContainer = pipelineCard.querySelector('.text-center.mt-2');
                 if (newStatus.toLowerCase() === 'under review') {
                     // Add the button if it doesn't exist
                     if (!scheduleButtonContainer) {
                         scheduleButtonContainer = document.createElement('div');
                         scheduleButtonContainer.className = 'text-center mt-2';
-                        card.appendChild(scheduleButtonContainer);
+                        pipelineCard.appendChild(scheduleButtonContainer);
                     }
                     scheduleButtonContainer.innerHTML = `
-                        <button class="btn btn-sm btn-outline-primary" onclick="scheduleInterview(${applicantId}, '${card.dataset.email || ''}')">
+                        <button class="btn btn-sm btn-outline-primary" onclick="scheduleInterview(${applicantId}, '${pipelineCard.dataset.email || ''}')">
+                            <i class="fas fa-calendar-alt me-1"></i> Schedule Interview
+                        </button>
+                    `;
+                } else {
+                    // Remove the button if it exists
+                    if (scheduleButtonContainer) {
+                        scheduleButtonContainer.remove();
+                    }
+                }
+            }
+
+            // Update list view card
+            const listCard = document.querySelector(`#listView .application-card[data-applicant-id="${applicantId}"]`);
+            if (listCard) {
+                // Remove all known status classes
+                const allStatusClasses = [
+                    'pending', 'under-review', 'interview-scheduled', 'interview',
+                    'offered', 'accepted', 'rejected', 'withdrawn'
+                ];
+                listCard.classList.remove(...allStatusClasses);
+
+                // Add new normalized class
+                listCard.classList.add(toClassName(newStatus));
+
+                // Update the status badge
+                const statusBadge = listCard.querySelector('.status-badge');
+                if (statusBadge) {
+                    statusBadge.className = `status-badge ${getStatusBadgeClass(newStatus)}`;
+                    statusBadge.textContent = formatStatusLabel(newStatus);
+                }
+
+                // Update the Schedule Interview button visibility
+                let scheduleButtonContainer = listCard.querySelector('.text-center.mt-2');
+                if (newStatus.toLowerCase() === 'under review') {
+                    // Add the button if it doesn't exist
+                    if (!scheduleButtonContainer) {
+                        scheduleButtonContainer = document.createElement('div');
+                        scheduleButtonContainer.className = 'text-center mt-2';
+                        listCard.appendChild(scheduleButtonContainer);
+                    }
+                    scheduleButtonContainer.innerHTML = `
+                        <button class="btn btn-sm btn-outline-primary" onclick="scheduleInterview(${applicantId}, '${listCard.dataset.email || ''}')">
                             <i class="fas fa-calendar-alt me-1"></i> Schedule Interview
                         </button>
                     `;
@@ -1597,7 +1640,6 @@ require '../controllers/update_due_interviews.php';
             }
 
             showToast('Status updated successfully', 'success');
-
             loadApplicationStats();
         }
 
