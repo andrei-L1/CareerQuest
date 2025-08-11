@@ -784,6 +784,18 @@ require '../controllers/update_due_interviews.php';
             background-color: rgba(67, 97, 238, 0.05);
             border: 2px dashed var(--primary);
         }
+        /* Toast notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1050;
+        }
+
+        .toast {
+            max-width: 350px;
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -1906,6 +1918,23 @@ require '../controllers/update_due_interviews.php';
         
         // Show toast notification
         function showToast(message, type = 'success') {
+            let container = document.querySelector('.toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                container.style.zIndex = '1050';
+                document.body.appendChild(container);
+            }
+
+            // Check for existing toasts with the same message and type
+            const existingToasts = container.querySelectorAll('.toast');
+            for (const toast of existingToasts) {
+                const toastBody = toast.querySelector('.toast-body');
+                if (toastBody && toastBody.textContent.trim() === message && toast.classList.contains(`bg-${type}`)) {
+                    return; // Exit if a toast with the same message and type exists
+                }
+            }
+
             const toastContainer = document.createElement('div');
             toastContainer.className = `toast align-items-center text-white bg-${type} border-0`;
             toastContainer.setAttribute('role', 'alert');
@@ -1921,13 +1950,12 @@ require '../controllers/update_due_interviews.php';
                 </div>
             `;
             
-            document.body.appendChild(toastContainer);
+            container.appendChild(toastContainer);
             const toast = new bootstrap.Toast(toastContainer);
             toast.show();
             
-            // Remove toast after it's hidden
             toastContainer.addEventListener('hidden.bs.toast', () => {
-                document.body.removeChild(toastContainer);
+                toastContainer.remove();
             });
         }
         
@@ -2139,8 +2167,20 @@ require '../controllers/update_due_interviews.php';
             
             // Export button
             document.getElementById('exportBtn').addEventListener('click', function() {
-                // In a real app, this would generate a CSV/PDF
-                showToast('Export started. You will receive an email when ready.', 'info');
+                // Build query string from filters
+                const query = new URLSearchParams();
+                if (filters.status !== 'all') query.append('status', filters.status);
+                if (filters.job !== 'all') query.append('job', filters.job);
+                if (filters.date !== 'all') query.append('date', filters.date);
+                if (filters.search) query.append('search', filters.search);
+
+                // Show loading toast
+                showToast('Preparing export...', 'info');
+
+                // Delay the download to allow toast to render
+                setTimeout(() => {
+                    window.location.href = `../controllers/export_applications.php?${query.toString()}`;
+                }, 900); // 300ms delay to ensure toast renders
             });
         });
     </script>
