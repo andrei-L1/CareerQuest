@@ -435,9 +435,80 @@ $isModerator = $isSystemModerator || $isForumModerator;
             background: white;
             border-radius: var(--border-radius);
             box-shadow: var(--card-shadow);
+        }
+        .forum-header-content {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .forum-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .forum-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: flex-start;
+        }
+
+        .forum-action-form {
+            display: contents;
+        }
+
+        .forum-action-btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .forum-action-btn i {
+            margin-right: 0.4rem;
+        }
+
+        @media (min-width: 768px) {
+            .forum-header-content {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            .forum-actions {
+                flex-wrap: nowrap;
+                gap: 0.5rem;
+            }
+            
+            .forum-action-btn {
+                padding: 0.5rem 1.25rem;
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .forum-header {
+                padding: 1rem 0.75rem;
+            }
+            
+            .forum-title {
+                font-size: 1.3rem;
+            }
+            
+            .forum-info p {
+                font-size: 0.85rem;
+            }
+            
+            .forum-action-btn {
+                flex: 1;
+                min-width: 0;
+            }
+            .new-post-btn {
+                padding: 0.6rem 1.2rem;
+                font-size: 1rem;
+            }
         }
 
         .forum-title {
@@ -1185,23 +1256,24 @@ $isModerator = $isSystemModerator || $isForumModerator;
                         </div>
                     </div>
                 <?php else: ?>
-                    <div class="forum-header">
-                        <div>
+                <div class="forum-header">
+                    <div class="forum-header-content">
+                        <div class="forum-info">
                             <h2 class="forum-title"><?php echo htmlspecialchars($selectedForum['title']); ?><?php echo isset($announcementsOnly) && $announcementsOnly ? ' - Announcements' : ''; ?></h2>
                             <p class="text-muted mb-0"><?php echo htmlspecialchars($selectedForum['description']); ?></p>
                         </div>
-                        <div class="d-flex align-items-center gap-2">
+                        <div class="forum-actions">
                             <?php if ($currentUser['forum_role']): ?>
-                                <form action="../forum/leave_forum.php" method="POST">
+                                <form action="../forum/leave_forum.php" method="POST" class="forum-action-form">
                                     <input type="hidden" name="forum_id" value="<?php echo $selectedForumId; ?>">
-                                    <button type="submit" class="btn btn-outline-danger" aria-label="Leave Forum">
+                                    <button type="submit" class="btn btn-outline-danger forum-action-btn" aria-label="Leave Forum">
                                         <i class="bi bi-door-closed"></i> Leave
                                     </button>
                                 </form>
                             <?php elseif (!$isPrivateForum): ?>
-                                <form action="../forum/join_forum.php" method="POST">
+                                <form action="../forum/join_forum.php" method="POST" class="forum-action-form">
                                     <input type="hidden" name="forum_id" value="<?php echo $selectedForumId; ?>">
-                                    <button type="submit" class="btn btn-outline-primary" aria-label="Join Forum">
+                                    <button type="submit" class="btn btn-outline-primary forum-action-btn" aria-label="Join Forum">
                                         <i class="bi bi-door-open"></i> Join
                                     </button>
                                 </form>
@@ -1209,17 +1281,20 @@ $isModerator = $isSystemModerator || $isForumModerator;
                             
                             <?php if (in_array($currentUser['forum_role'], ['Moderator', 'Admin'])): ?>
                                 <a href="../forum/manage_forum.php?forum_id=<?php echo $selectedForumId; ?>" 
-                                   class="btn btn-outline-secondary" aria-label="Manage Forum">
+                                class="btn btn-outline-secondary forum-action-btn" aria-label="Manage Forum">
                                     <i class="bi bi-gear"></i> Manage
                                 </a>
                             <?php endif; ?>
-                            
-                            <a href="../forum/new_post.php?forum_id=<?php echo $selectedForumId; ?>" 
-                               class="btn btn-primary new-post-btn" aria-label="Create New Post">
-                                <i class="bi bi-plus-lg"></i> New Post
-                            </a>
+
+                            <?php if ($currentUser['forum_role'] && $currentUser['forum_status'] === 'Active' || $isSystemModerator): ?>
+                                <a href="../forum/new_post.php?forum_id=<?php echo $selectedForumId; ?>" 
+                                class="btn btn-primary new-post-btn forum-action-btn" aria-label="Create New Post">
+                                    <i class="bi bi-plus-lg"></i> New Post
+                                </a>
+                            <?php endif; ?>
                         </div>
                     </div>
+                </div>
                     
                     <?php if (count($forumPosts) > 0): ?>
                         <ul class="post-list">
