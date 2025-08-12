@@ -47,8 +47,8 @@ class EmployerAuth {
             }
             
             // 6. Check employer status
-            if ($employer['status'] !== 'Active') {
-                throw new Exception('Employer account is suspended');
+            if (!in_array($employer['status'], ['Verification', 'Active'])) {
+                throw new Exception('Employer account is not authorized');
             }
             
             // 7. Get role information
@@ -64,8 +64,7 @@ class EmployerAuth {
             return true;
             
         } catch (Exception $e) {
-            // Log error if needed
-            // error_log($e->getMessage());
+            error_log("Login error: " . $e->getMessage());
             throw $e;
         }
     }
@@ -111,7 +110,7 @@ class EmployerAuth {
         
         if (!$employer || 
             $employer['user_id'] !== $session['user_id'] || 
-            $employer['status'] !== 'Active') {
+            !in_array($employer['status'], ['Verification', 'Active'])) {
             $this->logout();
             throw new Exception('Employer validation failed');
         }

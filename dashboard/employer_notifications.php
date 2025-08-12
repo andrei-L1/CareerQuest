@@ -73,7 +73,7 @@ $query = "SELECT e.* FROM employer e JOIN user u ON e.user_id = u.user_id WHERE 
 $stmt = $conn->prepare($query);
 $stmt->execute([$currentUser['entity_id']]);
 $employer = $stmt->fetch(PDO::FETCH_ASSOC);
-if (!$employer || $employer['status'] !== 'Active') {
+if (!$employer || !in_array($employer['status'], ['Verification', 'Active'])) {
     $_SESSION['error_message'] = "You are not authorized to view this page.";
     header("Location: ../index.php");
     exit;
