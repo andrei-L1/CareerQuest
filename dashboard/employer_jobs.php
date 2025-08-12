@@ -1148,6 +1148,7 @@ function formatSalary($min_salary, $max_salary, $salary_type, $salary_disclosure
         const table = $('#jobsTable');
         const hasDataRows = table.find('tbody tr').length > 0 && table.find('tbody tr td:not([colspan])').length > 0;
 
+/*
         if (hasDataRows && !$.fn.DataTable.isDataTable('#jobsTable')) {
             table.DataTable({
                 responsive: true,
@@ -1173,6 +1174,48 @@ function formatSalary($min_salary, $max_salary, $salary_type, $salary_disclosure
                         responsive: true,
                         order: [[6, 'desc']],
                         pageLength: 10
+                    });
+                }
+            } else {
+                cardView.style.display = 'block';
+                tableView.style.display = 'none';
+                
+                if ($.fn.DataTable.isDataTable('#jobsTable')) {
+                    table.DataTable().destroy();
+                }
+            }
+        });
+*/
+
+        // Initialize DataTable without pagination
+        if (hasDataRows && !$.fn.DataTable.isDataTable('#jobsTable')) {
+            table.DataTable({
+                responsive: true,
+                order: [[6, 'desc']], // Keep sorting on the 7th column (Posted date)
+                paging: false,        // Disable DataTables pagination
+                searching: true,     // Disable DataTables search (since you have your own)
+                info: false           // Disable "Showing X of Y entries" info
+            });
+        }
+        document.getElementById('toggleTableView').addEventListener('change', function() {
+            const cardView = document.getElementById('cardView');
+            const tableView = document.getElementById('tableView');
+            const table = $('#jobsTable');
+            
+            if (this.checked) {
+                cardView.style.display = 'none';
+                tableView.style.display = 'block';
+                
+                // Initialize DataTable only if not already initialized and table has data
+                const hasDataRows = table.find('tbody tr').length > 0 && table.find('tbody tr td:not([colspan])').length > 0;
+                
+                if (hasDataRows && !$.fn.DataTable.isDataTable('#jobsTable')) {
+                    table.DataTable({
+                        responsive: true,
+                        order: [[6, 'desc']], // Sort by Posted date (7th column)
+                        paging: false,        // Disable DataTables pagination
+                        searching: false,     // Disable DataTables search
+                        info: false           // Disable page info
                     });
                 }
             } else {
