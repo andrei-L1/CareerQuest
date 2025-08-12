@@ -1,11 +1,36 @@
 <?php
     $currentPage = basename($_SERVER['PHP_SELF']); // Get current file name
+    
+    // Determine the base path dynamically
+    $scriptPath = $_SERVER['SCRIPT_NAME'];
+    $basePath = '';
+    
+    // If we're in a subdirectory, adjust the base path
+    if (strpos($scriptPath, '/dashboard/') !== false) {
+        $basePath = '../';
+    } elseif (strpos($scriptPath, '/includes/') !== false) {
+        $basePath = '../';
+    } elseif (strpos($scriptPath, '/controllers/') !== false) {
+        $basePath = '../';
+    } elseif (strpos($scriptPath, '/forum/') !== false) {
+        $basePath = '../';
+    } elseif (strpos($scriptPath, '/auth/') !== false) {
+        $basePath = '../';
+    } elseif (strpos($scriptPath, '/more/') !== false) {
+        $basePath = '../';
+    } elseif (strpos($scriptPath, '/learnmore/') !== false) {
+        $basePath = '../';
+    } elseif (strpos($scriptPath, '/views/') !== false) {
+        $basePath = '../';
+    }elseif (strpos($scriptPath, '/resources/') !== false) {
+        $basePath = '../';
+    }
 ?>
 
 <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm">
     <div class="container">
         <!-- Brand Logo with Gradient -->
-        <a class="navbar-brand fw-bold" href="/index.php" style="background: linear-gradient(135deg, var(--primary-color), #2A5298); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.6rem; letter-spacing: -0.5px;">
+        <a class="navbar-brand fw-bold" href="<?php echo $basePath; ?>index.php" style="background: linear-gradient(135deg, var(--primary-color), #2A5298); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.6rem; letter-spacing: -0.5px;">
             Career<span class="fw-normal">Quest</span>
         </a>
 
@@ -19,7 +44,7 @@
             <ul class="navbar-nav ms-auto align-items-lg-center">
                 <!-- Find Jobs -->
                 <li class="nav-item position-relative mx-lg-1">
-                    <a class="nav-link px-3 py-2 <?php echo ($currentPage == 'jobs.php') ? 'active' : ''; ?>" href="/jobs.php">
+                    <a class="nav-link px-3 py-2 <?php echo ($currentPage == 'jobs.php') ? 'active' : ''; ?>" href="<?php echo $basePath; ?>jobs.php">
                         <i class="fas fa-briefcase me-1 d-lg-none"></i> Find Jobs
                         <span class="nav-link-underline"></span>
                     </a>
@@ -27,21 +52,14 @@
 
                 <!-- Networking -->
                 <li class="nav-item position-relative mx-lg-1">
-                    <a class="nav-link px-3 py-2 <?php echo ($currentPage == 'network.php') ? 'active' : ''; ?>" href="/network.php">
+                    <a class="nav-link px-3 py-2 <?php echo ($currentPage == 'forums.php') ? 'active' : ''; ?>" href="<?php echo $basePath; ?>forums.php">
                         <i class="fas fa-users me-1 d-lg-none"></i> Networking
                         <span class="nav-link-underline"></span>
                     </a>
                 </li>
 
-                <!-- Forums -->
-                <li class="nav-item position-relative mx-lg-1">
-                    <a class="nav-link px-3 py-2 <?php echo ($currentPage == 'forums.php') ? 'active' : ''; ?>" href="/dashboard/forums.php">
-                        <i class="fas fa-comments me-1 d-lg-none"></i> Forums
-                        <span class="nav-link-underline"></span>
-                    </a>
-                </li>
-
-                <!-- Resources Dropdown -->
+                <li><a class="dropdown-item d-flex align-items-center py-2 px-3" href="<?php echo $basePath; ?>more/contact.php"> Contact</a></li>
+                <!-- Resources Dropdown 
                 <li class="nav-item dropdown mx-lg-1">
                     <a class="nav-link dropdown-toggle px-3 py-2" href="#" id="resourcesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fas fa-book-open me-1 d-lg-none"></i> Resources
@@ -49,14 +67,15 @@
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg py-2" aria-labelledby="resourcesDropdown">
                         <li><h6 class="dropdown-header text-uppercase small fw-bold text-muted px-3">Career Tools</h6></li>
-                        <li><a class="dropdown-item d-flex align-items-center py-2 px-3" href="/resume-builder.php"><i class="fas fa-file-alt me-2 text-primary"></i> Resume Builder</a></li>
-                        <li><a class="dropdown-item d-flex align-items-center py-2 px-3" href="/interview-prep.php"><i class="fas fa-comment-dots me-2 text-primary"></i> Interview Prep</a></li>
+                        <li><a class="dropdown-item d-flex align-items-center py-2 px-3" href="<?php echo $basePath; ?>resources/resume-builder.php"><i class="fas fa-file-alt me-2 text-primary"></i> Resume Builder</a></li>
+                        <li><a class="dropdown-item d-flex align-items-center py-2 px-3" href="<?php echo $basePath; ?>resources/interview-prep.php"><i class="fas fa-comment-dots me-2 text-primary"></i> Interview Prep</a></li>
                         <li><hr class="dropdown-divider mx-3 my-1"></li>
                         <li><h6 class="dropdown-header text-uppercase small fw-bold text-muted px-3">Learning</h6></li>
-                        <li><a class="dropdown-item d-flex align-items-center py-2 px-3" href="/courses.php"><i class="fas fa-graduation-cap me-2 text-primary"></i> Courses</a></li>
-                        <li><a class="dropdown-item d-flex align-items-center py-2 px-3" href="/webinars.php"><i class="fas fa-video me-2 text-primary"></i> Webinars</a></li>
+                        <li><a class="dropdown-item d-flex align-items-center py-2 px-3" href="<?php echo $basePath; ?>resources/courses.php"><i class="fas fa-graduation-cap me-2 text-primary"></i> Courses</a></li>
+                        <li><a class="dropdown-item d-flex align-items-center py-2 px-3" href="<?php echo $basePath; ?>resources/webinars.php"><i class="fas fa-video me-2 text-primary"></i> Webinars</a></li>
                     </ul>
                 </li>
+                -->
 
                 <!-- More Dropdown -->
                 <li class="nav-item dropdown mx-lg-1">
@@ -65,11 +84,10 @@
                         <span class="nav-link-underline"></span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg py-2" aria-labelledby="moreDropdown">
-                        <li><a class="dropdown-item d-flex align-items-center py-2 px-3" href="more/about.php"><i class="fas fa-info-circle me-2 text-primary"></i> About Us</a></li>
-                        <li><a class="dropdown-item d-flex align-items-center py-2 px-3" href="/contact.php"><i class="fas fa-envelope me-2 text-primary"></i> Contact</a></li>
-                        <li><a class="dropdown-item d-flex align-items-center py-2 px-3" href="/blog.php"><i class="fas fa-newspaper me-2 text-primary"></i> Blog</a></li>
+                        <li><a class="dropdown-item d-flex align-items-center py-2 px-3" href="<?php echo $basePath; ?>more/about.php"><i class="fas fa-info-circle me-2 text-primary"></i> About Us</a></li>
+                        <li><a class="dropdown-item d-flex align-items-center py-2 px-3" href="<?php echo $basePath; ?>more/blog.php"><i class="fas fa-newspaper me-2 text-primary"></i> Blog</a></li>
                         <li><hr class="dropdown-divider mx-3 my-1"></li>
-                        <li><a class="dropdown-item d-flex align-items-center py-2 px-3" href="/privacy.php"><i class="fas fa-shield-alt me-2 text-primary"></i> Privacy Policy</a></li>
+                        <li><a class="dropdown-item d-flex align-items-center py-2 px-3" href="<?php echo $basePath; ?>more/privacy.php"><i class="fas fa-shield-alt me-2 text-primary"></i> Privacy Policy</a></li>
                     </ul>
                 </li>
 
