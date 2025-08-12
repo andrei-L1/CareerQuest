@@ -230,7 +230,7 @@ CREATE TABLE IF NOT EXISTS actor (
     entity_id INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP NULL,
-    CONSTRAINT unique_actor UNIQUE (entity_type, entity_id);
+    CONSTRAINT unique_actor UNIQUE (entity_type, entity_id)
 );
 
 -- Table: forum
@@ -262,7 +262,7 @@ CREATE TABLE IF NOT EXISTS forum_post (
     FOREIGN KEY (forum_id) REFERENCES forum(forum_id),
     FOREIGN KEY (poster_id) REFERENCES actor(actor_id)
 );
---CREATE INDEX idx_forum_post_is_announcement ON forum_post(is_announcement);
+
 -- Table: forum_comment
 CREATE TABLE IF NOT EXISTS forum_comment (
     comment_id INT AUTO_INCREMENT PRIMARY KEY,
