@@ -57,12 +57,16 @@ try {
                 <i class="fas fa-arrow-left me-2"></i>Back to Jobs
             </a>
         </div>
-        <?php if ($employer_status === 'Verification' || $has_document === '0'): ?>
+        <?php if ($has_document === '0'): ?>
             <div class="alert alert-verification alert-dismissible fade show" role="alert">
                 <i class="fas fa-exclamation-triangle me-2"></i>
-                <?php echo $employer_status === 'Verification' ? 
-                    'Your account is under verification. Please wait for approval before posting jobs.' : 
-                    'You must upload a verification document before posting jobs. <a href="employer_settings.php">Upload now</a>.'; ?>
+                You must upload a verification document before posting jobs. <a href="../dashboard/employer_account_settings.php">Upload now</a>.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php elseif ($employer_status === 'Verification'): ?>
+            <div class="alert alert-verification alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Your account is under verification. Please wait for approval before posting jobs.
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         <?php endif; ?>
@@ -237,11 +241,12 @@ try {
             event.preventDefault();
             const employerStatus = document.querySelector('meta[name="employer-status"]').getAttribute('content');
             const hasDocument = document.querySelector('meta[name="has-document"]').getAttribute('content');
-            if (employerStatus === 'Verification' || hasDocument === '0') {
-                const message = employerStatus === 'Verification' 
-                    ? 'Your account is under verification. Please wait for approval before posting jobs.'
-                    : 'You must upload a verification document before posting jobs. <a href="employer_settings.php">Upload now</a>.';
-                showAlert('danger', message);
+            if (hasDocument === '0') {
+                showAlert('danger', 'You must upload a verification document before posting jobs. <a href="employer_settings.php">Upload now</a>.');
+                return;
+            }
+            if (employerStatus === 'Verification') {
+                showAlert('danger', 'Your account is under verification. Please wait for approval before posting jobs.');
                 return;
             }
 
