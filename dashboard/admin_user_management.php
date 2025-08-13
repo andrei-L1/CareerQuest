@@ -691,77 +691,124 @@ $roles = fetchRoles();
 
 
 
-    <!-- Add User Modal -->
-    <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content bg-dark text-light border-secondary">
-                <div class="modal-header border-secondary">
-                    <h5 class="modal-title" id="addUserModalLabel">Add User</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="responseMessage" class="alert d-none" role="alert"></div>
-                    <form id="addUserForm">
-                        <!-- Select Entity -->
-                        <div class="mb-3">
-                            <label for="entityType" class="form-label">Sign Up As</label>
-                            <select class="form-select bg-secondary text-light border-secondary" id="entityType" name="entityType" required onchange="toggleFields()">
-                                <option value="">Select</option>
-                                <option value="user">User</option>
-                                <option value="student">Student</option>
-                            </select>
-                        </div>
+        <!-- Add User Modal -->
+        <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content bg-dark text-light border-secondary">
+                    <div class="modal-header border-secondary">
+                        <h5 class="modal-title" id="addUserModalLabel">Add User</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="responseMessage" class="alert d-none" role="alert"></div>
+                        <form id="addUserForm">
+                            <!-- Select Entity -->
+                            <div class="mb-3">
+                                <label for="entityType" class="form-label">Sign Up As</label>
+                                <select class="form-select bg-secondary text-light border-secondary" id="entityType" name="entityType" required onchange="toggleFields()">
+                                    <option value="">Select</option>
+                                    <option value="user">Employer</option>
+                                    <option value="student">Student/Professional</option>
+                                </select>
+                            </div>
 
-                        <!-- Personal Information -->
-                        <div class="mb-3">
-                            <label for="firstName" class="form-label">First Name</label>
-                            <input type="text" class="form-control bg-secondary text-light border-secondary" id="firstName" name="first_name" required autocomplete="given-name">
-                        </div>
-                        <div class="mb-3">
-                            <label for="lastName" class="form-label">Last Name</label>
-                            <input type="text" class="form-control bg-secondary text-light border-secondary" id="lastName" name="last_name" required autocomplete="family-name">
-                        </div>
-                        <div class="mb-3">
-                            <label for="userEmail" class="form-label">Email</label>
-                            <input type="email" class="form-control bg-secondary text-light border-secondary" id="userEmail" name="email" required autocomplete="email">
-                        </div>
+                            <!-- Personal Information -->
+                            <div class="mb-3">
+                                <label for="firstName" class="form-label">First Name</label>
+                                <input type="text" class="form-control bg-secondary text-light border-secondary" id="firstName" name="first_name" required autocomplete="given-name">
+                            </div>
+                            <div class="mb-3">
+                                <label for="middleName" class="form-label">Middle Name</label>
+                                <input type="text" class="form-control bg-secondary text-light border-secondary" id="middleName" name="middle_name" autocomplete="additional-name">
+                            </div>
+                            <div class="mb-3">
+                                <label for="lastName" class="form-label">Last Name</label>
+                                <input type="text" class="form-control bg-secondary text-light border-secondary" id="lastName" name="last_name" required autocomplete="family-name">
+                            </div>
+                            <div class="mb-3">
+                                <label for="userEmail" class="form-label">Email</label>
+                                <input type="email" class="form-control bg-secondary text-light border-secondary" id="userEmail" name="email" required autocomplete="email">
+                            </div>
 
-                        <!-- Password Fields -->
-                        <div class="mb-3">
-                            <label for="userPassword" class="form-label">Password</label>
-                            <input type="password" class="form-control bg-secondary text-light border-secondary" id="userPassword" name="password" required autocomplete="new-password">
-                        </div>
-                        <div class="mb-3">
-                            <label for="confirmPassword" class="form-label">Confirm Password</label>
-                            <input type="password" class="form-control bg-secondary text-light border-secondary" id="confirmPassword" name="confirm_password" required autocomplete="new-password">
-                            <small id="passwordHelp" class="text-danger d-none">Passwords do not match.</small>
-                        </div>
+                            <!-- Password Fields -->
+                            <div class="mb-3">
+                                <label for="userPassword" class="form-label">Password</label>
+                                <input type="password" class="form-control bg-secondary text-light border-secondary" id="userPassword" name="password" required autocomplete="new-password">
+                            </div>
+                            <div class="mb-3">
+                                <label for="confirmPassword" class="form-label">Confirm Password</label>
+                                <input type="password" class="form-control bg-secondary text-light border-secondary" id="confirmPassword" name="confirm_password" required autocomplete="new-password">
+                                <small id="passwordHelp" class="text-danger d-none">Passwords do not match.</small>
+                            </div>
 
-                        <!-- Conditional Fields -->
-                        <div id="userFields" class="mb-3 d-none">
-                            <label for="userRole" class="form-label">Role</label>
-                            <select class="form-select bg-secondary text-light border-secondary" id="userRole" name="role_id">
-                                <option value="1">Employer</option>
-                                <option value="2">Professional</option>
-                                <option value="3">Moderator</option>
-                                <option value="4">Admin</option>
-                            </select>
-                        </div>
-                        <div id="studentFields" class="mb-3 d-none">
-                            <label for="institution" class="form-label">Institution</label>
-                            <input type="text" class="form-control bg-secondary text-light border-secondary" id="institution" name="institution">
-                        </div>
+                            <!-- User Fields (for 'user' entity) -->
+                            <div id="userFields" class="mb-3 d-none">
+                                <label for="userRole" class="form-label">Role</label>
+                                <select class="form-select bg-secondary text-light border-secondary" id="userRole" name="role_id">
+                                    <option value="1">Employer</option>
+                                    <option value="3">Moderator</option>
+                                    <option value="4">Admin</option>
+                                </select>
+                            </div>
 
-                        <div id="errorMessage" class="text-danger"></div>
-                    </form>
-                </div>
-                <div class="modal-footer border-secondary">
-                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="submitUser()">Save</button>
+                            <!-- Student/Professional Fields (for 'student' entity) -->
+                            <div id="studentFields" class="mb-3 d-none">
+                                <div id="commonFields" class="mb-3">
+                                    <div class="mb-3">
+                                        <label for="eduBackground" class="form-label">Educational Background</label>
+                                        <select class="form-select bg-secondary text-light border-secondary" id="eduBackground" name="edu_background" required onchange="toggleStudentFields()">
+                                            <option value="College Student">College Student</option>
+                                            <option value="Graduate Student">Graduate Student</option>
+                                            <option value="Not a Student">Not a Student</option>
+                                            <option value="Professional">Professional</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="bio" class="form-label">Bio</label>
+                                        <textarea class="form-control bg-secondary text-light border-secondary" id="bio" name="bio" rows="4"></textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="gender" class="form-label">Gender</label>
+                                        <select class="form-select bg-secondary text-light border-secondary" id="gender" name="stud_gender">
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="dateOfBirth" class="form-label">Date of Birth</label>
+                                        <input type="date" class="form-control bg-secondary text-light border-secondary" id="dateOfBirth" name="stud_date_of_birth">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="course" class="form-label">Course</label>
+                                        <select class="form-select bg-secondary text-light border-secondary" id="course" name="course_id">
+                                            <!-- Options to be populated dynamically from course table -->
+                                            <option value="">Select Course</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div id="studentSpecificFields" class="mb-3 d-none">
+                                    <div class="mb-3">
+                                        <label for="institution" class="form-label">Institution</label>
+                                        <input type="text" class="form-control bg-secondary text-light border-secondary" id="institution" name="institution">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="graduationYear" class="form-label">Expected Graduation</label>
+                                        <input type="number" class="form-control bg-secondary text-light border-secondary" id="graduationYear" name="graduation_yr" min="1900" max="2100">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="errorMessage" class="text-danger"></div>
+                        </form>
+                    </div>
+                    <div class="modal-footer border-secondary">
+                        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" onclick="submitUser()">Save</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
 
 
@@ -883,20 +930,21 @@ $roles = fetchRoles();
     <script>
     function submitUser() {
         let firstName = document.getElementById("firstName").value.trim();
+        let middleName = document.getElementById("middleName").value.trim();
         let lastName = document.getElementById("lastName").value.trim();
         let email = document.getElementById("userEmail").value.trim();
         let password = document.getElementById("userPassword").value;
         let confirmPassword = document.getElementById("confirmPassword").value;
         let entityType = document.getElementById("entityType").value;
-        let institution = document.getElementById("institution").value.trim();
         let errorMessage = document.getElementById("errorMessage");
         let responseMessage = document.getElementById("responseMessage");
 
         errorMessage.innerHTML = ""; // Clear previous errors
         responseMessage.classList.add("d-none"); // Hide previous messages
 
-        if (!firstName || !lastName || !email || !password || !confirmPassword) {
-            errorMessage.innerHTML = "All fields are required.";
+        // Validate required fields
+        if (!firstName || !lastName || !email || !password || !confirmPassword || !entityType) {
+            errorMessage.innerHTML = "All required fields must be filled.";
             return;
         }
 
@@ -907,20 +955,43 @@ $roles = fetchRoles();
 
         let formData = new FormData();
         formData.append("first_name", firstName);
+        formData.append("middle_name", middleName);
         formData.append("last_name", lastName);
         formData.append("email", email);
         formData.append("password", password);
         formData.append("confirm_password", confirmPassword);
         formData.append("entity", entityType);
 
-        if (entityType === "student") {
-            formData.append("institution", institution || "Unknown");
-            formData.append("status", "active");
-        } else {
+        if (entityType === "user") {
             let roleDropdown = document.getElementById("userRole");
-            let roleTitle = roleDropdown.options[roleDropdown.selectedIndex].text;
-            formData.append("role", roleTitle);
+            let roleId = roleDropdown.value;
+            formData.append("role_id", roleId);
             formData.append("status", "active");
+        } else if (entityType === "student") {
+            let eduBackground = document.getElementById("eduBackground").value;
+            let gender = document.getElementById("gender").value;
+            let dateOfBirth = document.getElementById("dateOfBirth").value;
+            let courseId = document.getElementById("course").value;
+            let bio = document.getElementById("bio").value.trim();
+            let institution = document.getElementById("institution").value.trim();
+            let graduationYear = document.getElementById("graduationYear").value.trim();
+            
+            // Set is_student based on edu_background
+            let isStudent = (eduBackground === "College Student" || eduBackground === "Graduate Student") ? 1 : 0;
+            
+            formData.append("edu_background", eduBackground);
+            formData.append("is_student", isStudent);
+            formData.append("stud_gender", gender);
+            formData.append("stud_date_of_birth", dateOfBirth);
+            formData.append("course_id", courseId);
+            formData.append("bio", bio);
+            formData.append("status", "active");
+            
+            // Only append institution and graduation_yr if they are visible (student-specific)
+            if (isStudent) {
+                formData.append("institution", institution || "Unknown");
+                formData.append("graduation_yr", graduationYear);
+            }
         }
 
         fetch("../controllers/admin_user_management.php", {
@@ -941,6 +1012,9 @@ $roles = fetchRoles();
         })
         .catch(error => {
             console.error("Error:", error);
+            responseMessage.classList.remove("d-none", "alert-success");
+            responseMessage.classList.add("alert-danger");
+            responseMessage.innerHTML = "An error occurred. Please try again.";
         });
     }
 
@@ -952,7 +1026,32 @@ $roles = fetchRoles();
             let entityType = document.getElementById("entityType").value;
             document.getElementById("userFields").classList.toggle("d-none", entityType !== "user");
             document.getElementById("studentFields").classList.toggle("d-none", entityType !== "student");
+            
+            // Trigger student-specific field toggling when student is selected
+            if (entityType === "student") {
+                toggleStudentFields();
+            }
         }
+        function toggleStudentFields() {
+            const eduBackground = document.getElementById("eduBackground").value;
+            const studentSpecificFields = document.getElementById("studentSpecificFields");
+            
+            // Show student-specific fields (institution, expected graduation) only for College/Graduate Student
+            studentSpecificFields.classList.toggle("d-none", !(eduBackground === "College Student" || eduBackground === "Graduate Student"));
+        }
+        // Attach toggleStudentFields to eduBackground change event
+        document.getElementById("eduBackground").addEventListener("change", toggleStudentFields);
+
+        document.getElementById("confirmPassword").addEventListener("input", function () {
+            let password = document.getElementById("userPassword").value;
+            let confirmPassword = this.value;
+            let helpText = document.getElementById("passwordHelp");
+            if (password !== confirmPassword) {
+                helpText.classList.remove("d-none");
+            } else {
+                helpText.classList.add("d-none");
+            }
+        });
 
         document.getElementById("confirmPassword").addEventListener("input", function () {
             let password = document.getElementById("userPassword").value;

@@ -17,7 +17,11 @@ $sql = "SELECT a.actor_id, a.entity_type, a.entity_id,
         COALESCE(u.user_last_name, s.stud_last_name) AS last_name, 
         COALESCE(u.user_email, s.stud_email) AS email, 
         COALESCE(u.status, s.status, 'Active') AS status, 
-        COALESCE(r.role_title, 'Student') AS role_name 
+        CASE 
+            WHEN a.entity_type = 'user' THEN COALESCE(r.role_title, 'User')
+            WHEN a.entity_type = 'student' AND s.is_student = 1 THEN 'Student'
+            ELSE 'Professional'
+        END AS role_name 
     FROM actor a
     LEFT JOIN user u ON a.entity_type = 'user' AND a.entity_id = u.user_id
     LEFT JOIN role r ON u.role_id = r.role_id
