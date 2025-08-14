@@ -1,1 +1,2 @@
 Multicliocking the send message on messages sends multiple messages
+Highlight selected person when starting a conversation
