@@ -229,11 +229,23 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["entity"])) {
                 ":status" => $status,
             ]);
             $entity_id = $conn->lastInsertId();
-        }
 
-        // Insert into actor table
-        $stmt = $conn->prepare("INSERT INTO actor (entity_type, entity_id) VALUES (:entity, :entity_id)");
-        $stmt->execute([":entity" => $entity, ":entity_id" => $entity_id]);
+            // Insert into employer table if role_id = 1 (Employer)
+            if ($role_id == 1) {
+                $stmt = $conn->prepare("
+                    INSERT INTO employer (user_id, status, created_at)
+                    VALUES (:user_id, :status, CURRENT_TIMESTAMP)
+                ");
+                $stmt->execute([
+                    ":user_id" => $entity_id,
+                    ":status" => 'Verification',
+                ]);
+            }
+
+            // Insert into actor table
+            $stmt = $conn->prepare("INSERT INTO actor (entity_type, entity_id) VALUES (:entity, :entity_id)");
+            $stmt->execute([":entity" => $entity, ":entity_id" => $entity_id]);
+        }
 
         $conn->commit();
         echo json_encode(["status" => "success", "message" => "User added successfully."]);
@@ -270,11 +282,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["delete_id"])) {
         // Update status in the user or student table
         if ($entityType === "user") {
             $stmt = $conn->prepare("UPDATE user SET status = 'Deleted', deleted_at = NOW() WHERE user_id = :entity_id");
+            $stmt->execute([":entity_id" => $entityId]);
+            // Update employer table if user is an employer
+            $employerStmt = $conn->prepare("UPDATE employer SET status = 'Banned', deleted_at = NOW() WHERE user_id = :entity_id");
+            $employerStmt->execute([":entity_id" => $entityId]);
         } elseif ($entityType === "student") {
             $stmt = $conn->prepare("UPDATE student SET status = 'Deleted', deleted_at = NOW() WHERE stud_id = :entity_id");
-        }
-
-        if (isset($stmt)) {
             $stmt->execute([":entity_id" => $entityId]);
         }
 
@@ -313,11 +326,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["restore_id"])) {
         // Update status back to "Active" in user or student table
         if ($entityType === "user") {
             $stmt = $conn->prepare("UPDATE user SET status = 'active', deleted_at = NULL WHERE user_id = :entity_id");
+            $stmt->execute([":entity_id" => $entityId]);
+            // Restore employer record
+            $employerStmt = $conn->prepare("UPDATE employer SET status = 'Verification', deleted_at = NULL WHERE user_id = :entity_id");
+            $employerStmt->execute([":entity_id" => $entityId]);
         } elseif ($entityType === "student") {
             $stmt = $conn->prepare("UPDATE student SET status = 'active', deleted_at = NULL WHERE stud_id = :entity_id");
-        }
-
-        if (isset($stmt)) {
             $stmt->execute([":entity_id" => $entityId]);
         }
 
