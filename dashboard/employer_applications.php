@@ -1827,7 +1827,7 @@ require '../controllers/update_due_interviews.php';
         
         function viewApplicantDetails(applicantId) {
             console.log(`Viewing details for applicant ${applicantId}`);
-            
+
             fetch(`../employer_api/get_applicant_details.php?applicantId=${applicantId}`)
                 .then(response => response.json())
                 .then(applicant => {
@@ -1839,69 +1839,109 @@ require '../controllers/update_due_interviews.php';
                     const modalContent = document.getElementById('applicantModalContent');
                     modalContent.innerHTML = `
                         <div class="applicant-profile">
-                            <!-- Header Section -->
-                            <div class="profile-header p-4" style="background-color: #f8f9fa; border-bottom: 1px solid #e9ecef;">
+                            <!-- Header Section - Compact -->
+                            <div class="profile-header p-3" style="background-color: #f8f9fa; border-bottom: 1px solid #e0e3e7;">
                                 <div class="d-flex align-items-center">
-                                    <div class="profile-avatar me-4">
+                                    <div class="profile-avatar me-3">
                                         ${applicant.profile_picture ? 
-                                            `<img src="../uploads/${applicant.profile_picture}" class="rounded-circle border" style="width: 100px; height: 100px; object-fit: cover; border-color: #dee2e6 !important;" alt="Profile">` : 
-                                            `<div class="rounded-circle border d-flex align-items-center justify-content-center" style="width: 100px; height: 100px; background-color: #e9ecef; border-color: #dee2e6 !important;">
-                                                <i class="fas fa-user" style="font-size: 2.5rem; color: #6c757d;"></i>
+                                            `<img src="../Uploads/${applicant.profile_picture}" class="rounded-circle border" style="width: 80px; height: 80px; object-fit: cover; border-color: #d1d7dc !important;" alt="Profile">` : 
+                                            `<div class="rounded-circle border d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; background-color: #e9ecef; border-color: #d1d7dc !important;">
+                                                <i class="fas fa-user" style="font-size: 2rem; color: #6c757d;"></i>
                                             </div>`
                                         }
                                     </div>
-                                    <div>
-                                        <h2 class="mb-1" style="color: #495057;">${applicant.stud_first_name} ${applicant.stud_last_name}</h2>
-                                        <p class="mb-2" style="color: #6c757d; font-size: 1.1rem;">${applicant.edu_background}</p>
-                                        <div class="d-flex flex-wrap gap-2">
-                                            <span class="badge" style="background-color: #e9ecef; color: #495057;"><i class="fas fa-university me-1" style="color: #6c757d;"></i> ${applicant.institution || 'Not specified'}</span>
-                                            ${applicant.graduation_yr ? `<span class="badge" style="background-color: #e9ecef; color: #495057;"><i class="fas fa-calendar-alt me-1" style="color: #6c757d;"></i> ${applicant.graduation_yr}</span>` : ''}
+                                    <div class="flex-grow-1">
+                                        <h3 class="mb-1" style="color: #343a40; font-size: 1.4rem;">${applicant.stud_first_name} ${applicant.stud_last_name}</h3>
+                                        <p class="mb-2 text-muted" style="font-size: 0.95rem;">${applicant.edu_background}</p>
+                                        <div class="d-flex flex-wrap gap-1">
+                                            ${applicant.institution ? `<span class="badge bg-light text-dark border" style="font-size: 0.8rem; font-weight: 500;"><i class="fas fa-university me-1 text-muted"></i> ${applicant.institution}</span>` : ''}
+                                            ${applicant.graduation_yr ? `<span class="badge bg-light text-dark border" style="font-size: 0.8rem; font-weight: 500;"><i class="fas fa-calendar-alt me-1 text-muted"></i> Grad: ${applicant.graduation_yr}</span>` : ''}
+                                            ${applicant.course_title ? `<span class="badge bg-light text-dark border" style="font-size: 0.8rem; font-weight: 500;"><i class="fas fa-book me-1 text-muted"></i> ${applicant.course_title}</span>` : ''}
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Body Section -->
-                            <div class="profile-body p-4">
-                                <div class="row">
+                            <!-- Body Section - More Compact -->
+                            <div class="profile-body p-3">
+                                <div class="row g-3">
                                     <!-- Contact Column -->
-                                    <div class="col-md-6 mb-4">
-                                        <div class="card h-100 border-0" style="box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                                            <div class="card-body">
-                                                <h5 class="card-title" style="color: #495057;"><i class="fas fa-envelope me-2" style="color: #6c757d;"></i>Contact</h5>
-                                                <ul class="list-unstyled" style="color: #6c757d;">
-                                                    <li class="mb-2"><strong style="color: #495057;">Email:</strong> ${applicant.email}</li>
-                                                    ${applicant.phone ? `<li class="mb-2"><strong style="color: #495057;">Phone:</strong> ${applicant.phone}</li>` : ''}
-                                                    ${applicant.address ? `<li><strong style="color: #495057;">Location:</strong> ${applicant.address}</li>` : ''}
+                                    <div class="col-md-6">
+                                        <div class="card h-100 border">
+                                            <div class="card-body p-3">
+                                                <h6 class="card-title fw-bold text-uppercase" style="font-size: 0.85rem; color: #495057; letter-spacing: 0.5px;"><i class="fas fa-envelope me-2 text-muted"></i>Contact</h6>
+                                                <ul class="list-unstyled mb-0" style="font-size: 0.9rem;">
+                                                    <li class="mb-1"><strong class="text-dark">Email:</strong> <a href="mailto:${applicant.stud_email}" class="text-decoration-none">${applicant.stud_email}</a></li>
+                                                    ${applicant.phone ? `<li class="mb-1"><strong class="text-dark">Phone:</strong> ${applicant.phone}</li>` : ''}
+                                                    ${applicant.linkedin ? `<li><strong class="text-dark">LinkedIn:</strong> <a href="${applicant.linkedin}" target="_blank" class="text-decoration-none">View Profile</a></li>` : ''}
                                                 </ul>
                                             </div>
                                         </div>
                                     </div>
 
                                     <!-- Education Column -->
-                                    <div class="col-md-6 mb-4">
-                                        <div class="card h-100 border-0" style="box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                                            <div class="card-body">
-                                                <h5 class="card-title" style="color: #495057;"><i class="fas fa-graduation-cap me-2" style="color: #6c757d;"></i>Education</h5>
+                                    <div class="col-md-6">
+                                        <div class="card h-100 border">
+                                            <div class="card-body p-3">
+                                                <h6 class="card-title fw-bold text-uppercase" style="font-size: 0.85rem; color: #495057; letter-spacing: 0.5px;"><i class="fas fa-graduation-cap me-2 text-muted"></i>Education</h6>
                                                 <div class="education-item">
-                                                    <h6 class="fw-bold mb-1" style="color: #495057;">${applicant.edu_background}</h6>
-                                                    <p class="mb-1" style="color: #6c757d;">${applicant.institution || 'Not specified'}</p>
-                                                    ${applicant.graduation_yr ? `<p class="small" style="color: #6c757d;">Expected graduation: ${applicant.graduation_yr}</p>` : ''}
+                                                    <h6 class="fw-bold mb-1" style="font-size: 0.9rem; color: #343a40;">${applicant.edu_background}</h6>
+                                                    <p class="mb-1 text-muted" style="font-size: 0.85rem;">${applicant.institution || 'Not specified'}</p>
+                                                    ${applicant.course_title ? `<p class="mb-1 text-muted" style="font-size: 0.85rem;">${applicant.course_title}</p>` : ''}
+                                                    ${applicant.graduation_yr ? `<p class="small text-muted" style="font-size: 0.8rem;">Expected graduation: ${applicant.graduation_yr}</p>` : ''}
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
+                                <!-- Skills Section -->
+                                <div class="card border mt-3">
+                                    <div class="card-body p-3">
+                                        <h6 class="card-title fw-bold text-uppercase" style="font-size: 0.85rem; color: #495057; letter-spacing: 0.5px;"><i class="fas fa-tools me-2 text-muted"></i>Skills</h6>
+                                        <div class="p-2 rounded" style="background-color: #f8f9fa; font-size: 0.9rem;">
+                                            ${applicant.skills ? applicant.skills.split(',').map(skill => `<span class="badge bg-white text-dark border me-1 mb-1" style="font-weight: 500;">${skill.trim()}</span>`).join('') : 'No skills listed'}
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <!-- Professional Summary -->
-                                <div class="card border-0 mb-4" style="box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                                    <div class="card-body">
-                                        <h5 class="card-title" style="color: #495057;"><i class="fas fa-user-tie me-2" style="color: #6c757d;"></i>Professional Summary</h5>
-                                        <div class="p-3 rounded" style="background-color: #f8f9fa;">
+                                <div class="card border mt-3">
+                                    <div class="card-body p-3">
+                                        <h6 class="card-title fw-bold text-uppercase" style="font-size: 0.85rem; color: #495057; letter-spacing: 0.5px;"><i class="fas fa-user-tie me-2 text-muted"></i>Summary</h6>
+                                        <div class="p-2 rounded" style="background-color: #f8f9fa; font-size: 0.9rem;">
                                             <p class="mb-0" style="color: #495057;">${applicant.bio ? applicant.bio.replace(/\n/g, '<br>') : 'No professional summary provided.'}</p>
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- Resume Section -->
+                                <div class="card border mt-3">
+                                    <div class="card-body p-3">
+                                        <h6 class="card-title fw-bold text-uppercase" style="font-size: 0.85rem; color: #495057; letter-spacing: 0.5px;"><i class="fas fa-file-pdf me-2 text-muted"></i>Resume</h6>
+                                        ${applicant.resume_file ? `
+                                        <div class="d-flex gap-2 mt-2">
+                                            <a href="#" onclick="viewResume(${applicant.stud_id}, '${applicant.resume_file}')" class="btn btn-sm btn-outline-primary">View</a>
+                                            <a href="../Uploads/${applicant.resume_file}" class="btn btn-sm btn-primary" download>Download</a>
+                                        </div>` : '<p class="text-muted mb-0" style="font-size: 0.85rem;">No resume uploaded.</p>'}
+                                    </div>
+                                </div>
+
+                                <!-- Interview Details -->
+                                ${applicant.interview_id ? `
+                                <div class="card border mt-3">
+                                    <div class="card-body p-3">
+                                        <h6 class="card-title fw-bold text-uppercase" style="font-size: 0.85rem; color: #495057; letter-spacing: 0.5px;"><i class="fas fa-calendar-check me-2 text-muted"></i>Interview</h6>
+                                        <ul class="list-unstyled mb-0" style="font-size: 0.9rem;">
+                                            <li class="mb-1"><strong class="text-dark">Date:</strong> ${new Date(applicant.interview_date).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</li>
+                                            <li class="mb-1"><strong class="text-dark">Mode:</strong> <span class="text-capitalize">${applicant.interview_mode}</span></li>
+                                            <li class="mb-1"><strong class="text-dark">Location:</strong> ${applicant.location_details}</li>
+                                            <li class="mb-1"><strong class="text-dark">Status:</strong> <span class="badge ${getInterviewStatusBadgeClass(applicant.interview_status)}">${applicant.interview_status}</span></li>
+                                            ${applicant.additional_notes ? `<li class="mt-2"><strong class="text-dark">Notes:</strong><div class="p-2 mt-1 rounded" style="background-color: #f8f9fa; font-size: 0.85rem;">${applicant.additional_notes}</div></li>` : ''}
+                                        </ul>
+                                    </div>
+                                </div>
+                                ` : ''}
                             </div>
                         </div>
                     `;
@@ -1913,6 +1953,18 @@ require '../controllers/update_due_interviews.php';
                     console.error('Error fetching applicant:', error);
                     alert('Failed to load applicant details.');
                 });
+        }
+
+        // Helper function for interview status badges
+        function getInterviewStatusBadgeClass(status) {
+            const statusClasses = {
+                'scheduled': 'bg-primary',
+                'completed': 'bg-success',
+                'cancelled': 'bg-secondary',
+                'no-show': 'bg-danger',
+                'rescheduled': 'bg-warning text-dark'
+            };
+            return statusClasses[status.toLowerCase()] || 'bg-light text-dark';
         }
 
         
