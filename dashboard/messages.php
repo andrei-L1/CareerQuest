@@ -7,7 +7,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // Check if both user_id and stud_id are not set simultaneously
 if (isset($_SESSION['user_id']) && isset($_SESSION['stud_id'])) {
-    echo "Error: Both user and student IDs are set. Only one should be set.";
+    echo json_encode(['status' => 'error', 'message' => 'Both user and student IDs are set. Only one should be set.']);
     exit;
 }
 
@@ -610,9 +610,105 @@ if (isset($_SESSION['user_id'])) {
             padding: 16px 20px;
         }
 
+        .video-call-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .video-call-btn:hover {
+            background-color: var(--secondary-color);
+            transform: scale(1.05);
+        }
+
+        .video-container {
+            display: none;
+            position: relative;
+            background-color: #000;
+            flex: 1;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+
+        .video-container.active {
+            display: flex;
+        }
+
+        #local-video, #remote-video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #local-video {
+            width: 25%;
+            height: 25%;
+            top: 10px;
+            right: 10px;
+            left: auto;
+            border: 2px solid white;
+            border-radius: 8px;
+            z-index: 10;
+        }
+
+        .video-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 24px;
+        }
+
+        .video-control-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .video-control-btn:hover {
+            background-color: var(--secondary-color);
+            transform: scale(1.05);
+        }
+
+        .video-control-btn.end-call {
+            background-color: #dc3545;
+        }
+
+        .video-control-btn.end-call:hover {
+            background-color: #c82333;
+        }
+
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1050;
+        }
+
         @media (max-width: 768px) {
             .container-fluid {
-                padding-bottom: 60px; /* Space for sidebar-nav bottom bar */
+                padding-bottom: 60px;
             }
 
             .chat-container {
@@ -633,7 +729,7 @@ if (isset($_SESSION['user_id'])) {
                 right: 0;
                 bottom: 0;
                 background-color: white;
-                z-index: 1000; /* Increased to ensure visibility, but below sidebar-nav */
+                z-index: 1000;
             }
 
             .chat-area.active {
@@ -758,6 +854,26 @@ if (isset($_SESSION['user_id'])) {
                         <div class="chat-name" id="chat-with-name">Select a conversation</div>
                         <div class="chat-status" id="chat-status"></div>
                     </div>
+                    <button id="video-call-btn" class="video-call-btn d-none" title="Start Video Call">
+                        <i class="bi bi-camera-video"></i>
+                    </button>
+                </div>
+                
+                <!-- Video Call Container -->
+                <div class="video-container" id="video-container">
+                    <video id="remote-video" autoplay playsinline></video>
+                    <video id="local-video" autoplay muted playsinline></video>
+                    <div class="video-controls">
+                        <button class="video-control-btn" id="mute-mic-btn" title="Mute/Unmute Microphone">
+                            <i class="bi bi-mic-fill"></i>
+                        </button>
+                        <button class="video-control-btn" id="mute-video-btn" title="Turn On/Off Camera">
+                            <i class="bi bi-camera-video-fill"></i>
+                        </button>
+                        <button class="video-control-btn end-call" id="end-call-btn" title="End Call">
+                            <i class="bi bi-telephone-x-fill"></i>
+                        </button>
+                    </div>
                 </div>
                 
                 <!-- Empty State -->
@@ -814,64 +930,204 @@ if (isset($_SESSION['user_id'])) {
         </div>
     </div>
 
+    <!-- Video Call Request Modal -->
+    <div class="modal fade" id="videoCallModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Incoming Video Call</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="video-call-sender">Someone is calling you...</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" id="accept-call-btn">Accept</button>
+                    <button type="button" class="btn btn-danger" id="reject-call-btn">Reject</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Initialize Pusher globally
-        var pusher = new Pusher('d9d029433bbefa08b6a2', {
-            cluster: 'ap1',
-            encrypted: true
-        });
+        // When receiving ICE candidates from signaling
+        async function handleRemoteIce(candidate) {
+            console.log('Received ICE candidate:', JSON.stringify(candidate));
+            if (!peerConnection) {
+                console.log('Storing pending ICE candidate:', candidate);
+                pendingIceCandidates.push(candidate);
+                return;
+            }
+            try {
+                await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+                console.log('Successfully added ICE candidate:', candidate);
+            } catch (e) {
+                console.error('Error adding remote ICE candidate:', e, 'Candidate:', candidate);
+            }
+        }
 
-        var currentChannel = null;
-        var subscribedChannels = {};
+        // Send signaling message (e.g., ICE candidate, answer) to backend
+        async function sendSignalingMessage(type, data) {
+            if (!currentCallId || !currentThreadId) {
+                console.log('Queuing signaling message: type=' + type + ', data=', data);
+                signalingQueue.push({type, data});
+                return;
+            }
+            try {
+                const body = `action=send_signaling_message&call_id=${currentCallId}&thread_id=${currentThreadId}&type=${encodeURIComponent(type)}&data=${encodeURIComponent(JSON.stringify(data))}`;
+                const response = await fetch('../controllers/messages_controller.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: body
+                });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const result = await response.json();
+                if (result.status === 'success') {
+                    console.log(`Sent signaling message: type=${type}, data=`, data);
+                } else {
+                    throw new Error(result.message || 'Failed to send signaling message');
+                }
+            } catch (error) {
+                console.error('Error sending signaling message:', error);
+                showToast(`Failed to send signaling message: ${error.message}`);
+            }
+        }
+
+        let currentActorId = null;
         let currentThreadId = null;
         let currentParticipant = null;
         let currentUser = <?php echo json_encode($currentUser); ?>;
         let newMessageModal = new bootstrap.Modal(document.getElementById('newMessageModal'));
+        let videoCallModal = new bootstrap.Modal(document.getElementById('videoCallModal'));
+        let localStream = null;
+        let peerConnection = null;
+        let currentCallId = null;
+        let pendingIceCandidates = [];
+        let signalingQueue = [];
+        let servers = { iceServers: [] };
+        let iceLoaded = false;
+
+        async function loadIceServers() {
+            if (iceLoaded) return;
+            try {
+                const res = await fetch('../getIce.php', { cache: 'no-store' });
+                const data = await res.json();
+                console.log('Raw ICE server response:', data);
+                const list = data?.v?.iceServers || [];
+                servers.iceServers = list
+                    .map(s => ({
+                        urls: Array.isArray(s.urls) ? s.urls : [s.urls],
+                        username: s.username,
+                        credential: s.credential
+                    }))
+                    .filter(s => s.urls.some(url => url.startsWith('turns:') || url.startsWith('stun:')));
+                console.log('Processed ICE servers:', servers.iceServers);
+                iceLoaded = true;
+            } catch (e) {
+                console.error('Failed to load ICE servers:', e);
+                showToast('Failed to load ICE servers');
+            }
+        }
+
+        let pusher = new Pusher('d9d029433bbefa08b6a2', {
+            cluster: 'ap1',
+            encrypted: true
+        });
+        let currentChannel = null;
+        let subscribedChannels = {};
+
+        pusher.connection.bind('connected', () => {
+            console.log('Pusher connected successfully');
+        });
+        pusher.connection.bind('error', (err) => {
+            console.error('Pusher error:', err);
+            showToast('Pusher connection error');
+        });
+
+        function showToast(message, type = 'danger') {
+            const toastContainer = document.createElement('div');
+            toastContainer.className = 'toast-container';
+            toastContainer.innerHTML = `
+                <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header bg-${type} text-white">
+                        <strong class="me-auto">${type === 'danger' ? 'Error' : 'Success'}</strong>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">${message}</div>
+                </div>
+            `;
+            document.body.appendChild(toastContainer);
+            const toast = new bootstrap.Toast(toastContainer.querySelector('.toast'), { autohide: true, delay: 5000 });
+            toast.show();
+            setTimeout(() => toastContainer.remove(), 5500);
+        }
+
+        async function fetchCurrentActorId() {
+            try {
+                const response = await fetch('../controllers/messages_controller.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `action=get_actor_id&entity_type=${encodeURIComponent(currentUser.entity_type)}&entity_id=${currentUser.entity_id}`
+                });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                if (data.status === 'success') {
+                    currentActorId = data.actor_id;
+                    console.log('Fetched actor ID:', currentActorId);
+                } else {
+                    throw new Error(data.message || 'Failed to fetch actor ID');
+                }
+            } catch (error) {
+                console.error('Error fetching actor ID:', error);
+                showToast('Unable to initialize messaging system');
+            }
+        }
 
         function subscribeToThread(threadId) {
-            if (currentChannel && currentChannel.name !== 'thread_' + threadId) {
-                pusher.unsubscribe(currentChannel.name);
-            }
-
             if (!subscribedChannels['thread_' + threadId]) {
                 currentChannel = pusher.subscribe('thread_' + threadId);
                 subscribedChannels['thread_' + threadId] = true;
-
-                currentChannel.bind('new_message', function(data) {
-                    handleNewMessage(data, threadId);
+                currentChannel.bind('pusher:subscription_succeeded', () => {
+                    console.log(`Subscribed to thread_${threadId}`);
                 });
-
-                currentChannel.bind('thread_update', function(data) {
-                    handleThreadUpdate(data);
+                currentChannel.bind('pusher:subscription_error', (err) => {
+                    console.error(`Subscription error for thread_${threadId}:`, err);
+                    showToast('Failed to subscribe to thread');
+                });
+                currentChannel.bind('new_message', (data) => handleNewMessage(data, threadId));
+                currentChannel.bind('thread_update', handleThreadUpdate);
+                currentChannel.bind('video_call', handleVideoCall);
+                currentChannel.bind_global((event, data) => {
+                    console.log(`Thread channel event [${event}]:`, data);
                 });
             }
         }
 
-        function handleNewMessage(data, threadId) {
-            if (data.thread_id === threadId || !currentThreadId) {
-                const messageList = document.getElementById('message-list');
-                const isSender = data.sender_type === currentUser.entity_type && 
-                                data.sender_id == currentUser.entity_id;
-                
-                if (data.thread_id === currentThreadId) {
-                    const messageEl = document.createElement('div');
-                    messageEl.className = `message ${isSender ? 'message-sent' : 'message-received'}`;
-                    messageEl.innerHTML = `
-                        <div>${data.content}</div>
-                        <div class="message-time">${formatTime(data.sent_at)}</div>
-                    `;
-                    messageList.appendChild(messageEl);
-                    
-                    messageList.scrollTop = messageList.scrollHeight;
-                    
-                    if (!isSender) {
-                        markMessagesAsRead(threadId);
-                    }
-                }
-                
-                loadThreads();
+        function unsubscribeFromCurrentChannel() {
+            if (currentChannel) {
+                pusher.unsubscribe(currentChannel.name);
+                delete subscribedChannels[currentChannel.name];
+                console.log(`Unsubscribed from ${currentChannel.name}`);
+                currentChannel = null;
             }
+        }
+
+        function handleNewMessage(data, threadId) {
+            if (data.thread_id === threadId && data.thread_id === currentThreadId) {
+                const messageList = document.getElementById('message-list');
+                const isSender = data.sender_type === currentUser.entity_type && data.sender_id == currentUser.entity_id;
+                const messageEl = document.createElement('div');
+                messageEl.className = `message ${isSender ? 'message-sent' : 'message-received'}`;
+                messageEl.innerHTML = `
+                    <div>${data.content}</div>
+                    <div class="message-time">${formatTime(data.sent_at)}</div>
+                `;
+                messageList.appendChild(messageEl);
+                messageList.scrollTop = messageList.scrollHeight;
+                if (!isSender) markMessagesAsRead(threadId);
+            }
+            loadThreads();
         }
 
         function handleThreadUpdate(data) {
@@ -880,19 +1136,31 @@ if (isset($_SESSION['user_id'])) {
             }
         }
 
-        function loadThreads() {
-            fetch('../controllers/messages_controller.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `action=get_threads`
-            })
-            .then(response => response.json())
-            .then(data => {
+        function handleVideoCall(data) {
+            if (data.caller_id == currentActorId) return;
+            console.log('Received video call:', data);
+            currentThreadId = data.thread_id;
+            currentCallId = Number(data.call_id);
+            if (!subscribedChannels['thread_' + currentThreadId]) {
+                subscribeToThread(currentThreadId);
+            }
+            document.getElementById('video-call-sender').textContent = `${data.caller_name} is calling you...`;
+            videoCallModal.show();
+        }
+
+        async function loadThreads() {
+            try {
+                const response = await fetch('../controllers/messages_controller.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `action=get_threads`
+                });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
                 const threadsList = document.getElementById('threads-list');
-                
+
                 if (data.status === 'success') {
                     threadsList.innerHTML = '';
-                    
                     if (data.threads.length === 0) {
                         threadsList.innerHTML = `
                             <div class="text-center py-5">
@@ -903,10 +1171,7 @@ if (isset($_SESSION['user_id'])) {
                                 </button>
                             </div>
                         `;
-                        
-                        document.getElementById('empty-list-new-message-btn').addEventListener('click', () => {
-                            newMessageModal.show();
-                        });
+                        document.getElementById('empty-list-new-message-btn').addEventListener('click', () => newMessageModal.show());
                         return;
                     }
 
@@ -933,25 +1198,25 @@ if (isset($_SESSION['user_id'])) {
                         `;
                         threadEl.addEventListener('click', () => openThread(thread.thread_id));
                         threadsList.appendChild(threadEl);
-                    });
-
-                    data.threads.forEach(thread => {
                         if (!subscribedChannels['thread_' + thread.thread_id]) {
                             subscribeToThread(thread.thread_id);
                         }
                     });
                 } else {
-                    threadsList.innerHTML = `
-                        <div class="alert alert-danger">Error loading conversations</div>
-                    `;
+                    throw new Error(data.message || 'Unknown error');
                 }
-            });
+            } catch (error) {
+                console.error('Error loading threads:', error);
+                document.getElementById('threads-list').innerHTML = `
+                    <div class="alert alert-danger">Error loading conversations: ${error.message}</div>
+                `;
+                showToast(`Error loading conversations: ${error.message}`);
+            }
         }
 
         function formatTime(timestamp) {
             const date = new Date(timestamp);
             const now = new Date();
-            
             if (date.toDateString() === now.toDateString()) {
                 return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             } else if (date.getFullYear() === now.getFullYear()) {
@@ -961,89 +1226,61 @@ if (isset($_SESSION['user_id'])) {
             }
         }
 
-        function openThread(threadId) {
+        async function openThread(threadId) {
             unsubscribeFromCurrentChannel();
             currentThreadId = threadId;
-            subscribeToThread(threadId);    
+            subscribeToThread(threadId);
+            console.log('Opened thread:', threadId);
 
-            currentChannel = pusher.subscribe('thread_' + threadId);
-            currentChannel.unbind('new_message');
-
-            currentChannel.bind('new_message', function(data) {
-                if (data.thread_id === threadId) {
-                    const messageList = document.getElementById('message-list');
-                    const isSender = data.sender_type === currentUser.entity_type && 
-                                    data.sender_id == currentUser.entity_id;
-                    
-                    const messageEl = document.createElement('div');
-                    messageEl.className = `message ${isSender ? 'message-sent' : 'message-received'}`;
-                    messageEl.innerHTML = `
-                        <div>${data.content}</div>
-                        <div class="message-time">${formatTime(data.sent_at)}</div>
-                    `;
-                    messageList.appendChild(messageEl);
-                    
-                    messageList.scrollTop = messageList.scrollHeight;
-                    
-                    if (!isSender) {
-                        markMessagesAsRead(threadId);
-                    }
-                }
-            });
-            
             if (window.innerWidth <= 768) {
                 document.querySelector('.sidebar-nav').style.display = 'none';
                 document.getElementById('chat-area').classList.add('active');
             }
-            
-            currentThreadId = threadId;
+
             document.getElementById('empty-chat-state').classList.add('d-none');
             document.getElementById('message-list').classList.remove('d-none');
             document.getElementById('message-input-container').classList.remove('d-none');
-            
-            fetch('../controllers/messages_controller.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `action=get_messages&thread_id=${threadId}`
-            })
-            .then(response => response.json())
-            .then(data => {
+            document.getElementById('video-call-btn').classList.remove('d-none');
+            document.getElementById('video-container').classList.remove('active');
+
+            try {
+                const response = await fetch('../controllers/messages_controller.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `action=get_messages&thread_id=${threadId}`
+                });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+
                 if (data.status === 'success') {
                     currentParticipant = data.participant;
-                    
-                    fetch('../controllers/messages_controller.php', {
+
+                    const userResponse = await fetch('../controllers/messages_controller.php', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: `action=get_user_info&entity_type=${currentParticipant.entity_type}&entity_id=${currentParticipant.entity_id}`
-                    })
-                    .then(response => response.json())
-                    .then(userData => {
-                        if (userData.status === 'success') {
-                            document.getElementById('chat-with-name').textContent = userData.user.name;
-                            
-                            const chatAvatar = document.getElementById('chat-avatar');
-                            chatAvatar.innerHTML = '';
-                            if (userData.user.picture) {
-                                const img = document.createElement('img');
-                                img.src = `../Uploads/${userData.user.picture}`;
-                                img.alt = userData.user.name;
-                                chatAvatar.appendChild(img);
-                            } else {
-                                let iconContainer = chatAvatar.querySelector('div');
-                                if (!iconContainer) {
-                                    iconContainer = document.createElement('div');
-                                    chatAvatar.appendChild(iconContainer);
-                                }
-                                const icon = document.createElement('i');
-                                icon.className = 'bi bi-person-fill text-white';
-                                iconContainer.appendChild(icon);
-                            }
-                        }
+                        body: `action=get_user_info&entity_type=${encodeURIComponent(currentParticipant.entity_type)}&entity_id=${currentParticipant.entity_id}`
                     });
+                    if (!userResponse.ok) throw new Error(`HTTP error! status: ${userResponse.status}`);
+                    const userData = await userResponse.json();
+
+                    if (userData.status === 'success') {
+                        document.getElementById('chat-with-name').textContent = userData.user.name;
+                        const chatAvatar = document.getElementById('chat-avatar');
+                        chatAvatar.innerHTML = '';
+                        if (userData.user.picture) {
+                            const img = document.createElement('img');
+                            img.src = `../Uploads/${userData.user.picture}`;
+                            img.alt = userData.user.name;
+                            chatAvatar.appendChild(img);
+                        } else {
+                            const icon = document.createElement('i');
+                            icon.className = 'bi bi-person-fill text-muted';
+                            chatAvatar.appendChild(icon);
+                        }
+                    }
 
                     const messageList = document.getElementById('message-list');
                     messageList.innerHTML = '';
-                    
                     if (data.messages.length === 0) {
                         messageList.innerHTML = `
                             <div class="text-center py-5">
@@ -1052,10 +1289,8 @@ if (isset($_SESSION['user_id'])) {
                         `;
                     } else {
                         data.messages.forEach(message => {
+                            const isSender = message.sender_type === currentUser.entity_type && message.sender_id == currentUser.entity_id;
                             const messageEl = document.createElement('div');
-                            const isSender = message.sender_type === currentUser.entity_type && 
-                                            message.sender_id == currentUser.entity_id;
-                            
                             messageEl.className = `message ${isSender ? 'message-sent' : 'message-received'}`;
                             messageEl.innerHTML = `
                                 <div>${message.content}</div>
@@ -1064,66 +1299,53 @@ if (isset($_SESSION['user_id'])) {
                             messageList.appendChild(messageEl);
                         });
                     }
-                    
                     messageList.scrollTop = messageList.scrollHeight;
-                    
-                    if (data.unread_count > 0) {
-                        markMessagesAsRead(threadId);
-                    }
+                    if (data.unread_count > 0) markMessagesAsRead(threadId);
+                } else {
+                    throw new Error(data.message || 'Unknown error');
                 }
-            });
-        }
-
-        function unsubscribeFromCurrentChannel() {
-            if (currentChannel) {
-                currentChannel.unbind('new_message');
-                currentChannel.unbind('thread_update');
-                pusher.unsubscribe(currentChannel.name);
-                delete subscribedChannels[currentChannel.name];
-                currentChannel = null;
+            } catch (error) {
+                console.error('Error loading messages:', error);
+                document.getElementById('message-list').innerHTML = `
+                    <div class="alert alert-danger">Error loading messages: ${error.message}</div>
+                `;
+                showToast(`Error loading messages: ${error.message}`);
             }
         }
 
-        window.addEventListener('beforeunload', () => {
-            unsubscribeFromCurrentChannel();
-        });
-
-        function markMessagesAsRead(threadId) {
-            fetch('../controllers/messages_controller.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `action=mark_as_read&thread_id=${threadId}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    loadThreads();
-                }
-            });
+        async function markMessagesAsRead(threadId) {
+            try {
+                const response = await fetch('../controllers/messages_controller.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `action=mark_as_read&thread_id=${threadId}`
+                });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                if (data.status === 'success') loadThreads();
+            } catch (error) {
+                console.error('Error marking messages as read:', error);
+                showToast(`Error marking messages as read: ${error.message}`);
+            }
         }
 
-        function sendMessage() {
+        async function sendMessage() {
             const content = document.getElementById('message-content').value.trim();
             if (!content) return;
-            
             if (!currentThreadId && !currentParticipant) {
-                alert('Please select a conversation first');
+                showToast('Please select a conversation first');
                 return;
             }
 
-            const formData = new FormData();
-            formData.append('action', 'send_message');
-            formData.append('receiver_type', currentParticipant.entity_type);
-            formData.append('receiver_id', currentParticipant.entity_id);
-            formData.append('content', content);
-            if (currentThreadId) formData.append('thread_id', currentThreadId);
-
-            fetch('../controllers/messages_controller.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
+            try {
+                const body = `action=send_message&receiver_type=${encodeURIComponent(currentParticipant.entity_type)}&receiver_id=${currentParticipant.entity_id}&content=${encodeURIComponent(content)}${currentThreadId ? `&thread_id=${currentThreadId}` : ''}`;
+                const response = await fetch('../controllers/messages_controller.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: body
+                });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
                 if (data.status === 'success') {
                     document.getElementById('message-content').value = '';
                     if (!currentThreadId) {
@@ -1132,52 +1354,384 @@ if (isset($_SESSION['user_id'])) {
                     }
                     openThread(currentThreadId);
                     loadThreads();
+                } else {
+                    throw new Error(data.message || 'Unknown error');
                 }
-            });
+            } catch (error) {
+                console.error('Error sending message:', error);
+                showToast(`Failed to send message: ${error.message}`);
+            }
         }
 
+        async function checkMediaPermissions() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                stream.getTracks().forEach(track => track.stop());
+                return true;
+            } catch (error) {
+                console.error('Media permission error:', error);
+                showToast('Please grant camera and microphone permissions');
+                return false;
+            }
+        }
+
+        async function startVideoCall() {
+            if (!currentThreadId || !currentParticipant) {
+                showToast('Please select a conversation first');
+                return;
+            }
+
+            if (!(await checkMediaPermissions())) return;
+
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                document.getElementById('local-video').srcObject = localStream;
+                document.getElementById('video-container').classList.add('active');
+                document.getElementById('message-list').classList.add('d-none');
+                document.getElementById('message-input-container').classList.add('d-none');
+
+                await loadIceServers();
+                peerConnection = new RTCPeerConnection({ iceServers: servers.iceServers });
+
+                peerConnection.onicecandidate = (event) => {
+                    if (!event.candidate || !event.candidate.candidate) {
+                        console.log('Empty or null ICE candidate ignored:', event.candidate);
+                        return;
+                    }
+                    console.log('Sending ICE candidate:', JSON.stringify(event.candidate));
+                    sendSignalingMessage('ice-candidate', event.candidate);
+                };
+
+                peerConnection.ontrack = (event) => {
+                    console.log('Received remote stream:', event.streams[0]);
+                    document.getElementById('remote-video').srcObject = event.streams[0];
+                };
+
+                peerConnection.oniceconnectionstatechange = () => {
+                    console.log('ICE Connection State:', peerConnection.iceConnectionState);
+                    if (peerConnection.iceConnectionState === 'failed') {
+                        showToast('Peer connection failed (ICE). Try again or check network settings.');
+                        endCall();
+                    } else if (peerConnection.iceConnectionState === 'connected') {
+                        console.log('WebRTC connection established successfully');
+                    }
+                };
+
+                localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+                const offer = await peerConnection.createOffer();
+                console.log('Created offer:', JSON.stringify(offer));
+                await peerConnection.setLocalDescription(offer);
+                console.log('Set local description (offer):', offer);
+
+                const body = `action=initiate_video_call&thread_id=${currentThreadId}&receiver_type=${encodeURIComponent(currentParticipant.entity_type)}&receiver_id=${currentParticipant.entity_id}&offer=${encodeURIComponent(JSON.stringify(offer))}`;
+                const response = await fetch('../controllers/messages_controller.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: body
+                });
+                const data = await response.json();
+                console.log('Video call initiation response:', data);
+                if (data.status === 'success') {
+                    currentCallId = Number(data.call_id);
+                    console.log('Set currentCallId:', currentCallId);
+
+                    console.log('Processing signaling queue');
+                    while (signalingQueue.length > 0) {
+                        const {type, data} = signalingQueue.shift();
+                        sendSignalingMessage(type, data);
+                    }
+
+                    setTimeout(() => {
+                        if (peerConnection && peerConnection.connectionState !== 'connected') {
+                            showToast('Call timed out: No response from recipient');
+                            endCall();
+                        }
+                    }, 60000); // Extended to 60 seconds
+                } else {
+                    throw new Error(data.message || 'Failed to initiate video call');
+                }
+            } catch (error) {
+                console.error('Error starting video call:', error);
+                showToast(`Failed to start video call: ${error.message}`);
+                endCall();
+            }
+        }
+
+        async function handleVideoCallResponse(data) {
+            console.log('Received video call response:', data);
+            if (Number(data.call_id) !== currentCallId) {
+                console.log(`Ignoring response: call_id ${data.call_id} does not match currentCallId ${currentCallId}`);
+                return;
+            }
+            if (data.status === 'accepted') {
+                try {
+                    const answer = {
+                        type: 'answer',
+                        sdp: data.answer.sdp
+                    };
+                    console.log('Setting remote answer:', answer);
+                    await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+                    console.log('Set remote description (answer):', answer);
+                    for (const cand of pendingIceCandidates) {
+                        try {
+                            await peerConnection.addIceCandidate(new RTCIceCandidate(cand));
+                            console.log('Applied pending ICE candidate:', cand);
+                        } catch (e) {
+                            console.error('Error applying pending ICE candidate:', e);
+                        }
+                    }
+                    pendingIceCandidates = [];
+                } catch (error) {
+                    console.error('Error setting remote description:', error);
+                    showToast('Failed to establish video call');
+                    endCall();
+                }
+            } else if (data.status === 'rejected' || data.status === 'ended') {
+                showToast(`Video call was ${data.status}`);
+                endCall();
+            }
+        }
+
+        async function handleSignalingMessage(data) {
+            console.log('Received signaling message:', data);
+            if (Number(data.call_id) !== currentCallId) {
+                console.log(`Ignoring message: call_id ${data.call_id} does not match currentCallId ${currentCallId}`);
+                return;
+            }
+            try {
+                if (data.type === 'answer') {
+                    console.log('Setting remote answer:', data.data);
+                    await peerConnection.setRemoteDescription(new RTCSessionDescription(data.data));
+                    console.log('Set remote description (answer):', data.data);
+                    for (const cand of pendingIceCandidates) {
+                        try {
+                            await peerConnection.addIceCandidate(new RTCIceCandidate(cand));
+                            console.log('Applied pending ICE candidate:', cand);
+                        } catch (e) {
+                            console.error('Error applying pending ICE candidate:', e);
+                        }
+                    }
+                    pendingIceCandidates = [];
+                    // Retry pending candidates after a delay if necessary
+                    setTimeout(async () => {
+                        if (peerConnection && peerConnection.remoteDescription) {
+                            for (const cand of pendingIceCandidates) {
+                                try {
+                                    await peerConnection.addIceCandidate(new RTCIceCandidate(cand));
+                                    console.log('Retried pending ICE candidate:', cand);
+                                } catch (e) {
+                                    console.error('Error retrying ICE candidate:', e);
+                                }
+                            }
+                            pendingIceCandidates = [];
+                        }
+                    }, 1000);
+                } else if (data.type === 'ice-candidate') {
+                    await handleRemoteIce(data.data);
+                }
+            } catch (error) {
+                console.error('Error handling signaling message:', error);
+            }
+        }
+
+        async function endCall() {
+            if (peerConnection) {
+                peerConnection.close();
+                peerConnection = null;
+                console.log('Closed peer connection');
+            }
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+                console.log('Stopped local stream');
+            }
+            document.getElementById('local-video').srcObject = null;
+            document.getElementById('remote-video').srcObject = null;
+            document.getElementById('video-container').classList.remove('active');
+            document.getElementById('message-list').classList.remove('d-none');
+            document.getElementById('message-input-container').classList.remove('d-none');
+
+            if (currentCallId) {
+                try {
+                    const response = await fetch('../controllers/messages_controller.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: `action=end_video_call&call_id=${currentCallId}&thread_id=${currentThreadId}`
+                    });
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const data = await response.json();
+                    if (data.status !== 'success') console.error('Error ending video call:', data.message);
+                } catch (error) {
+                    console.error('Error ending video call:', error);
+                }
+                currentCallId = null;
+                console.log('Cleared currentCallId');
+            }
+        }
+
+        document.getElementById('video-call-btn').addEventListener('click', startVideoCall);
+
+        document.getElementById('mute-mic-btn').addEventListener('click', () => {
+            if (localStream) {
+                const audioTrack = localStream.getAudioTracks()[0];
+                audioTrack.enabled = !audioTrack.enabled;
+                document.getElementById('mute-mic-btn').innerHTML = `<i class="bi bi-mic${audioTrack.enabled ? '-fill' : '-mute-fill'}"></i>`;
+            }
+        });
+
+        document.getElementById('mute-video-btn').addEventListener('click', () => {
+            if (localStream) {
+                const videoTrack = localStream.getVideoTracks()[0];
+                videoTrack.enabled = !videoTrack.enabled;
+                document.getElementById('mute-video-btn').innerHTML = `<i class="bi bi-camera-video${videoTrack.enabled ? '-fill' : '-off-fill'}"></i>`;
+            }
+        });
+
+        document.getElementById('end-call-btn').addEventListener('click', endCall);
+
+        document.getElementById('accept-call-btn').addEventListener('click', async () => {
+            videoCallModal.hide();
+            if (!(await checkMediaPermissions())) return;
+
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                document.getElementById('local-video').srcObject = localStream;
+                document.getElementById('video-container').classList.add('active');
+                document.getElementById('message-list').classList.add('d-none');
+                document.getElementById('message-input-container').classList.add('d-none');
+
+                await loadIceServers();
+                peerConnection = new RTCPeerConnection({ iceServers: servers.iceServers });
+
+                peerConnection.onicecandidate = (event) => {
+                    if (!event.candidate || !event.candidate.candidate) {
+                        console.log('Empty or null ICE candidate ignored:', event.candidate);
+                        return;
+                    }
+                    console.log('Sending ICE candidate:', JSON.stringify(event.candidate));
+                    sendSignalingMessage('ice-candidate', event.candidate);
+                };
+
+                peerConnection.ontrack = (event) => {
+                    console.log('Received remote stream:', event.streams[0]);
+                    document.getElementById('remote-video').srcObject = event.streams[0];
+                };
+
+                peerConnection.oniceconnectionstatechange = () => {
+                    console.log('ICE Connection State:', peerConnection.iceConnectionState);
+                    if (peerConnection.iceConnectionState === 'failed') {
+                        showToast('Peer connection failed (ICE). Try again or check network settings.');
+                        endCall();
+                    } else if (peerConnection.iceConnectionState === 'connected') {
+                        console.log('WebRTC connection established successfully');
+                    }
+                };
+
+                localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+                const body = `action=accept_video_call&call_id=${currentCallId}&thread_id=${currentThreadId}`;
+                const response = await fetch('../controllers/messages_controller.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: body
+                });
+                const data = await response.json();
+                if (data.status !== 'success') throw new Error(data.message || 'Failed to accept video call');
+
+                const offer = { type: 'offer', sdp: data.offer.sdp };
+                console.log('Received offer:', offer);
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+                console.log('Set remote description (offer):', offer);
+
+                const answer = await peerConnection.createAnswer();
+                console.log('Created answer:', JSON.stringify(answer));
+                await peerConnection.setLocalDescription(answer);
+                console.log('Set local description (answer):', answer);
+
+                const answerBody = `action=accept_video_call&call_id=${currentCallId}&thread_id=${currentThreadId}&answer=${encodeURIComponent(JSON.stringify(answer))}`;
+                const answerResponse = await fetch('../controllers/messages_controller.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: answerBody
+                });
+                const answerData = await answerResponse.json();
+                if (answerData.status !== 'success') throw new Error(answerData.message || 'Failed to send answer');
+
+                for (const cand of pendingIceCandidates) {
+                    try {
+                        await peerConnection.addIceCandidate(new RTCIceCandidate(cand));
+                        console.log('Applied pending ICE candidate:', cand);
+                    } catch (e) {
+                        console.error('Error applying ICE candidate:', e);
+                    }
+                }
+                pendingIceCandidates = [];
+
+                console.log('Processing signaling queue');
+                while (signalingQueue.length > 0) {
+                    const {type, data} = signalingQueue.shift();
+                    sendSignalingMessage(type, data);
+                }
+            } catch (error) {
+                console.error('Error accepting video call:', error);
+                showToast(`Failed to accept video call: ${error.message}`);
+                endCall();
+            }
+        });
+
+        document.getElementById('reject-call-btn').addEventListener('click', () => {
+            videoCallModal.hide();
+            fetch('../controllers/messages_controller.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `action=reject_video_call&call_id=${currentCallId}&thread_id=${currentThreadId}`
+            })
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return response.json();
+            })
+            .then(data => {
+                if (data.status !== 'success') console.error('Error rejecting video call:', data.message);
+            })
+            .catch(error => console.error('Error rejecting video call:', error));
+            currentCallId = null;
+        });
+
         document.getElementById('send-button').addEventListener('click', sendMessage);
-        
         document.getElementById('message-content').addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 sendMessage();
             }
         });
-        
         document.getElementById('message-content').addEventListener('input', function() {
             this.style.height = 'auto';
             this.style.height = (this.scrollHeight) + 'px';
         });
 
-        let selectedRecipient = null;
-        
-        document.getElementById('new-message-btn').addEventListener('click', () => {
-            newMessageModal.show();
-        });
-        
-        document.getElementById('empty-new-message-btn').addEventListener('click', () => {
-            newMessageModal.show();
-        });
+        document.getElementById('new-message-btn').addEventListener('click', () => newMessageModal.show());
+        document.getElementById('empty-new-message-btn').addEventListener('click', () => newMessageModal.show());
 
-        document.getElementById('recipient-search').addEventListener('input', (e) => {
+        let selectedRecipient = null;
+        document.getElementById('recipient-search').addEventListener('input', async (e) => {
             const searchTerm = e.target.value.trim();
             const resultsContainer = document.getElementById('search-results');
-            
             if (searchTerm.length < 2) {
                 resultsContainer.innerHTML = '<div class="list-group-item text-muted text-center">Type at least 2 characters to search</div>';
                 return;
             }
 
-            fetch('../controllers/messages_controller.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `action=search_users&term=${encodeURIComponent(searchTerm)}&current_user_type=${currentUser.entity_type}&current_user_id=${currentUser.entity_id}`
-            })
-            .then(response => response.json())
-            .then(data => {
+            try {
+                const response = await fetch('../controllers/messages_controller.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `action=search_users&term=${encodeURIComponent(searchTerm)}&current_user_type=${encodeURIComponent(currentUser.entity_type)}&current_user_id=${currentUser.entity_id}`
+                });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
                 resultsContainer.innerHTML = '';
-                
+
                 if (data.status === 'success' && data.users.length > 0) {
                     data.users.forEach(user => {
                         const userEl = document.createElement('button');
@@ -1198,51 +1752,48 @@ if (isset($_SESSION['user_id'])) {
                                 </div>
                             </div>
                         `;
-                        
                         userEl.addEventListener('click', () => {
-                            document.querySelectorAll('#search-results button').forEach(el => {
-                                el.classList.remove('active');
-                            });
-                            
+                            document.querySelectorAll('#search-results button').forEach(el => el.classList.remove('active'));
                             userEl.classList.add('active');
-                            
                             selectedRecipient = {
                                 entity_type: user.entity_type,
                                 entity_id: user.entity_id,
                                 name: user.name,
                                 picture: user.picture
                             };
-                            
                             document.getElementById('start-conversation').disabled = false;
                         });
-                        
                         resultsContainer.appendChild(userEl);
                     });
                 } else {
                     resultsContainer.innerHTML = '<div class="list-group-item text-muted text-center">No users found</div>';
                 }
-            });
+            } catch (error) {
+                console.error('Error searching users:', error);
+                resultsContainer.innerHTML = '<div class="list-group-item text-muted text-center">Error searching users</div>';
+                showToast('Error searching users');
+            }
         });
 
         document.getElementById('start-conversation').addEventListener('click', () => {
             if (!selectedRecipient) return;
-            
             newMessageModal.hide();
             document.getElementById('search-results').innerHTML = '';
             document.getElementById('recipient-search').value = '';
             document.getElementById('start-conversation').disabled = true;
-            
+
             currentThreadId = null;
             currentParticipant = {
                 entity_type: selectedRecipient.entity_type,
                 entity_id: selectedRecipient.entity_id
             };
-            
+
             document.getElementById('empty-chat-state').classList.add('d-none');
             document.getElementById('message-list').classList.remove('d-none');
             document.getElementById('message-input-container').classList.remove('d-none');
+            document.getElementById('video-call-btn').classList.remove('d-none');
             document.getElementById('chat-with-name').textContent = selectedRecipient.name;
-            
+
             const chatAvatar = document.getElementById('chat-avatar');
             chatAvatar.innerHTML = '';
             if (selectedRecipient.picture) {
@@ -1251,53 +1802,68 @@ if (isset($_SESSION['user_id'])) {
                 img.alt = selectedRecipient.name;
                 chatAvatar.appendChild(img);
             } else {
-                let iconContainer = chatAvatar.querySelector('div');
-                if (!iconContainer) {
-                    iconContainer = document.createElement('div');
-                    chatAvatar.appendChild(iconContainer);
-                }
                 const icon = document.createElement('i');
-                icon.className = 'bi bi-person-fill text-white';
-                iconContainer.appendChild(icon);
+                icon.className = 'bi bi-person-fill text-muted';
+                chatAvatar.appendChild(icon);
             }
-            
+
             document.getElementById('message-list').innerHTML = `
                 <div class="text-center py-5">
                     <p class="text-muted">Start a new conversation with ${selectedRecipient.name}</p>
                 </div>
             `;
             document.getElementById('message-content').focus();
-            
+
             if (window.innerWidth <= 768) {
                 document.querySelector('.sidebar').style.display = 'none';
                 document.getElementById('chat-area').classList.add('active');
             }
-            
+
             selectedRecipient = null;
         });
 
         document.getElementById('back-to-inbox').addEventListener('click', () => {
             document.querySelector('.sidebar-nav').style.display = 'flex';
             document.getElementById('chat-area').classList.remove('active');
+            endCall();
         });
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            await fetchCurrentActorId();
+            await loadIceServers();
             loadThreads();
-            
-            const userChannel = pusher.subscribe('user_' + currentUser.entity_id);
-            userChannel.bind('update', function(data) {
+
+            const userChannel = pusher.subscribe('user_' + currentActorId);
+            userChannel.bind('pusher:subscription_succeeded', () => {
+                console.log(`Subscribed to user_${currentActorId}`);
+            });
+            userChannel.bind('update', (data) => {
+                console.log(`User channel event [update]:`, data);
                 if (data.type === 'message') {
                     loadThreads();
+                } else if (data.type === 'video_call_response') {
+                    handleVideoCallResponse(data);
+                } else if (data.type === 'incoming_video_call') {
+                    handleVideoCall({
+                        call_id: data.call_id,
+                        thread_id: data.thread_id,
+                        caller_id: data.caller_id,
+                        caller_name: data.caller_name
+                    });
+                } else if (data.type === 'signaling_message') {
+                    handleSignalingMessage({
+                        call_id: data.call_id,
+                        type: data.signal_type || data.type,
+                        data: data.data
+                    });
                 }
             });
 
             const urlParams = new URLSearchParams(window.location.search);
             const threadId = urlParams.get('thread_id');
-            if (threadId) {
-                openThread(threadId);
-            }
-            
-            document.getElementById('message-content').addEventListener('focus', function() {
+            if (threadId) openThread(threadId);
+
+            document.getElementById('message-content').addEventListener('focus', () => {
                 const messageList = document.getElementById('message-list');
                 messageList.scrollTop = messageList.scrollHeight;
             });
@@ -1311,13 +1877,8 @@ if (isset($_SESSION['user_id'])) {
         });
 
         window.addEventListener('beforeunload', () => {
-            Object.keys(subscribedChannels).forEach(channel => {
-                pusher.unsubscribe(channel);
-            });
-        });
-
-        pusher.connection.bind('error', (err) => {
-            console.error('Pusher error:', err);
+            Object.keys(subscribedChannels).forEach(channel => pusher.unsubscribe(channel));
+            endCall();
         });
     </script>
 </body>

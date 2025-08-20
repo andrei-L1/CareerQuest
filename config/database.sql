@@ -392,3 +392,16 @@ CREATE TABLE IF NOT EXISTS post_like (
     FOREIGN KEY (actor_id) REFERENCES actor(actor_id) ON DELETE CASCADE,
     UNIQUE KEY (post_id, actor_id)
 );
+
+CREATE TABLE IF NOT EXISTS video_calls (
+    call_id INT AUTO_INCREMENT PRIMARY KEY,
+    thread_id INT NOT NULL,
+    initiator_actor_id INT NOT NULL,
+    receiver_actor_id INT NOT NULL,
+    status ENUM('initiated', 'accepted', 'rejected', 'ended') DEFAULT 'initiated',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ended_at TIMESTAMP NULL,
+    FOREIGN KEY (thread_id) REFERENCES thread(thread_id),
+    FOREIGN KEY (initiator_actor_id) REFERENCES actor(actor_id),
+    FOREIGN KEY (receiver_actor_id) REFERENCES actor(actor_id)
+);
