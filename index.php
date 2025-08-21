@@ -171,7 +171,7 @@ function formatSalary($min_salary, $max_salary, $salary_type, $salary_disclosure
 
         /* Hero Section */
         .hero-section {
-            background: var(--gradient-primary);
+            background: #f2f2f1;
             position: relative;
             color: white;
             padding: 120px 0 100px;
@@ -207,12 +207,14 @@ function formatSalary($min_salary, $max_salary, $salary_type, $salary_disclosure
             font-weight: 800;
             line-height: 1.2;
             text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            color: #0A2647;
         }
 
         .hero-subtitle {
             font-size: 1.5rem;
             opacity: 0.9;
             margin-bottom: 2rem;
+            color: #0a264773;
         }
 
         /* Buttons */
@@ -277,6 +279,16 @@ function formatSalary($min_salary, $max_salary, $salary_type, $salary_disclosure
             background: white;
             color: var(--primary-color);
         }
+        .btn-outline-dark {
+            color: #212529;        
+            border-color: #212529;  
+        }
+
+        .btn-outline-dark:hover {
+            background-color: #212529; 
+            color: #fff;             
+        }
+
 
         /* Cards */
         .card {
@@ -586,7 +598,7 @@ function formatSalary($min_salary, $max_salary, $salary_type, $salary_disclosure
                         <a href="#" class="btn btn-accent btn-lg" data-bs-toggle="modal" data-bs-target="#signupModal">
                             Get Started <i class="fas fa-arrow-right ms-2"></i>
                         </a>
-                        <a href="#" class="btn btn-outline-light btn-lg">
+                        <a href="#" class="btn btn-outline-dark btn-lg">
                             Explore Jobs <i class="fas fa-search ms-2"></i>
                         </a>
                     </div>
