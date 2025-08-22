@@ -1698,13 +1698,28 @@ if (isset($_SESSION['user_id'])) {
             currentCallId = null;
         });
 
-        document.getElementById('send-button').addEventListener('click', sendMessage);
+        let isProcessing = false;
+
+        document.getElementById('send-button').addEventListener('click', handleSendMessage);
         document.getElementById('message-content').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
+            if (e.key === 'Enter' && !e.shiftKey && !isProcessing) {
                 e.preventDefault();
-                sendMessage();
+                handleSendMessage();
             }
         });
+
+        function handleSendMessage() {
+            if (isProcessing) return;
+            isProcessing = true;
+            const button = document.getElementById('send-button');
+            button.disabled = true;
+
+            sendMessage()
+                .finally(() => {
+                    isProcessing = false;
+                    button.disabled = false;
+                });
+        }
         document.getElementById('message-content').addEventListener('input', function() {
             this.style.height = 'auto';
             this.style.height = (this.scrollHeight) + 'px';
