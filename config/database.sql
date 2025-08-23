@@ -398,9 +398,11 @@ CREATE TABLE IF NOT EXISTS video_calls (
     thread_id INT NOT NULL,
     initiator_actor_id INT NOT NULL,
     receiver_actor_id INT NOT NULL,
-    status ENUM('initiated', 'accepted', 'rejected', 'ended') DEFAULT 'initiated',
+    status ENUM('initiated', 'accepted', 'rejected', 'ended') NOT NULL,
+    offer_sdp TEXT,
+    answer_sdp TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    ended_at TIMESTAMP NULL,
+    ended_at TIMESTAMP,
     FOREIGN KEY (thread_id) REFERENCES thread(thread_id),
     FOREIGN KEY (initiator_actor_id) REFERENCES actor(actor_id),
     FOREIGN KEY (receiver_actor_id) REFERENCES actor(actor_id)
