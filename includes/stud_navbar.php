@@ -84,8 +84,8 @@ if ($studentData) {
 
 // Profile picture handling
 $profilePicture = $studentData['profile_picture'] ?? '';
-if (!empty($profilePicture) && file_exists('../uploads/' . $profilePicture)) {
-    $profile_pic = '../uploads/' . $profilePicture;
+if (!empty($profilePicture) && file_exists('../Uploads/' . $profilePicture)) {
+    $profile_pic = '../Uploads/' . $profilePicture;
 }
  else {
     $name = trim(($studentData['stud_first_name'] ?? '') . ' ' . ($studentData['stud_last_name'] ?? ''));
@@ -117,7 +117,7 @@ $lastName = htmlspecialchars($studentData['stud_last_name'] ?? '');
 $resumeFile = $studentData['resume_file'] ?? '';
 
 // Define the base directory for uploads
-$uploadsDir = '../uploads/';
+$uploadsDir = '../Uploads/';
 
 // Check if the resume file exists
 if (!empty($resumeFile) && file_exists($uploadsDir . $resumeFile)) {

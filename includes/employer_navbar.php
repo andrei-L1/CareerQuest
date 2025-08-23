@@ -75,8 +75,8 @@ if ($employerData) {
 
 // Profile picture handling
 $profilePicture = $employerData['picture_file'] ?? '';
-if (!empty($profilePicture) && file_exists('../uploads/' . $profilePicture)) {
-    $profile_pic = '../uploads/' . $profilePicture;
+if (!empty($profilePicture) && file_exists('../Uploads/' . $profilePicture)) {
+    $profile_pic = '../Uploads/' . $profilePicture;
 } else {
     $name = trim(($employerData['user_first_name'] ?? '') . ' ' . ($employerData['user_last_name'] ?? ''));
     $profile_pic = 'https://ui-avatars.com/api/?name=' . urlencode($name ?: 'Employer') . '&background=457B9D&color=fff&rounded=true&size=128';
@@ -111,7 +111,7 @@ $jobTitle = $employerData['job_title'] ?? '';
 $resumeFile = $employerData['resume_file'] ?? '';
 
 // Define the base directory for uploads
-$uploadsDir = '../uploads/';
+$uploadsDir = '../Uploads/';
 
 // Check if the resume file exists
 if (!empty($resumeFile) && file_exists($uploadsDir . $resumeFile)) {

@@ -418,7 +418,7 @@ if ($completion_percentage < 100 && !isset($_SESSION['profile_modal_shown'])) {
             <div class="profile-card p-4 fade-in">
                 <div class="d-flex align-items-center">
                     <div class="profile-img-container me-3">
-                        <img src="../uploads/<?= $profile_picture ?>" alt="Profile Picture" class="profile-img">
+                        <img src="../Uploads/<?= $profile_picture ?>" alt="Profile Picture" class="profile-img">
                         <div class="profile-status"></div>
                     </div>
                     <div>

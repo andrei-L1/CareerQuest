@@ -1776,7 +1776,7 @@ require '../controllers/update_due_interviews.php';
                 return;
             }
 
-            const resumePath = `../uploads/${resumeFile}`;
+            const resumePath = `../Uploads/${resumeFile}`;
             window.open(resumePath, '_blank');
         }
 

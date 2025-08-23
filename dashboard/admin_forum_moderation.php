@@ -15,7 +15,7 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 
 // Define constants
-const UPLOADS_DIR = '../uploads/';
+const UPLOADS_DIR = '../Uploads/';
 const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
 
 

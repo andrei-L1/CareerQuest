@@ -533,7 +533,7 @@ include '../includes/stud_navbar.php';
                     
                     <div class="action-buttons">
                         <?php if (!empty($student['resume_file'])): ?>
-                        <a href="../uploads/<?php echo htmlspecialchars($student['resume_file']); ?>" 
+                        <a href="../Uploads/<?php echo htmlspecialchars($student['resume_file']); ?>" 
                            class="btn btn-light btn-sm" 
                            download>
                             <i class="fas fa-download me-1"></i> Download Resume

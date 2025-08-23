@@ -108,7 +108,7 @@ try {
 }
 
 // Determine Profile Picture URL
-$profilePicPath = "../uploads/" . ($student['profile_picture'] ?? '');
+$profilePicPath = "../Uploads/" . ($student['profile_picture'] ?? '');
 if (!empty($student['profile_picture']) && file_exists($profilePicPath)) {
     $profile_pic = htmlspecialchars($profilePicPath) . "?t=" . time(); // Forces refresh
 } else {

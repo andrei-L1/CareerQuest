@@ -452,7 +452,7 @@ if ($completion_percentage < 100 && !isset($_SESSION['profile_modal_shown'])) {
             <div class="profile-card p-4 fade-in">
                 <div class="d-flex align-items-center">
                     <div class="profile-img-container me-3">
-                        <img src="../uploads/<?= $profile_picture ?>" alt="Profile Picture" class="profile-img">
+                        <img src="../Uploads/<?= $profile_picture ?>" alt="Profile Picture" class="profile-img">
                         <div class="profile-status"></div>
                     </div>
                     <div>
@@ -604,7 +604,7 @@ if ($completion_percentage < 100 && !isset($_SESSION['profile_modal_shown'])) {
                                     <div class="d-flex align-items-center" style="width: 100%;"> 
                                         <div class="profile-img-container me-3" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; background-color: #e0e0e0; border-radius: 50%;">
                                             <?php if (!empty($applicant['profile_picture'])): ?>
-                                                <img src="../uploads/<?= $applicant['profile_picture'] ?>" alt="" class="profile-img" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                                                <img src="../Uploads/<?= $applicant['profile_picture'] ?>" alt="" class="profile-img" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
                                             <?php else: ?>
                                                 <i class="fas fa-user" style="font-size: 24px; color: #777;"></i>
                                             <?php endif; ?>

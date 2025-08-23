@@ -653,7 +653,7 @@ include '../includes/stud_navbar.php';
                                         </div>
                                         <?php if (!empty($student['resume_file'])): ?>
                                             <div class="mt-3">
-                                                <a href="../uploads/<?= htmlspecialchars($student['resume_file']) ?>" 
+                                                <a href="../Uploads/<?= htmlspecialchars($student['resume_file']) ?>" 
                                                    class="btn btn-sm btn-outline-primary" download>
                                                     <i class="fas fa-download me-1"></i> Download Current Resume
                                                 </a>

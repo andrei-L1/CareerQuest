@@ -11,7 +11,7 @@ if (!isset($_SESSION['stud_id'])) {
 }
 
 $stud_id = $_SESSION['stud_id'];
-$targetDir = "../uploads/";
+$targetDir = "../Uploads/";
 
 // Create upload directory if it doesn't exist
 if (!is_dir($targetDir)) {
