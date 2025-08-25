@@ -350,11 +350,12 @@ $company_logo = !empty($employer['company_logo']) ? '../Uploads/' . $employer['c
                                 <i class="fas fa-user-circle me-2 text-primary"></i>
                                 <a href="employer_profile.php" class="text-decoration-none">View Profile</a>
                             </li>
+                            <!-- 
                             <li class="list-group-item d-flex align-items-center">
                                 <i class="fas fa-lock me-2 text-primary"></i>
                                 <a href="#security" class="text-decoration-none">Change Password</a>
                             </li>
-                            <!-- Removed Notification Settings link as the section is not supported by the database -->
+                            Removed Notification Settings link as the section is not supported by the database -->
                         </ul>
                     </div>
                 </div>
@@ -408,11 +409,6 @@ $company_logo = !empty($employer['company_logo']) ? '../Uploads/' . $employer['c
                                         <input type="tel" id="contact_number" class="form-control auto-save" name="contact_number" autocomplete="tel" value="<?php echo htmlspecialchars($employer['contact_number'] ?? ''); ?>">
                                     </div>
                                 </div>
-                                <div class="d-flex justify-content-end mt-4">
-                                    <button type="submit" class="btn btn-primary px-4">
-                                        <i class="fas fa-save me-2"></i> Save Changes
-                                    </button>
-                                </div>
                             </div>
                             <!-- Company Details Section -->
                             <div class="form-section animate__animated animate__fadeIn">
@@ -446,7 +442,12 @@ $company_logo = !empty($employer['company_logo']) ? '../Uploads/' . $employer['c
                                     </div>
                                 </div>
                             </div>
-                            <!-- Security Section -->
+                            <div class="d-flex justify-content-end mt-4">
+                                <button type="submit" class="btn btn-primary px-4">
+                                    <i class="fas fa-save me-2"></i> Save Changes
+                                </button>
+                            </div>
+                            <!-- Security Section
                             <div class="form-section animate__animated animate__fadeIn" id="security">
                                 <h5><i class="fas fa-shield-alt me-2"></i> Security</h5>
                                 <div class="row g-3 mt-3">
@@ -457,8 +458,8 @@ $company_logo = !empty($employer['company_logo']) ? '../Uploads/' . $employer['c
                                     </div>
                                 </div>
                             </div>
-                            <!-- Removed Notification Preferences Section as it lacks database support -->
-                            <!-- Danger Zone Section -->
+                            Removed Notification Preferences Section as it lacks database support 
+                            Danger Zone Section 
                             <div class="form-section animate__animated animate__fadeIn danger-zone" id="danger">
                                 <h5><i class="fas fa-exclamation-triangle me-2"></i> Danger Zone</h5>
                                 <div class="row g-3 mt-3">
@@ -469,6 +470,7 @@ $company_logo = !empty($employer['company_logo']) ? '../Uploads/' . $employer['c
                                     </div>
                                 </div>
                             </div>
+                            -->
                         </form>
                     </div>
                 </div>
