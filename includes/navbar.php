@@ -58,7 +58,7 @@
                     </a>
                 </li>
 
-                <li><a class="dropdown-item d-flex align-items-center py-2 px-3" href="<?php echo $basePath; ?>more/contact.php"> Contact</a></li>
+                <li class="nav-item position-relative mx-lg-1"><a class="nav-link px-3 py-2" href="<?php echo $basePath; ?>more/contact.php"> Contact</a></li>
                 <!-- Resources Dropdown 
                 <li class="nav-item dropdown mx-lg-1">
                     <a class="nav-link dropdown-toggle px-3 py-2" href="#" id="resourcesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
