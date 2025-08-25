@@ -4,7 +4,6 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-
 // Check if both user_id and stud_id are not set simultaneously
 if (isset($_SESSION['user_id']) && isset($_SESSION['stud_id'])) {
     echo "Error: Both user and student IDs are set. Only one should be set.";
@@ -68,7 +67,6 @@ function getUnreadMessageCount($conn, $studentId) {
     return 0; // No unread messages if no actor_id found
 }
 
-
 // Get student ID from session
 $studentId = $_SESSION['stud_id'];
 
@@ -86,8 +84,7 @@ if ($studentData) {
 $profilePicture = $studentData['profile_picture'] ?? '';
 if (!empty($profilePicture) && file_exists('../Uploads/' . $profilePicture)) {
     $profile_pic = '../Uploads/' . $profilePicture;
-}
- else {
+} else {
     $name = trim(($studentData['stud_first_name'] ?? '') . ' ' . ($studentData['stud_last_name'] ?? ''));
     $profile_pic = 'https://ui-avatars.com/api/?name=' . urlencode($name ?: 'Student') . '&background=457B9D&color=fff&rounded=true&size=128';
 }
@@ -113,7 +110,6 @@ $nav_links = [
 $firstName = htmlspecialchars($studentData['stud_first_name'] ?? 'Student');
 $lastName = htmlspecialchars($studentData['stud_last_name'] ?? '');
 
-
 $resumeFile = $studentData['resume_file'] ?? '';
 
 // Define the base directory for uploads
@@ -126,7 +122,6 @@ if (!empty($resumeFile) && file_exists($uploadsDir . $resumeFile)) {
     $resumeLink = ''; // No resume available
 }
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -239,128 +234,98 @@ if (!empty($resumeFile) && file_exists($uploadsDir . $resumeFile)) {
             border-top: 8px solid var(--primary-color);
         }
 
-        .dropdown-menu {
-            border: none;
-            box-shadow: var(--box-shadow);
-            border-radius: var(--border-radius);
-            padding: 0.5rem;
-            margin-top: 0.8rem;
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            animation: fadeIn 0.2s ease-in-out;
-            min-width: 220px;
+        /* Custom dropdown styles */
+        .custom-dropdown {
+            position: relative;
+            display: inline-block;
         }
-
+        
+        .custom-dropdown-toggle {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .custom-dropdown-menu {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            z-index: 1000;
+            display: none;
+            min-width: 220px;
+            padding: 0.5rem;
+            margin: 0.125rem 0 0;
+            font-size: 0.9rem;
+            color: #212529;
+            text-align: left;
+            list-style: none;
+            background-color: #fff;
+            background-clip: padding-box;
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            animation: fadeIn 0.2s ease-in-out;
+        }
+        
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
-        .dropdown-item {
-            border-radius: 6px;
+        
+        .custom-dropdown-menu.show {
+            display: block;
+        }
+        
+        .custom-dropdown-item {
+            display: block;
+            width: 100%;
             padding: 0.65rem 1rem;
+            clear: both;
+            font-weight: 400;
+            color: #212529;
+            text-align: inherit;
+            text-decoration: none;
+            white-space: nowrap;
+            background-color: transparent;
+            border: 0;
+            border-radius: 6px;
             transition: all var(--transition-speed) ease;
             display: flex;
             align-items: center;
-            font-size: 0.9rem;
         }
-
-        .dropdown-item i {
+        
+        .custom-dropdown-item i {
             width: 20px;
             text-align: center;
             margin-right: 12px;
             color: var(--secondary-color);
         }
-
-        .dropdown-item:hover {
+        
+        .custom-dropdown-item:hover {
             background-color: var(--hover-color);
             color: var(--secondary-color);
             transform: translateX(3px);
         }
-
-        .dropdown-header {
-            font-weight: 600;
-            color: var(--primary-color);
-            font-size: 0.85rem;
+        
+        .custom-dropdown-divider {
+            height: 0;
+            margin: 0.5rem 0;
+            overflow: hidden;
+            border-top: 1px solid rgba(0, 0, 0, 0.15);
+        }
+        
+        .custom-dropdown-header {
+            display: block;
             padding: 0.5rem 1rem;
+            margin-bottom: 0;
+            font-size: 0.85rem;
+            color: var(--primary-color);
+            white-space: nowrap;
+            font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-        }
-
-        .logout-btn {
-            background: linear-gradient(135deg, var(--danger-color), #C53030);
-            color: white !important;
-            border-radius: var(--border-radius);
-            padding: 0.6rem 1.5rem !important;
-            font-weight: 500;
-            transition: all var(--transition-speed) ease;
-            display: flex;
-            align-items: center;
-            box-shadow: 0 4px 10px rgba(229, 62, 62, 0.25);
-            margin-left: 1rem;
-            border: none;
-        }
-
-        .logout-btn i {
-            margin-right: 8px;
-            color: white !important;
-        }
-
-        .logout-btn:hover {
-            background: linear-gradient(135deg, #C53030, var(--danger-color));
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(229, 62, 62, 0.35);
-            color: white !important;
-        }
-
-        .navbar-toggler {
-            border: none;
-            padding: 0.5rem;
-        }
-
-        .navbar-toggler:focus {
-            box-shadow: none;
-        }
-
-        .navbar-toggler-icon {
-            background-image: none;
-            height: 2px;
-            width: 24px;
-            position: relative;
-            transition: all var(--transition-speed) ease;
-            background-color: var(--primary-color);
-        }
-
-        .navbar-toggler-icon:before,
-        .navbar-toggler-icon:after {
-            content: '';
-            position: absolute;
-            height: 2px;
-            width: 24px;
-            background-color: var(--primary-color);
-            left: 0;
-            transition: all var(--transition-speed) ease;
-        }
-
-        .navbar-toggler-icon:before {
-            top: -8px;
-        }
-
-        .navbar-toggler-icon:after {
-            top: 8px;
-        }
-
-        .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon {
-            background-color: transparent;
-        }
-
-        .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon:before {
-            transform: rotate(45deg);
-            top: 0;
-        }
-
-        .navbar-toggler[aria-expanded="true"] .navbar-toggler-icon:after {
-            transform: rotate(-45deg);
-            top: 0;
         }
 
         /* Notification badge */
@@ -446,22 +411,15 @@ if (!empty($resumeFile) && file_exists($uploadsDir . $resumeFile)) {
                 display: none;
             }
             
-            .logout-btn {
-                margin-top: 0.5rem;
-                width: calc(100% - 3rem);
-                justify-content: center;
-                margin-left: 1.5rem;
-                margin-bottom: 0.5rem;
-            }
-
-            .dropdown-menu {
+            .custom-dropdown-menu {
+                position: static;
+                float: none;
+                width: auto;
                 margin-top: 0;
-                box-shadow: none;
-                border: none;
-                animation: none;
-                position: static !important;
-                transform: none !important;
                 background-color: var(--light-bg);
+                border: none;
+                box-shadow: none;
+                animation: none;
             }
         }
 
@@ -481,6 +439,27 @@ if (!empty($resumeFile) && file_exists($uploadsDir . $resumeFile)) {
         .has-notifications i {
             animation: ring 0.5s ease-in-out;
         }
+
+        .custom-dropdown-toggle::after {
+            content: '';
+            display: inline-block;
+            margin-left: 8px;
+            vertical-align: middle;
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 5px solid var(--text-dark);
+            transition: all var(--transition-speed) ease;
+        }
+        
+        .custom-dropdown-toggle:hover::after {
+            border-top-color: var(--secondary-color);
+        }
+        
+        .custom-dropdown-menu.show + .custom-dropdown-toggle::after {
+            transform: rotate(180deg);
+        }
     </style>
 </head>
 <body>
@@ -496,9 +475,9 @@ if (!empty($resumeFile) && file_exists($uploadsDir . $resumeFile)) {
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav mx-auto mb-2 mb-lg-0"> <!-- Centered navigation -->
+            <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
                 <?php foreach ($nav_links as $name => $url): ?>
-                    <li class="nav-item mx-1"> <!-- Added horizontal spacing -->
+                    <li class="nav-item mx-1">
                         <a class="nav-link position-relative px-3 py-2 <?= ($currentPage == basename($url)) ? 'active' : '' ?> <?= ($name === 'Notifications' && $notification_count > 0) ? 'has-notifications' : '' ?>" href="<?= $url; ?>">
                             <span><?= $name; ?></span>
                             <?php if ($name === "Notifications" && $notification_count > 0): ?>
@@ -506,44 +485,41 @@ if (!empty($resumeFile) && file_exists($uploadsDir . $resumeFile)) {
                                     <?= $notification_count ?>
                                 </span>
                             <?php endif; ?>
-
                             <?php if ($name === "Messages" && $message_count > 0): ?>
                                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                                     <?= $message_count ?>
                                 </span>
                             <?php endif; ?>
-
                             <?php if ($name === "Forum"): ?>
-                              <!--  <span class="badge bg-primary ms-1">New</span> -->
+                                <!-- <span class="badge bg-primary ms-1">New</span> -->
                             <?php endif; ?>
                         </a>
                     </li>
                 <?php endforeach; ?>
             </ul>
 
-            <!-- User dropdown moved to the right -->
             <div class="d-flex align-items-center">
-                <div class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <div class="custom-dropdown">
+                    <a class="custom-dropdown-toggle nav-link d-flex align-items-center" id="userDropdown" href="#">
                         <div class="position-relative me-2">
                             <img src="<?= $profile_pic ?>" class="rounded-circle" width="36" height="36" alt="Profile">
                             <span class="position-absolute bottom-0 end-0 p-1 bg-success border border-light rounded-circle"></span>
                         </div>
                         <span class="d-none d-lg-inline"><?= $_SESSION['stud_first_name'] ?? 'Student' ?></span>
                     </a>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><h6 class="dropdown-header"><?= htmlspecialchars($firstName . ' ' . $lastName) ?></h6></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="../dashboard/student_profile.php">My Profile</a></li>
+                    <ul class="custom-dropdown-menu" id="userDropdownMenu">
+                        <li><h6 class="custom-dropdown-header"><?= htmlspecialchars($firstName . ' ' . $lastName) ?></h6></li>
+                        <li><hr class="custom-dropdown-divider"></li>
+                        <li><a class="custom-dropdown-item" href="../dashboard/student_profile.php"><i class="bi bi-person"></i> My Profile</a></li>
                         <?php if ($resumeLink): ?>
-                            <li><a class="dropdown-item" href="<?= $resumeLink ?>" target="_blank">My Resume</a></li>
+                            <li><a class="custom-dropdown-item" href="<?= $resumeLink ?>" target="_blank"><i class="bi bi-file-earmark-text"></i> My Resume</a></li>
                         <?php else: ?>
-                            <li><a class="dropdown-item" href="javascript:void(0);">No Resume Uploaded</a></li>
+                            <li><a class="custom-dropdown-item" href="javascript:void(0);"><i class="bi bi-file-earmark-text"></i> No Resume Uploaded</a></li>
                         <?php endif; ?>
-                        <li><a class="dropdown-item" href="../dashboard/student_account_settings.php">Account Settings</a></li>
-                        <li><a  class="dropdown-item" href="student_saved_jobs.php">Saved Jobs</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" href="../auth/logout.php">Logout</a></li>
+                        <li><a class="custom-dropdown-item" href="../dashboard/student_account_settings.php"><i class="bi bi-gear"></i> Account Settings</a></li>
+                        <li><a class="custom-dropdown-item" href="student_saved_jobs.php"><i class="bi bi-bookmark"></i> Saved Jobs</a></li>
+                        <li><hr class="custom-dropdown-divider"></li>
+                        <li><a class="custom-dropdown-item text-danger" href="../auth/logout.php"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
                     </ul>
                 </div>
             </div>
@@ -551,73 +527,62 @@ if (!empty($resumeFile) && file_exists($uploadsDir . $resumeFile)) {
     </div>
 </nav>
 
-<!-- Keep this ONLY -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    // Initialize all dropdown functionality
     document.addEventListener('DOMContentLoaded', function() {
-        // Handle dropdown toggle
-        const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
+        const dropdownToggle = document.querySelector('.custom-dropdown-toggle');
+        const dropdownMenu = document.querySelector('.custom-dropdown-menu');
         
-        dropdownToggles.forEach(toggle => {
-            toggle.addEventListener('click', function(e) {
+        if (dropdownToggle && dropdownMenu) {
+            dropdownToggle.addEventListener('click', function(e) {
                 e.preventDefault();
-                const dropdownMenu = this.nextElementSibling;
+                e.stopPropagation();
                 
-                // Close all other open dropdowns first
-                document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+                document.querySelectorAll('.custom-dropdown-menu.show').forEach(menu => {
                     if (menu !== dropdownMenu) {
                         menu.classList.remove('show');
                     }
                 });
                 
-                // Toggle current dropdown
                 dropdownMenu.classList.toggle('show');
-                
-                // Update aria-expanded attribute
-                const isExpanded = this.getAttribute('aria-expanded') === 'true';
-                this.setAttribute('aria-expanded', !isExpanded);
+            });
+            
+            document.addEventListener('click', function(e) {
+                if (!dropdownToggle.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                    dropdownMenu.classList.remove('show');
+                }
+            });
+        }
+        
+        document.querySelectorAll('.custom-dropdown-item').forEach(item => {
+            item.addEventListener('click', function() {
+                dropdownMenu.classList.remove('show');
             });
         });
 
-        // Close dropdowns when clicking outside
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.dropdown')) {
-                document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
-                    menu.classList.remove('show');
-                });
-                document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
-                    toggle.setAttribute('aria-expanded', 'false');
-                });
-            }
-        });
-
-        // Scroll effect for navbar
         window.addEventListener('scroll', function() {
             const navbar = document.querySelector('.navbar');
             navbar.classList.toggle('scrolled', window.scrollY > 10);
         });
 
-        // Animation for notification bell if there are unread notifications
         <?php if ($notification_count > 0): ?>
         const notificationBell = document.querySelector('.has-notifications i');
-        setInterval(() => {
-            notificationBell.style.animation = 'none';
-            setTimeout(() => {
-                notificationBell.style.animation = 'ring 0.5s ease-in-out';
-            }, 50);
-        }, 8000);
+        if (notificationBell) {
+            setInterval(() => {
+                notificationBell.style.animation = 'none';
+                setTimeout(() => {
+                    notificationBell.style.animation = 'ring 0.5s ease-in-out';
+                }, 50);
+            }, 8000);
+        }
         <?php endif; ?>
     });
 </script>
 
-
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-// Custom logout confirmation
 document.addEventListener('DOMContentLoaded', function() {
-    // Find all logout links/buttons
     const logoutLinks = document.querySelectorAll('[href="../auth/logout.php"], .logout-btn');
     
     logoutLinks.forEach(link => {
@@ -629,7 +594,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 text: 'Are you sure you want to log out?',
                 icon: 'question',
                 showCancelButton: true,
-                confirmButtonColor: '#1A4D8F;', 
+                confirmButtonColor: '#1A4D8F', 
                 cancelButtonColor: '#6c757d', 
                 confirmButtonText: 'Yes, Logout',
                 cancelButtonText: 'Cancel',
@@ -657,6 +622,5 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-
 </body>
 </html>

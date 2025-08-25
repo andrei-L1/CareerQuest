@@ -21,7 +21,8 @@ include '../includes/stud_navbar.php';
         :root {
             --primary-color: #4361ee;
             --primary-light: #e0e7ff;
-            --secondary-color: #f8f9fa;
+            --background-color: #f8f9fa;
+            --secondary-color: #3A7BD5;
             --dark-color: #1e293b;
             --text-color: #334155;
             --light-text: #64748b;
@@ -35,7 +36,7 @@ include '../includes/stud_navbar.php';
         }
         
         body {
-            background-color: var(--secondary-color);
+            background-color: var(--background-color);
             color: var(--text-color);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             line-height: 1.6;
