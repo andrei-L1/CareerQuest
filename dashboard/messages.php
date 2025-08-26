@@ -1750,21 +1750,19 @@ if (isset($_SESSION['user_id'])) {
                 if (data.status === 'success' && data.users.length > 0) {
                     data.users.forEach(user => {
                         const userEl = document.createElement('button');
-                        userEl.className = 'list-group-item list-group-item-action';
+                        userEl.className = 'list-group-item list-group-item-action d-flex align-items-center';
                         userEl.type = 'button';
                         userEl.innerHTML = `
-                            <div class="d-flex align-items-center">
-                                <div class="user-avatar me-3">
-                                    ${user.picture ? 
-                                        `<img src="../Uploads/${user.picture}" alt="${user.name}">` : 
-                                        `<div class="bg-secondary d-flex align-items-center justify-content-center h-100">
-                                            <i class="bi bi-person-fill text-white"></i>
-                                        </div>`}
-                                </div>
-                                <div>
-                                    <div class="fw-bold">${user.name}</div>
-                                    <small class="text-muted">${user.role}</small>
-                                </div>
+                            <div class="user-avatar me-3">
+                                ${user.picture ? 
+                                    `<img src="../Uploads/${user.picture}" alt="${user.name}" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">` : 
+                                    `<div class="bg-secondary d-flex align-items-center justify-content-center rounded-circle" style="width: 40px; height: 40px;">
+                                        <i class="bi bi-person-fill text-white"></i>
+                                    </div>`}
+                            </div>
+                            <div>
+                                <div class="fw-bold">${user.name}</div>
+                                <small class="text-muted">${user.role}</small>
                             </div>
                         `;
                         userEl.addEventListener('click', () => {
@@ -1789,6 +1787,23 @@ if (isset($_SESSION['user_id'])) {
                 showToast('Error searching users');
             }
         });
+
+        // Add CSS for highlighting the selected user
+        const style = document.createElement('style');
+        style.textContent = `
+            .list-group-item-action.active {
+                background-color: #e7f1ff !important;
+                border-color: #b8daff !important;
+                color: #004085 !important;
+            }
+            .list-group-item-action:hover {
+                background-color: #f8f9fa !important;
+            }
+            .list-group-item-action.active .text-muted {
+                color: #004085 !important;
+            }
+        `;
+        document.head.appendChild(style);
 
         document.getElementById('start-conversation').addEventListener('click', () => {
             if (!selectedRecipient) return;
