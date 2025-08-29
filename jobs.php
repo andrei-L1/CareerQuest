@@ -64,7 +64,7 @@ function formatDate($dateString) {
     return $date->format('M j, Y');
 }
 
-function getTimeAgo($timestamp) {
+function getTimeAgo(string $timestamp) {
     $date = new DateTime($timestamp);
     $now = new DateTime();
     $interval = $now->diff($date);
@@ -720,9 +720,63 @@ function sanitize($text) {
                 flex-direction: column;
                 gap: 10px;
             }
+            .btn-apply {
+                background: var(--gradient-primary);
+                background-size: 200% auto;
+                color: white;
+                border: none;
+                padding: 5px 8px;
+                font-weight: 100;
+                flex-grow: 1;
+                box-shadow: 0 4px 15px rgba(10, 38, 71, 0.2);
+            }
 
             .jobsearch-container {
                 max-width: 100%;
+                padding: 10px;
+            }
+
+            .jobsearch-form {
+                flex-wrap: wrap;
+                height: auto;
+                padding: 8px;
+            }
+
+            .jobsearch-what-field {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .jobsearch-what-field::after {
+                display: none; /* Remove divider since location field is hidden */
+            }
+
+            .jobsearch-where-field {
+                display: none; /* Hide location field on mobile */
+            }
+
+            .jobsearch-submit-container {
+                flex: 0 0 auto;
+                padding: 8px;
+            }
+
+            .jobsearch-submit-btn {
+                width: 100%;
+                padding: 0 16px;
+                font-size: 14px;
+                height: 44px;
+            }
+
+            .jobsearch-input {
+                font-size: 12px;
+            }
+
+            .jobsearch-input::placeholder {
+                font-size: 14px;
+            }
+
+            #jobDetails {
+                display: none;
             }
         }
 
@@ -746,6 +800,37 @@ function sanitize($text) {
             width: 3rem;
             height: 3rem;
             color: var(--primary-color);
+        }
+
+        /* Modal-specific styles */
+        #jobDetailsModal .modal-content {
+            background: white;
+            border-radius: 0;
+            box-shadow: var(--card-shadow);
+        }
+
+        #jobDetailsModal .modal-body {
+            padding: 25px;
+            max-height: 100vh;
+            overflow-y: auto;
+        }
+
+        #jobDetailsModal .modal-body::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #jobDetailsModal .modal-body::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        #jobDetailsModal .modal-body::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 10px;
+        }
+
+        #jobDetailsModal .modal-body::-webkit-scrollbar-thumb:hover {
+            background: #aaa;
         }
     </style>
 </head>
@@ -890,7 +975,7 @@ function sanitize($text) {
                 </div>
             </div>
             
-            <!-- Job Details Column -->
+            <!-- Job Details Column (Desktop) -->
             <div class="col-lg-7">
                 <div id="jobDetails" class="job-details-container scrollable-container fade-in">
                     <?php if (empty($jobs)): ?>
@@ -935,116 +1020,133 @@ function sanitize($text) {
                 </div>
             </div>
         </div>
-            <!-- Login Modal -->
-    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header border-0 pb-0">
-                    <div class="w-100 text-center">
-                        <h3 class="modal-title fw-bold display-6" id="loginModalLabel">Welcome Back</h3>
-                        <p class="text-muted">Sign in to your account</p>
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row g-3">
-                        <!-- Student Login -->
-                        <div class="col-12">
-                            <a href="auth/login_student.php" class="card role-card h-100 text-decoration-none text-white" style="background: var(--gradient-primary);">
-                                <div class="card-body d-flex align-items-center gap-4 py-4">
-                                    <div class="icon-container bg-white bg-opacity-25 p-3 rounded-circle">
-                                        <i class="fas fa-user-graduate fa-2x"></i>
-                                    </div>
-                                    <div class="text-start">
-                                        <h4 class="mb-1">Applicant</h4>
-                                        <p class="opacity-75 mb-0">Access jobs and career resources</p>
-                                    </div>
-                                    <i class="fas fa-arrow-right ms-auto opacity-50"></i>
-                                </div>
-                            </a>
-                        </div>
 
-                        <!-- Employer Login -->
-                        <div class="col-12">
-                            <a href="auth/login_employer.php" class="card role-card h-100 text-decoration-none text-white" style="background: var(--gradient-secondary);">
-                                <div class="card-body d-flex align-items-center gap-4 py-4">
-                                    <div class="icon-container bg-white bg-opacity-25 p-3 rounded-circle">
-                                        <i class="fas fa-briefcase fa-2x"></i>
-                                    </div>
-                                    <div class="text-start">
-                                        <h4 class="mb-1">Employer</h4>
-                                        <p class="opacity-75 mb-0">Manage your job postings</p>
-                                    </div>
-                                    <i class="fas fa-arrow-right ms-auto opacity-50"></i>
-                                </div>
-                            </a>
-                        </div>
+        <!-- Job Details Modal (Mobile) -->
+        <div class="modal fade" id="jobDetailsModal" tabindex="-1" aria-labelledby="jobDetailsModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-fullscreen">
+                <div class="modal-content">
+                    <div class="modal-header border-0">
+                        <h5 class="modal-title" id="jobDetailsModalLabel">Job Details</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                </div>
-                <div class="modal-footer border-0 pt-0">
-                    <p class="text-muted small text-center w-100 mb-0">
-                        Don't have an account? 
-                        <a href="#" data-bs-toggle="modal" data-bs-target="#signupModal" class="text-decoration-none fw-bold">Sign Up</a>
-                    </p>
+                    <div class="modal-body" id="jobDetailsModalContent">
+                        <!-- Content will be populated by JavaScript -->
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+
+        <!-- Login Modal -->
+        <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg">
+                    <div class="modal-header border-0 pb-0">
+                        <div class="w-100 text-center">
+                            <h3 class="modal-title fw-bold display-6" id="loginModalLabel">Welcome Back</h3>
+                            <p class="text-muted">Sign in to your account</p>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <!-- Student Login -->
+                            <div class="col-12">
+                                <a href="auth/login_student.php" class="card role-card h-100 text-decoration-none text-white" style="background: var(--gradient-primary);">
+                                    <div class="card-body d-flex align-items-center gap-4 py-4">
+                                        <div class="icon-container bg-white bg-opacity-25 p-3 rounded-circle">
+                                            <i class="fas fa-user-graduate fa-2x"></i>
+                                        </div>
+                                        <div class="text-start">
+                                            <h4 class="mb-1">Applicant</h4>
+                                            <p class="opacity-75 mb-0">Access jobs and career resources</p>
+                                        </div>
+                                        <i class="fas fa-arrow-right ms-auto opacity-50"></i>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <!-- Employer Login -->
+                            <div class="col-12">
+                                <a href="auth/login_employer.php" class="card role-card h-100 text-decoration-none text-white" style="background: var(--gradient-secondary);">
+                                    <div class="card-body d-flex align-items-center gap-4 py-4">
+                                        <div class="icon-container bg-white bg-opacity-25 p-3 rounded-circle">
+                                            <i class="fas fa-briefcase fa-2x"></i>
+                                        </div>
+                                        <div class="text-start">
+                                            <h4 class="mb-1">Employer</h4>
+                                            <p class="opacity-75 mb-0">Manage your job postings</p>
+                                        </div>
+                                        <i class="fas fa-arrow-right ms-auto opacity-50"></i>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <p class="text-muted small text-center w-100 mb-0">
+                            Don't have an account? 
+                            <a href="#" data-bs-toggle="modal" data-bs-target="#signupModal" class="text-decoration-none fw-bold">Sign Up</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Role Selection Modal -->
-    <div class="modal fade" id="signupModal" tabindex="-1" aria-labelledby="roleSelectionModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header border-0 pb-0">
-                    <div class="w-100 text-center">
-                        <h3 class="modal-title fw-bold display-6" id="roleSelectionModalLabel">Join Career Quest</h3>
-                        <p class="text-muted">Select your role to get started</p>
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row g-3">
-                        <!-- Student Role -->
-                        <div class="col-12">
-                            <a href="views/register_student.php" class="card role-card h-100 text-decoration-none text-white" style="background: var(--gradient-primary);">
-                                <div class="card-body d-flex align-items-center gap-4 py-4">
-                                    <div class="icon-container bg-white bg-opacity-25 p-3 rounded-circle">
-                                        <i class="fas fa-user-graduate fa-2x"></i>
-                                    </div>
-                                    <div class="text-start">
-                                        <h4 class="mb-1">Applicant</h4>
-                                        <p class="opacity-75 mb-0">Find jobs, internships, and career guidance</p>
-                                    </div>
-                                    <i class="fas fa-arrow-right ms-auto opacity-50"></i>
-                                </div>
-                            </a>
+        <div class="modal fade" id="signupModal" tabindex="-1" aria-labelledby="roleSelectionModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg">
+                    <div class="modal-header border-0 pb-0">
+                        <div class="w-100 text-center">
+                            <h3 class="modal-title fw-bold display-6" id="roleSelectionModalLabel">Join Career Quest</h3>
+                            <p class="text-muted">Select your role to get started</p>
                         </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <!-- Student Role -->
+                            <div class="col-12">
+                                <a href="views/register_student.php" class="card role-card h-100 text-decoration-none text-white" style="background: var(--gradient-primary);">
+                                    <div class="card-body d-flex align-items-center gap-4 py-4">
+                                        <div class="icon-container bg-white bg-opacity-25 p-3 rounded-circle">
+                                            <i class="fas fa-user-graduate fa-2x"></i>
+                                        </div>
+                                        <div class="text-start">
+                                            <h4 class="mb-1">Applicant</h4>
+                                            <p class="opacity-75 mb-0">Find jobs, internships, and career guidance</p>
+                                        </div>
+                                        <i class="fas fa-arrow-right ms-auto opacity-50"></i>
+                                    </div>
+                                </a>
+                            </div>
 
-                        <!-- Employer Role -->
-                        <div class="col-12">
-                            <a href="views/register_employer.php" class="card role-card h-100 text-decoration-none text-white" style="background: var(--gradient-secondary);">
-                                <div class="card-body d-flex align-items-center gap-4 py-4">
-                                    <div class="icon-container bg-white bg-opacity-25 p-3 rounded-circle">
-                                        <i class="fas fa-briefcase fa-2x"></i>
+                            <!-- Employer Role -->
+                            <div class="col-12">
+                                <a href="views/register_employer.php" class="card role-card h-100 text-decoration-none text-white" style="background: var(--gradient-secondary);">
+                                    <div class="card-body d-flex align-items-center gap-4 py-4">
+                                        <div class="icon-container bg-white bg-opacity-25 p-3 rounded-circle">
+                                            <i class="fas fa-briefcase fa-2x"></i>
+                                        </div>
+                                        <div class="text-start">
+                                            <h4 class="mb-1">Employer</h4>
+                                            <p class="opacity-75 mb-0">Post jobs and find qualified candidates</p>
+                                        </div>
+                                        <i class="fas fa-arrow-right ms-auto opacity-50"></i>
                                     </div>
-                                    <div class="text-start">
-                                        <h4 class="mb-1">Employer</h4>
-                                        <p class="opacity-75 mb-0">Post jobs and find qualified candidates</p>
-                                    </div>
-                                    <i class="fas fa-arrow-right ms-auto opacity-50"></i>
-                                </div>
-                            </a>
+                                </a>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="modal-footer border-0 pt-0">
-                    <p class="text-muted small text-center w-100 mb-0">
-                        Already have an account? 
-                        <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal" class="text-decoration-none fw-bold">Sign In</a>
-                    </p>
+                    <div class="modal-footer border-0 pt-0">
+                        <p class="text-muted small text-center w-100 mb-0">
+                            Already have an account? 
+                            <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal" class="text-decoration-none fw-bold">Sign In</a>
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
     </div>
 
     <?php include 'includes/footer.php'; ?>
@@ -1136,8 +1238,7 @@ function sanitize($text) {
             const job = jobs.find(j => j.job_id == jobId);
             
             if (job) {
-                const detailsContainer = document.getElementById('jobDetails');
-                detailsContainer.innerHTML = `
+                const jobDetailsHTML = `
                     <div class="detail-header">
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="job-info flex-grow-1 pe-3" style="max-width: 70%;">
@@ -1168,6 +1269,19 @@ function sanitize($text) {
                         </div>
                     </div>
                 `;
+
+                // Update job details based on screen size
+                if (window.innerWidth <= 768) {
+                    // Mobile: Populate and show full-screen modal
+                    const modalContent = document.getElementById('jobDetailsModalContent');
+                    modalContent.innerHTML = jobDetailsHTML;
+                    const modal = new bootstrap.Modal(document.getElementById('jobDetailsModal'));
+                    modal.show();
+                } else {
+                    // Desktop: Update inline job details
+                    const detailsContainer = document.getElementById('jobDetails');
+                    detailsContainer.innerHTML = jobDetailsHTML;
+                }
 
                 // Update active state in job list
                 document.querySelectorAll('.job-card').forEach(card => {
