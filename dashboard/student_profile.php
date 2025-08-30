@@ -872,10 +872,10 @@ include '../includes/stud_navbar.php';
                                 }).text(response.bio);
                             }
                             if (response.profile_picture) {
-                                $('.profile-picture').attr('src', '../assets/uploads/' + response.profile_picture + '?t=' + new Date().getTime());
+                                $('.profile-picture').attr('src', '../assets/Uploads/' + response.profile_picture + '?t=' + new Date().getTime());
                             }
                             if (response.resume_file) {
-                                $('a[download]').attr('href', '../assets/uploads/' + response.resume_file);
+                                $('a[download]').attr('href', '../assets/Uploads/' + response.resume_file);
                             }
                             
                             

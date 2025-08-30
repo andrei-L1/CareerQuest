@@ -110,7 +110,7 @@ $jobTitle = $employerData['job_title'] ?? '';
 // Resume file handling (if any)
 $resumeFile = $employerData['resume_file'] ?? '';
 
-// Define the base directory for uploads
+// Define the base directory for Uploads
 $uploadsDir = '../Uploads/';
 
 // Check if the resume file exists

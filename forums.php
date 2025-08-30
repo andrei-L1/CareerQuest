@@ -295,7 +295,7 @@ $recentPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <?php foreach ($forumPosts as $post): ?>
                             <div class="post-card p-4">
                                 <div class="d-flex align-items-start">
-                                    <img src="<?php echo $post['poster_picture'] ? 'uploads/' . htmlspecialchars($post['poster_picture']) : 'uploads/default.png'; ?>" 
+                                    <img src="<?php echo $post['poster_picture'] ? 'Uploads/' . htmlspecialchars($post['poster_picture']) : 'Uploads/default.png'; ?>" 
                                          class="rounded-circle me-3" width="50" height="50" alt="Profile">
                                     <div class="flex-grow-1">
                                         <div class="d-flex justify-content-between align-items-start mb-2">
@@ -351,7 +351,7 @@ $recentPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <?php foreach ($recentPosts as $post): ?>
                                     <div class="border-bottom p-4">
                                         <div class="d-flex align-items-start">
-                                            <img src="<?php echo $post['poster_picture'] ? 'uploads/' . htmlspecialchars($post['poster_picture']) : 'uploads/default.png'; ?>" 
+                                            <img src="<?php echo $post['poster_picture'] ? 'Uploads/' . htmlspecialchars($post['poster_picture']) : 'Uploads/default.png'; ?>" 
                                                  class="rounded-circle me-3" width="40" height="40" alt="Profile">
                                             <div class="flex-grow-1">
                                                 <h6 class="mb-1">

@@ -971,7 +971,7 @@ $profile_picture = !empty($employer['picture_file']) ? '../Uploads/' . $employer
                         .then(data => {
                             if (data.status === 'success') {
                                 // Update the profile picture with the new one
-                                const newSrc = 'uploads/' + data.profile_picture;
+                                const newSrc = 'Uploads/' + data.profile_picture;
                                 profilePicture.src = newSrc;
                                 
                                 // Show success message
