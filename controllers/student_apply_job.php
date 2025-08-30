@@ -78,7 +78,7 @@ try {
         $stmt->execute([
             ':actor_id' => $employer_actor_id, // Employer receives the notification
             ':message' => "New application for: $job_title",
-            ':url' => "/skillmatch/dashboard/employer_applications.php?job_id=$job_id",
+            ':url' => "../dashboard/employer_applications.php?job_id=$job_id",
             ':reference_actor_id' => $student_actor_id // References the student who applied
         ]);
 
@@ -90,7 +90,7 @@ try {
         $stmt->execute([
             ':actor_id' => $student_actor_id, // Student receives the notification
             ':message' => "You applied for: $job_title",
-            ':url' => "/skillmatch/dashboard/student_applications.php?job_id=$job_id",
+            ':url' => "../dashboard/student_applications.php?job_id=$job_id",
             ':reference_actor_id' => $employer_actor_id // References the employer who posted the job
         ]);
     }

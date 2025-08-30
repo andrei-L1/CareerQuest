@@ -77,7 +77,7 @@ try {
     $stmt->execute([
         ':actor_id' => $employer_actor_id,
         ':message' => "$student_name has withdrawn their application for: $job_title.",
-        ':url' => "/skillmatch/dashboard/employer_applications.php?job_id=" . $data['job_id'],
+        ':url' => "../dashboard/employer_applications.php?job_id=" . $data['job_id'],
         ':reference_actor_id' => $student_actor_id
     ]);
 
@@ -88,7 +88,7 @@ try {
     $stmt->execute([
         ':actor_id' => $student_actor_id,
         ':message' => "You have withdrawn your application for: $job_title.",
-        ':url' => "/skillmatch/dashboard/student_applications.php?job_id=" . $data['job_id'],
+        ':url' => "../dashboard/student_applications.php?job_id=" . $data['job_id'],
         ':reference_actor_id' => $employer_actor_id
     ]);
 

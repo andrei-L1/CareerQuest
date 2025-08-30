@@ -1713,7 +1713,7 @@ require '../controllers/update_due_interviews.php';
                                                 </a>
                                             </li>
                                             <li><hr class="dropdown-divider"></li>
-                                            <li><a class="dropdown-item" href="/skillmatch/dashboard/messages.php"><i class="fas fa-envelope me-2"></i> Message</a></li>
+                                            <li><a class="dropdown-item" href="../dashboard/messages.php"><i class="fas fa-envelope me-2"></i> Message</a></li>
                                         </ul>
                                     </div>
                                 </div>
