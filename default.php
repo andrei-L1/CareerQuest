@@ -29,9 +29,9 @@ $hashedPassword = password_hash($rawPassword, PASSWORD_ARGON2ID);
 // Users to insert into user table (Admin, Moderator, Employer)
 $users = [
     [
-        'first_name' => 'Marvin',
-        'middle_name' => 'Mateo',
-        'last_name' => 'Bermosa',
+        'first_name' => 'Andrei',
+        'middle_name' => 'T',
+        'last_name' => 'Lonsania',
         'email' => 'admin@example.com',
         'role_id' => $role_ids['Admin'],
         'user_type' => 'Admin',
