@@ -370,11 +370,24 @@ switch ($action) {
             $callerName = $stmt->fetch(PDO::FETCH_ASSOC)['name'];
         }
 
+        $callerPicture = null;
+        if (isset($_SESSION['user_id'])) {
+            $stmt = $conn->prepare("SELECT picture_file as picture FROM user WHERE user_id = :id");
+            executeStmt($stmt, [':id' => $_SESSION['user_id']]);
+            $callerPicture = $stmt->fetch(PDO::FETCH_ASSOC)['picture'];
+        } else {
+            $stmt = $conn->prepare("SELECT profile_picture as picture FROM student WHERE stud_id = :id");
+            executeStmt($stmt, [':id' => $_SESSION['stud_id']]);
+            $callerPicture = $stmt->fetch(PDO::FETCH_ASSOC)['picture'];
+        }
+
+
         $videoCallPayload = [
             'call_id' => $callId,
             'thread_id' => $threadId,
             'caller_id' => $currentActorId,
-            'caller_name' => $callerName
+            'caller_name' => $callerName,
+            'caller_picture' => $callerPicture ? '../Uploads/' . $callerPicture : null
         ];
         $pusher->trigger('thread_' . $threadId, 'video_call', $videoCallPayload);
         $pusher->trigger('user_' . $receiverActorId, 'update', array_merge($videoCallPayload, [

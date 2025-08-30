@@ -804,6 +804,15 @@ if (isset($_SESSION['user_id'])) {
                 justify-content: center;
             }
         }
+        #videoCallModal .modal-content {
+            animation: popIn 0.3s ease;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
     </style>
 </head>
 
@@ -933,21 +942,36 @@ if (isset($_SESSION['user_id'])) {
     <!-- Video Call Request Modal -->
     <div class="modal fade" id="videoCallModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Incoming Video Call</h5>
+            <div class="modal-content rounded-4 shadow-lg border-0">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold">
+                        📞 Incoming Video Call
+                    </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <p id="video-call-sender">Someone is calling you...</p>
+                
+                <div class="modal-body text-center">
+                  <img id="video-call-avatar" 
+                    src="../Uploads/default.png" 
+                    alt="Caller" 
+                    style="border-radius: 50%; width: 100px; height: 100px; object-fit: cover;">
+                    <p id="video-call-sender" class="fs-5 fw-semibold text-dark">
+                        Someone is calling you...
+                    </p>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-success" id="accept-call-btn">Accept</button>
-                    <button type="button" class="btn btn-danger" id="reject-call-btn">Reject</button>
+                
+                <div class="modal-footer justify-content-center border-0">
+                    <button type="button" class="btn btn-success btn-lg px-4 rounded-pill shadow-sm d-flex align-items-center gap-2" id="accept-call-btn">
+                        <i class="bi bi-camera-video-fill"></i> Accept
+                    </button>
+                    <button type="button" class="btn btn-danger btn-lg px-4 rounded-pill shadow-sm d-flex align-items-center gap-2" id="reject-call-btn">
+                        <i class="bi bi-telephone-x-fill"></i> Reject
+                    </button>
                 </div>
             </div>
         </div>
     </div>
+
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -1145,6 +1169,8 @@ if (isset($_SESSION['user_id'])) {
                 subscribeToThread(currentThreadId);
             }
             document.getElementById('video-call-sender').textContent = `${data.caller_name} is calling you...`;
+            const avatarEl = document.getElementById('video-call-avatar');
+            avatarEl.src = data.caller_picture ? data.caller_picture : '../Uploads/default.png';
             videoCallModal.show();
         }
 
@@ -1878,7 +1904,8 @@ if (isset($_SESSION['user_id'])) {
                         call_id: data.call_id,
                         thread_id: data.thread_id,
                         caller_id: data.caller_id,
-                        caller_name: data.caller_name
+                        caller_name: data.caller_name,
+                        caller_picture: data.caller_picture
                     });
                 } else if (data.type === 'signaling_message') {
                     handleSignalingMessage({
