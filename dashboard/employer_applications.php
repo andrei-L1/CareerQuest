@@ -19,7 +19,8 @@ require '../controllers/update_due_interviews.php';
     <!-- AOS Animation -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
     <style>
         :root {
             --primary: #4361ee;
@@ -797,6 +798,112 @@ require '../controllers/update_due_interviews.php';
             margin-bottom: 1rem;
         }
     </style>
+<style>
+    #hiredCalendar {
+        max-width: 100%;
+        margin: 0 auto;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .fc {
+        --fc-neutral-bg-color: #f8f9fa;
+        --fc-neutral-text-color: var(--dark);
+        --fc-border-color: #e2e8f0;
+        --fc-daygrid-event-dot-width: 6px;
+        --fc-event-bg-color: var(--primary);
+        --fc-event-border-color: var(--primary);
+        --fc-event-text-color: white;
+    }
+
+    .fc .fc-daygrid-day {
+        border-radius: 8px;
+    }
+
+    .fc .fc-daygrid-day:hover {
+        background-color: var(--light-gray);
+    }
+
+    .fc .fc-event {
+        border-radius: 6px;
+        padding: 4px 8px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .fc .fc-event:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .fc .fc-toolbar-title {
+        font-weight: 600;
+        color: var(--dark);
+        font-size: 1.25rem;
+    }
+
+    .fc .fc-button {
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        background-color: var(--light);
+        color: var(--dark);
+        text-transform: capitalize;
+        font-weight: 500;
+        padding: 0.5rem 1rem;
+        transition: all 0.2s;
+    }
+
+    .fc .fc-button:hover {
+        background-color: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+
+    .fc .fc-button.fc-button-active {
+        background-color: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+
+    .fc .fc-daygrid-day-number {
+        color: var(--dark);
+        font-weight: 500;
+    }
+
+    .fc .fc-day-other .fc-daygrid-day-number {
+        color: var(--gray);
+        opacity: 0.5;
+    }
+
+    .fc .fc-event .fc-event-title {
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    @media (max-width: 768px) {
+        .fc .fc-toolbar {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .fc .fc-toolbar-title {
+            font-size: 1rem;
+        }
+
+        .fc .fc-button {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+        }
+
+        .fc .fc-event {
+            font-size: 0.75rem;
+            padding: 3px 6px;
+        }
+    }
+</style>
+
 </head>
 <body>
     <div class="container-fluid">
@@ -972,7 +1079,6 @@ require '../controllers/update_due_interviews.php';
 
         <!-- Hired View -->
         <div id="hiredView" style="display: none;">
-            <!-- Hired Individuals Section -->
             <div class="mt-5">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div>
@@ -985,6 +1091,14 @@ require '../controllers/update_due_interviews.php';
                         </p>
                     </div>
                     <div class="d-flex gap-2">
+                        <div class="btn-group me-2 d-flex gap-2" role="group" aria-label="Hired view toggle">
+                            <button type="button" class="btn btn-outline-secondary active" id="hiredGridViewBtn">
+                                <i class="fas fa-th me-2"></i> Grid
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" id="hiredCalendarViewBtn">
+                                <i class="fas fa-calendar me-2"></i> Calendar
+                            </button>
+                        </div>
                         <button class="btn btn-outline-secondary btn-sm" id="exportHiredBtn">
                             <i class="fas fa-download me-2"></i> Export Hired
                         </button>
@@ -1022,10 +1136,19 @@ require '../controllers/update_due_interviews.php';
                     </div>
                 </div>
 
-                <!-- Hired Individuals Container -->
-                <div id="hiredContainer">
+                <!-- Grid View -->
+                <div id="hiredGridView">
                     <div class="row g-3" id="hiredGrid">
                         <!-- Dynamically populated -->
+                    </div>
+                </div>
+
+                <!-- Calendar View -->
+                <div id="hiredCalendarView" style="display: none;">
+                    <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+                        <div class="card-body p-3">
+                            <div id="hiredCalendar"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -2246,7 +2369,22 @@ require '../controllers/update_due_interviews.php';
                 document.getElementById('pipelineView').style.display = 'none';
                 document.getElementById('hiredView').style.display = 'block';
             });
+            
+            document.getElementById('hiredGridViewBtn').addEventListener('click', function() {
+                this.classList.add('active');
+                document.getElementById('hiredCalendarViewBtn').classList.remove('active');
+                document.getElementById('hiredGridView').style.display = 'block';
+                document.getElementById('hiredCalendarView').style.display = 'none';
+                loadHiredIndividuals(); // Refresh data to ensure consistency
+            });
 
+            document.getElementById('hiredCalendarViewBtn').addEventListener('click', function() {
+                this.classList.add('active');
+                document.getElementById('hiredGridViewBtn').classList.remove('active');
+                document.getElementById('hiredGridView').style.display = 'none';
+                document.getElementById('hiredCalendarView').style.display = 'block';
+                loadHiredIndividuals(); // Refresh data to ensure consistency
+            });
             
             // Initialize status filter dropdown items
             document.querySelectorAll('#statusFilterMenu .dropdown-item').forEach(item => {
@@ -2348,144 +2486,298 @@ require '../controllers/update_due_interviews.php';
 
         // Load hired individuals
         function loadHiredIndividuals() {
-            // Show loading state
-            document.getElementById('hiredGrid').innerHTML = `
-                <div class="col-md-6 col-lg-4">
-                    <div class="card skeleton" style="height: 200px;"></div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="card skeleton" style="height: 200px;"></div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="card skeleton" style="height: 200px;"></div>
+                // Show loading state for both views
+                document.getElementById('hiredGrid').innerHTML = `
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card skeleton" style="height: 200px;"></div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card skeleton" style="height: 200px;"></div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card skeleton" style="height: 200px;"></div>
+                    </div>
+                `;
+                document.getElementById('hiredCalendar').innerHTML = `
+                    <div class="skeleton" style="height: 500px; border-radius: 12px;"></div>
+                `;
+                
+                fetch('../controllers/employer_applications.php?type=hired')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.hired_individuals && data.hired_individuals.length > 0) {
+                            renderHiredIndividuals(data.hired_individuals);
+                            renderHiredCalendar(data.hired_individuals);
+                            updateHiredStats(data.stats);
+                            document.getElementById('hiredEmptyState').style.display = 'none';
+                            document.getElementById('hiredGridView').style.display = document.getElementById('hiredGridViewBtn').classList.contains('active') ? 'block' : 'none';
+                            document.getElementById('hiredCalendarView').style.display = document.getElementById('hiredCalendarViewBtn').classList.contains('active') ? 'block' : 'none';
+                        } else {
+                            showHiredEmptyState();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching hired individuals:', error);
+                        showHiredEmptyState();
+                    });
+            }
+            // Render hired individuals (Grid View)
+    function renderHiredIndividuals(hiredList) {
+        const container = document.getElementById('hiredGrid');
+        container.innerHTML = '';
+
+        hiredList.forEach((hire, index) => {
+            const hireCard = document.createElement('div');
+            hireCard.className = 'col-md-6 col-lg-4 col-xl-3 fade-in';
+            hireCard.style.animationDelay = `${index * 0.1}s`;
+            
+            hireCard.innerHTML = `
+                <div class="card h-100 border-0 shadow-sm" style="border-radius: 12px; transition: all 0.3s ease;">
+                    <div class="card-body p-3">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="applicant-avatar-wrapper me-3">
+                                ${hire.profile_picture ? `
+                                    <img src="../Uploads/${hire.profile_picture}"
+                                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                                        alt="Profile"
+                                        class="applicant-avatar">
+                                ` : ''}
+                                <div class="applicant-default-icon" style="${hire.profile_picture ? 'display:none;' : ''}">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1 fw-bold" style="color: var(--dark);">${hire.name}</h6>
+                                <p class="mb-0 small text-muted">${hire.job_title}</p>
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                        type="button" 
+                                        data-bs-toggle="dropdown"
+                                        aria-expanded="false">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#" onclick="viewApplicantDetails(${hire.stud_id})">
+                                        <i class="fas fa-eye me-2"></i> View Profile
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="viewResume(${hire.stud_id}, '${hire.resume_file || ''}')">
+                                        <i class="fas fa-file-pdf me-2"></i> View Resume
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="../dashboard/messages.php">
+                                        <i class="fas fa-envelope me-2"></i> Message
+                                    </a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-muted small">Hire Date</span>
+                                <span class="badge bg-success text-white small">
+                                    ${formatDate(hire.hire_date)}
+                                </span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-muted small">Application Date</span>
+                                <span class="text-muted small">${formatDate(hire.applied_at)}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted small">Days to Hire</span>
+                                <span class="fw-bold" style="color: var(--green);">
+                                    ${calculateDaysToHire(hire.applied_at, hire.hire_date)}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="text-muted small mb-2">Key Skills</div>
+                            <div class="d-flex flex-wrap gap-1">
+                                ${(hire.skills || []).slice(0, 3).map(skill => `
+                                    <span class="badge bg-light text-dark border" style="font-size: 0.7rem; font-weight: 500;">
+                                        ${skill}
+                                    </span>
+                                `).join('')}
+                                ${hire.skills && hire.skills.length > 3 ? `
+                                    <span class="badge bg-light text-dark border" style="font-size: 0.7rem; font-weight: 500;">
+                                        +${hire.skills.length - 3}
+                                    </span>
+                                ` : ''}
+                            </div>
+                        </div>
+                        <div class="border-top pt-2">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="small text-muted">
+                                    <i class="fas fa-envelope me-1"></i>
+                                    ${hire.email}
+                                </div>
+                                <button class="btn btn-sm btn-outline-success" onclick="viewApplicantDetails(${hire.stud_id})">
+                                    <i class="fas fa-user me-1"></i> Profile
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             `;
-            
-            fetch('../controllers/employer_applications.php?type=hired')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.hired_individuals && data.hired_individuals.length > 0) {
-                        renderHiredIndividuals(data.hired_individuals);
-                        updateHiredStats(data.stats);
-                        document.getElementById('hiredEmptyState').style.display = 'none';
-                        document.getElementById('hiredContainer').style.display = 'block';
-                    } else {
-                        showHiredEmptyState();
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching hired individuals:', error);
-                    showHiredEmptyState();
-                });
-        }
+            container.appendChild(hireCard);
+        });
+    }
 
-        // Render hired individuals
-        function renderHiredIndividuals(hiredList) {
-            const container = document.getElementById('hiredGrid');
-            container.innerHTML = '';
+// Render hired individuals as a calendar
+    function renderHiredCalendar(hiredList) {
+        const calendarEl = document.getElementById('hiredCalendar');
+        calendarEl.innerHTML = ''; // Clear any existing content
 
-            hiredList.forEach((hire, index) => {
-                const hireCard = document.createElement('div');
-                hireCard.className = 'col-md-6 col-lg-4 col-xl-3 fade-in';
-                hireCard.style.animationDelay = `${index * 0.1}s`;
-                
-                hireCard.innerHTML = `
-                    <div class="card h-100 border-0 shadow-sm" style="border-radius: 12px; transition: all 0.3s ease;">
-                        <div class="card-body p-3">
-                            <!-- Header with avatar and name -->
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="applicant-avatar-wrapper me-3">
-                                    ${hire.profile_picture ? `
-                                        <img src="../Uploads/${hire.profile_picture}"
-                                            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-                                            alt="Profile"
-                                            class="applicant-avatar">
-                                    ` : ''}
-                                    <div class="applicant-default-icon" style="${hire.profile_picture ? 'display:none;' : ''}">
-                                        <i class="fas fa-user"></i>
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            height: 'auto',
+            events: hiredList.map(hire => ({
+                id: hire.stud_id,
+                title: `${hire.name} - ${hire.job_title}`,
+                start: hire.hire_date,
+                extendedProps: {
+                    email: hire.email,
+                    job_title: hire.job_title,
+                    applied_at: hire.applied_at,
+                    skills: hire.skills || [],
+                    resume_file: hire.resume_file,
+                    profile_picture: hire.profile_picture
+                }
+            })),
+            eventClick: function(info) {
+                const hire = info.event.extendedProps;
+                const daysToHire = calculateDaysToHire(hire.applied_at, info.event.start);
+
+                const modalHtml = `
+                    <div class="modal fade" id="hireDetailsModal" tabindex="-1" aria-labelledby="hireDetailsModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="hireDetailsModalLabel">${info.event.title}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="applicant-avatar-wrapper me-3">
+                                            ${hire.profile_picture ? `
+                                                <img src="../Uploads/${hire.profile_picture}"
+                                                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                                                    alt="Profile"
+                                                    class="applicant-avatar">
+                                            ` : ''}
+                                            <div class="applicant-default-icon" style="${hire.profile_picture ? 'display:none;' : ''}">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1 fw-bold">${info.event.title.split(' - ')[0]}</h6>
+                                            <p class="mb-0 small text-muted">${hire.job_title}</p>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="text-muted small">Hire Date</span>
+                                            <span class="badge bg-success text-white small">
+                                                ${formatDate(info.event.start)}
+                                            </span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="text-muted small">Application Date</span>
+                                            <span class="text-muted small">${formatDate(hire.applied_at)}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="text-muted small">Days to Hire</span>
+                                            <span class="fw-bold" style="color: var(--green);">${daysToHire}</span>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="text-muted small mb-2">Key Skills</div>
+                                        <div class="d-flex flex-wrap gap-1">
+                                            ${hire.skills.slice(0, 3).map(skill => `
+                                                <span class="badge bg-light text-dark border" style="font-size: 0.7rem; font-weight: 500;">
+                                                    ${skill}
+                                                </span>
+                                            `).join('')}
+                                            ${hire.skills.length > 3 ? `
+                                                <span class="badge bg-light text-dark border" style="font-size: 0.7rem; font-weight: 500;">
+                                                    +${hire.skills.length - 3}
+                                                </span>
+                                            ` : ''}
+                                        </div>
+                                    </div>
+                                    <div class="border-top pt-2">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <div class="small text-muted">
+                                                <i class="fas fa-envelope me-1"></i>
+                                                ${hire.email}
+                                            </div>
+                                            <div class="d-flex gap-2">
+                                                <button class="btn btn-sm btn-outline-success" onclick="viewApplicantDetails(${info.event.id})">
+                                                    <i class="fas fa-user me-1"></i> Profile
+                                                </button>
+                                                ${hire.resume_file ? `
+                                                    <button class="btn btn-sm btn-outline-primary" onclick="viewResume(${info.event.id}, '${hire.resume_file}')">
+                                                        <i class="fas fa-file-pdf me-1"></i> Resume
+                                                    </button>
+                                                ` : ''}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-1 fw-bold" style="color: var(--dark);">${hire.name}</h6>
-                                    <p class="mb-0 small text-muted">${hire.job_title}</p>
-                                </div>
-                                <div class="dropdown">
-                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
-                                            type="button" 
-                                            data-bs-toggle="dropdown"
-                                            aria-expanded="false">
-                                        <i class="fas fa-ellipsis-v"></i>
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="#" onclick="viewApplicantDetails(${hire.stud_id})">
-                                            <i class="fas fa-eye me-2"></i> View Profile
-                                        </a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="viewResume(${hire.stud_id}, '${hire.resume_file || ''}')">
-                                            <i class="fas fa-file-pdf me-2"></i> View Resume
-                                        </a></li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item" href="../dashboard/messages.php">
-                                            <i class="fas fa-envelope me-2"></i> Message
-                                        </a></li>
-                                    </ul>
-                                </div>
-                            </div>
-
-                            <!-- Employment Details -->
-                            <div class="mb-3">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="text-muted small">Hire Date</span>
-                                    <span class="badge bg-success text-white small">
-                                        ${formatDate(hire.hire_date)}
-                                    </span>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="text-muted small">Application Date</span>
-                                    <span class="text-muted small">${formatDate(hire.applied_at)}</span>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="text-muted small">Days to Hire</span>
-                                    <span class="fw-bold" style="color: var(--green);">
-                                        ${calculateDaysToHire(hire.applied_at, hire.hire_date)}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <!-- Skills Preview -->
-                            <div class="mb-3">
-                                <div class="text-muted small mb-2">Key Skills</div>
-                                <div class="d-flex flex-wrap gap-1">
-                                    ${(hire.skills || []).slice(0, 3).map(skill => `
-                                        <span class="badge bg-light text-dark border" style="font-size: 0.7rem; font-weight: 500;">
-                                            ${skill}
-                                        </span>
-                                    `).join('')}
-                                    ${hire.skills && hire.skills.length > 3 ? `
-                                        <span class="badge bg-light text-dark border" style="font-size: 0.7rem; font-weight: 500;">
-                                            +${hire.skills.length - 3}
-                                        </span>
-                                    ` : ''}
-                                </div>
-                            </div>
-
-                            <!-- Contact Info -->
-                            <div class="border-top pt-2">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <div class="small text-muted">
-                                        <i class="fas fa-envelope me-1"></i>
-                                        ${hire.email}
-                                    </div>
-                                    <button class="btn btn-sm btn-outline-success" onclick="viewApplicantDetails(${hire.stud_id})">
-                                        <i class="fas fa-user me-1"></i> Profile
-                                    </button>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 `;
-                
-                container.appendChild(hireCard);
-            });
+
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+                const modal = new bootstrap.Modal(document.getElementById('hireDetailsModal'));
+                modal.show();
+
+                document.getElementById('hireDetailsModal').addEventListener('hidden.bs.modal', function() {
+                    this.remove();
+                });
+            },
+            eventContent: function(arg) {
+                const hire = arg.event.extendedProps;
+                return {
+                    html: `
+                        <div class="fc-event-title" style="font-weight: 500;">
+                            ${arg.event.title.split(' - ')[0]}<br>
+                            <small class="text-white" style="opacity: 0.8;">${hire.job_title}</small>
+                        </div>
+                    `
+                };
+            },
+            eventTimeFormat: {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            },
+            dayMaxEventRows: 3,
+            moreLinkClick: 'popover',
+            nowIndicator: true,
+            views: {
+                dayGridMonth: {
+                    dayMaxEventRows: 3
+                }
+            }
+        });
+
+        calendar.render();
+    }
+
+        // Show hired empty state
+        function showHiredEmptyState() {
+            document.getElementById('hiredGridView').style.display = 'none';
+            document.getElementById('hiredCalendarView').style.display = 'none';
+            document.getElementById('hiredEmptyState').style.display = 'block';
         }
 
         // Update hired stats
@@ -2498,11 +2790,7 @@ require '../controllers/update_due_interviews.php';
             }
         }
 
-        // Show hired empty state
-        function showHiredEmptyState() {
-            document.getElementById('hiredContainer').style.display = 'none';
-            document.getElementById('hiredEmptyState').style.display = 'block';
-        }
+
 
         // Calculate days to hire
         function calculateDaysToHire(appliedDate, hireDate) {
