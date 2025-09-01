@@ -931,11 +931,14 @@ require '../controllers/update_due_interviews.php';
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h5 class="mb-0">Current Applications</h5>
             <div class="btn-group" role="group" aria-label="View toggle">
-                <button type="button" class="btn btn-outline-secondary active" id="listViewBtn">
+                <button type="button" class="btn btn-outline-secondary active me-2" id="listViewBtn">
                     <i class="fas fa-list me-2"></i> List View
                 </button>
-                <button type="button" class="btn btn-outline-secondary" id="pipelineViewBtn">
+                <button type="button" class="btn btn-outline-secondary me-2" id="pipelineViewBtn">
                     <i class="fas fa-project-diagram me-2"></i> Pipeline
+                </button>
+                <button type="button" class="btn btn-outline-secondary" id="hiredViewBtn">
+                    <i class="fas fa-user-check me-2"></i> Hired
                 </button>
             </div>
         </div>
@@ -965,6 +968,81 @@ require '../controllers/update_due_interviews.php';
             <button class="btn btn-outline-primary ms-2" id="clearFiltersEmpty">
                 <i class="fas fa-times me-2"></i> Clear filters
             </button>
+        </div>
+
+        <!-- Hired View -->
+        <div id="hiredView" style="display: none;">
+            <!-- Hired Individuals Section -->
+            <div class="mt-5">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h4 class="mb-1" style="color: var(--dark); font-weight: 600;">
+                            <i class="fas fa-trophy me-2" style="color: #6b7280;"></i>
+                            Hired Individuals
+                        </h4>
+                        <p class="text-muted mb-0" style="font-size: 0.9rem;">
+                            Track all successful hires and their employment details
+                        </p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-secondary btn-sm" id="exportHiredBtn">
+                            <i class="fas fa-download me-2"></i> Export Hired
+                        </button>
+                        <button class="btn btn-outline-primary btn-sm" id="refreshHiredBtn">
+                            <i class="fas fa-sync-alt me-2"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Hired Stats Cards -->
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-md-3">
+                        <div class="stat-card" style="background-color: #4b5563;">
+                            <h5>Total Hired</h5>
+                            <h2 id="totalHired">0</h2>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="stat-card" style="background-color: #6b7280;">
+                            <h5>This Month</h5>
+                            <h2 id="monthlyHired">0</h2>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="stat-card" style="background-color: #9ca3af;">
+                            <h5>This Quarter</h5>
+                            <h2 id="quarterlyHired">0</h2>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="stat-card" style="background-color: #d1d5db;">
+                            <h5>This Year</h5>
+                            <h2 id="yearlyHired">0</h2>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hired Individuals Container -->
+                <div id="hiredContainer">
+                    <div class="row g-3" id="hiredGrid">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+
+                <!-- Hired Empty State -->
+                <div id="hiredEmptyState" class="empty-state" style="display: none;">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-trophy" style="color: #6b7280;"></i>
+                    </div>
+                    <h4 class="mb-3">No Hired Individuals Yet</h4>
+                    <p class="text-muted mb-4">
+                        When you hire candidates, they will appear here with their employment details
+                    </p>
+                    <button class="btn btn-outline-primary" onclick="loadHiredIndividuals()">
+                        <i class="fas fa-sync-alt me-2"></i> Refresh
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1785,6 +1863,7 @@ require '../controllers/update_due_interviews.php';
             document.getElementById('jobs-container').innerHTML = '';
             document.getElementById('listView').style.display = 'none';
             document.getElementById('pipelineView').style.display = 'none';
+            document.getElementById('hiredView').style.display = 'none';
             document.getElementById('emptyState').style.display = 'block';
         }
 
@@ -2135,21 +2214,39 @@ require '../controllers/update_due_interviews.php';
         document.addEventListener('DOMContentLoaded', function() {
             loadApplicationStats();
             loadJobApplications();
+            loadHiredIndividuals(); // Load hired individuals on page load
             
             // Initialize view toggle buttons
             document.getElementById('listViewBtn').addEventListener('click', function() {
                 this.classList.add('active');
                 document.getElementById('pipelineViewBtn').classList.remove('active');
+                document.getElementById('hiredViewBtn').classList.remove('active');
+
                 document.getElementById('listView').style.display = 'block';
                 document.getElementById('pipelineView').style.display = 'none';
+                document.getElementById('hiredView').style.display = 'none';
             });
-            
+
             document.getElementById('pipelineViewBtn').addEventListener('click', function() {
                 this.classList.add('active');
                 document.getElementById('listViewBtn').classList.remove('active');
+                document.getElementById('hiredViewBtn').classList.remove('active');
+
                 document.getElementById('listView').style.display = 'none';
                 document.getElementById('pipelineView').style.display = 'block';
+                document.getElementById('hiredView').style.display = 'none';
             });
+
+            document.getElementById('hiredViewBtn').addEventListener('click', function() {
+                this.classList.add('active');
+                document.getElementById('listViewBtn').classList.remove('active');
+                document.getElementById('pipelineViewBtn').classList.remove('active');
+
+                document.getElementById('listView').style.display = 'none';
+                document.getElementById('pipelineView').style.display = 'none';
+                document.getElementById('hiredView').style.display = 'block';
+            });
+
             
             // Initialize status filter dropdown items
             document.querySelectorAll('#statusFilterMenu .dropdown-item').forEach(item => {
@@ -2234,7 +2331,192 @@ require '../controllers/update_due_interviews.php';
                     window.location.href = `../controllers/export_applications.php?${query.toString()}`;
                 }, 900); // 300ms delay to ensure toast renders
             });
+
+            // Hired section event listeners
+            document.getElementById('refreshHiredBtn').addEventListener('click', function() {
+                loadHiredIndividuals();
+                showToast('Refreshing hired individuals...', 'info');
+            });
+
+            document.getElementById('exportHiredBtn').addEventListener('click', function() {
+                showToast('Preparing hired export...', 'info');
+                setTimeout(() => {
+                    window.location.href = '../controllers/export_applications.php?type=hired';
+                }, 900);
+            });
         });
+
+        // Load hired individuals
+        function loadHiredIndividuals() {
+            // Show loading state
+            document.getElementById('hiredGrid').innerHTML = `
+                <div class="col-md-6 col-lg-4">
+                    <div class="card skeleton" style="height: 200px;"></div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="card skeleton" style="height: 200px;"></div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="card skeleton" style="height: 200px;"></div>
+                </div>
+            `;
+            
+            fetch('../controllers/employer_applications.php?type=hired')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.hired_individuals && data.hired_individuals.length > 0) {
+                        renderHiredIndividuals(data.hired_individuals);
+                        updateHiredStats(data.stats);
+                        document.getElementById('hiredEmptyState').style.display = 'none';
+                        document.getElementById('hiredContainer').style.display = 'block';
+                    } else {
+                        showHiredEmptyState();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching hired individuals:', error);
+                    showHiredEmptyState();
+                });
+        }
+
+        // Render hired individuals
+        function renderHiredIndividuals(hiredList) {
+            const container = document.getElementById('hiredGrid');
+            container.innerHTML = '';
+
+            hiredList.forEach((hire, index) => {
+                const hireCard = document.createElement('div');
+                hireCard.className = 'col-md-6 col-lg-4 col-xl-3 fade-in';
+                hireCard.style.animationDelay = `${index * 0.1}s`;
+                
+                hireCard.innerHTML = `
+                    <div class="card h-100 border-0 shadow-sm" style="border-radius: 12px; transition: all 0.3s ease;">
+                        <div class="card-body p-3">
+                            <!-- Header with avatar and name -->
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="applicant-avatar-wrapper me-3">
+                                    ${hire.profile_picture ? `
+                                        <img src="../Uploads/${hire.profile_picture}"
+                                            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                                            alt="Profile"
+                                            class="applicant-avatar">
+                                    ` : ''}
+                                    <div class="applicant-default-icon" style="${hire.profile_picture ? 'display:none;' : ''}">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1 fw-bold" style="color: var(--dark);">${hire.name}</h6>
+                                    <p class="mb-0 small text-muted">${hire.job_title}</p>
+                                </div>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                            type="button" 
+                                            data-bs-toggle="dropdown"
+                                            aria-expanded="false">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#" onclick="viewApplicantDetails(${hire.stud_id})">
+                                            <i class="fas fa-eye me-2"></i> View Profile
+                                        </a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="viewResume(${hire.stud_id}, '${hire.resume_file || ''}')">
+                                            <i class="fas fa-file-pdf me-2"></i> View Resume
+                                        </a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="../dashboard/messages.php">
+                                            <i class="fas fa-envelope me-2"></i> Message
+                                        </a></li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- Employment Details -->
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="text-muted small">Hire Date</span>
+                                    <span class="badge bg-success text-white small">
+                                        ${formatDate(hire.hire_date)}
+                                    </span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="text-muted small">Application Date</span>
+                                    <span class="text-muted small">${formatDate(hire.applied_at)}</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-muted small">Days to Hire</span>
+                                    <span class="fw-bold" style="color: var(--green);">
+                                        ${calculateDaysToHire(hire.applied_at, hire.hire_date)}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Skills Preview -->
+                            <div class="mb-3">
+                                <div class="text-muted small mb-2">Key Skills</div>
+                                <div class="d-flex flex-wrap gap-1">
+                                    ${(hire.skills || []).slice(0, 3).map(skill => `
+                                        <span class="badge bg-light text-dark border" style="font-size: 0.7rem; font-weight: 500;">
+                                            ${skill}
+                                        </span>
+                                    `).join('')}
+                                    ${hire.skills && hire.skills.length > 3 ? `
+                                        <span class="badge bg-light text-dark border" style="font-size: 0.7rem; font-weight: 500;">
+                                            +${hire.skills.length - 3}
+                                        </span>
+                                    ` : ''}
+                                </div>
+                            </div>
+
+                            <!-- Contact Info -->
+                            <div class="border-top pt-2">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="small text-muted">
+                                        <i class="fas fa-envelope me-1"></i>
+                                        ${hire.email}
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-success" onclick="viewApplicantDetails(${hire.stud_id})">
+                                        <i class="fas fa-user me-1"></i> Profile
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(hireCard);
+            });
+        }
+
+        // Update hired stats
+        function updateHiredStats(stats) {
+            if (stats) {
+                document.getElementById('totalHired').textContent = stats.total || 0;
+                document.getElementById('monthlyHired').textContent = stats.monthly || 0;
+                document.getElementById('quarterlyHired').textContent = stats.quarterly || 0;
+                document.getElementById('yearlyHired').textContent = stats.yearly || 0;
+            }
+        }
+
+        // Show hired empty state
+        function showHiredEmptyState() {
+            document.getElementById('hiredContainer').style.display = 'none';
+            document.getElementById('hiredEmptyState').style.display = 'block';
+        }
+
+        // Calculate days to hire
+        function calculateDaysToHire(appliedDate, hireDate) {
+            if (!appliedDate || !hireDate) return 'N/A';
+            
+            const applied = new Date(appliedDate);
+            const hired = new Date(hireDate);
+            const diffTime = Math.abs(hired - applied);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 0) return 'Same day';
+            if (diffDays === 1) return '1 day';
+            return `${diffDays} days`;
+        }
     </script>
 </body>
 </html>
