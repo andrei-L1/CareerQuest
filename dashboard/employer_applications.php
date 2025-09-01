@@ -1245,14 +1245,17 @@ require '../controllers/update_due_interviews.php';
 
         // Load job applications
         function loadJobApplications() {
-            // Show loading state
+            if (document.getElementById('hiredViewBtn').classList.contains('active')) {
+                loadHiredIndividuals(); // Load hired individuals instead
+                return;
+            }
+            // Existing code for loading job applications
             document.getElementById('jobs-container').innerHTML = `
                 <div class="card skeleton" style="height: 150px; margin-bottom: 1rem;"></div>
                 <div class="card skeleton" style="height: 150px; margin-bottom: 1rem;"></div>
                 <div class="card skeleton" style="height: 150px; margin-bottom: 1rem;"></div>
             `;
             
-            // Build query string from filters
             const query = new URLSearchParams();
             if (filters.status !== 'all') query.append('status', filters.status);
             if (filters.job !== 'all') query.append('job', filters.job);
@@ -1269,8 +1272,6 @@ require '../controllers/update_due_interviews.php';
                     } else {
                         showEmptyState();
                     }
-                    
-                    // Also populate pipeline view
                     renderPipelineView(data);
                 })
                 .catch(error => {
@@ -1995,6 +1996,10 @@ require '../controllers/update_due_interviews.php';
 
         // Show empty state
         function showEmptyState() {
+            if (document.getElementById('hiredViewBtn').classList.contains('active')) {
+                showHiredEmptyState(); // Redirect to hired empty state if in Hired view
+                return;
+            }
             document.getElementById('jobs-container').innerHTML = '';
             document.getElementById('listView').style.display = 'none';
             document.getElementById('pipelineView').style.display = 'none';
@@ -2360,17 +2365,21 @@ require '../controllers/update_due_interviews.php';
                 document.getElementById('listView').style.display = 'block';
                 document.getElementById('pipelineView').style.display = 'none';
                 document.getElementById('hiredView').style.display = 'none';
+                document.getElementById('search-filter-container').style.display = 'block';
+                loadJobApplications();
             });
 
-            document.getElementById('pipelineViewBtn').addEventListener('click', function() {
-                this.classList.add('active');
-                document.getElementById('listViewBtn').classList.remove('active');
-                document.getElementById('hiredViewBtn').classList.remove('active');
+                document.getElementById('pipelineViewBtn').addEventListener('click', function() {
+                    this.classList.add('active');
+                    document.getElementById('listViewBtn').classList.remove('active');
+                    document.getElementById('hiredViewBtn').classList.remove('active');
 
-                document.getElementById('listView').style.display = 'none';
-                document.getElementById('pipelineView').style.display = 'block';
-                document.getElementById('hiredView').style.display = 'none';
-            });
+                    document.getElementById('listView').style.display = 'none';
+                    document.getElementById('pipelineView').style.display = 'block';
+                    document.getElementById('hiredView').style.display = 'none';
+                    document.getElementById('search-filter-container').style.display = 'block';
+                    loadJobApplications();
+                });
 
             document.getElementById('hiredViewBtn').addEventListener('click', function() {
                 this.classList.add('active');
@@ -2380,6 +2389,8 @@ require '../controllers/update_due_interviews.php';
                 document.getElementById('listView').style.display = 'none';
                 document.getElementById('pipelineView').style.display = 'none';
                 document.getElementById('hiredView').style.display = 'block';
+                document.getElementById('emptyState').style.display = 'none';
+                loadHiredIndividuals(); // Load hired individuals
             });
             
             document.getElementById('hiredGridViewBtn').addEventListener('click', function() {

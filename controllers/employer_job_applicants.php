@@ -29,7 +29,7 @@ try {
             handleGetRequest($conn, $employer['employer_id']);
             break;
         case 'POST':
-            handlePostRequest($conn);
+            handlePostRequest($conn, $employer['employer_id']); // Pass employer_id to validate ownership
             break;
         default:
             http_response_code(405);
@@ -54,7 +54,7 @@ function handleGetRequest(PDO $conn, int $employer_id) {
     }
 }
 
-function handlePostRequest(PDO $conn) {
+function handlePostRequest(PDO $conn, int $employer_id) {
     $data = json_decode(file_get_contents('php://input'), true);
     
     if (!isset($data['action'])) {
@@ -65,7 +65,7 @@ function handlePostRequest(PDO $conn) {
 
     switch ($data['action']) {
         case 'update_status':
-            updateApplicationStatus($conn, $data);
+            updateApplicationStatus($conn, $data, $employer_id);
             break;
         default:
             http_response_code(400);
@@ -103,6 +103,7 @@ function getJobApplications(PDO $conn, int $employer_id): array {
             at.application_id,
             at.application_status,
             at.applied_at,
+            at.updated_at,
             ROUND(AVG(sm.match_score), 2) AS avg_match_score,
             GROUP_CONCAT(DISTINCT sl.skill_name) AS skills
         FROM job_posting jp
@@ -116,10 +117,15 @@ function getJobApplications(PDO $conn, int $employer_id): array {
         AND jp.moderation_status = 'Approved'
         AND jp.deleted_at IS NULL
         AND at.deleted_at IS NULL
+        AND (
+            at.application_status != 'Accepted'
+            OR at.updated_at >= DATE_SUB(NOW(), INTERVAL 20 MINUTE)
+            OR at.updated_at IS NULL
+        )
         GROUP BY at.application_id, jp.job_id, s.stud_id, jp.title, jp.description, jp.location, 
                  jp.posted_at, jp.moderation_status, s.stud_first_name, 
                  s.stud_last_name, s.stud_email, s.resume_file, 
-                 at.application_status, at.applied_at
+                 at.application_status, at.applied_at, at.updated_at
         ORDER BY jp.job_id, at.applied_at DESC
     ");
     $stmt->bindParam(':employer_id', $employer_id, PDO::PARAM_INT);
@@ -127,28 +133,80 @@ function getJobApplications(PDO $conn, int $employer_id): array {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function updateApplicationStatus(PDO $conn, array $data): void {
+
+function updateApplicationStatus(PDO $conn, array $data, int $employer_id): void {
     if (!isset($data['application_id']) || !isset($data['new_status'])) {
         http_response_code(400);
         echo json_encode(["error" => "Missing required fields"]);
         exit();
     }
 
-    $stmt = $conn->prepare("
-        UPDATE application_tracking 
-        SET application_status = :new_status 
-        WHERE application_id = :application_id
-        AND deleted_at IS NULL
-    ");
-    $stmt->bindParam(':new_status', $data['new_status']);
-    $stmt->bindParam(':application_id', $data['application_id'], PDO::PARAM_INT);
-    $stmt->execute();
+    $application_id = $data['application_id'];
+    $new_status = $data['new_status'];
 
-    echo json_encode([
-        "success" => true,
-        "message" => "Application status updated successfully"
+    $valid_statuses = ['Pending', 'Under Review', 'Interview Scheduled', 'Interview', 'Offered', 'Accepted', 'Rejected', 'Withdrawn'];
+    if (!in_array($new_status, $valid_statuses)) {
+        http_response_code(400);
+        echo json_encode(["error" => "Invalid status"]);
+        exit();
+    }
+
+    // Verify ownership
+    $check_stmt = $conn->prepare("
+        SELECT at.application_id
+        FROM application_tracking at
+        JOIN job_posting jp ON at.job_id = jp.job_id
+        WHERE at.application_id = :application_id
+        AND jp.employer_id = :employer_id
+        AND at.deleted_at IS NULL
+    ");
+    $check_stmt->execute([
+        ':application_id' => $application_id,
+        ':employer_id' => $employer_id
     ]);
+    if ($check_stmt->rowCount() === 0) {
+        http_response_code(404);
+        echo json_encode(["error" => "Application not found or unauthorized"]);
+        exit();
+    }
+
+    // Conditional update with safeguard
+    if ($new_status === 'Accepted') {
+        $stmt = $conn->prepare("
+            UPDATE application_tracking 
+            SET application_status = :new_status, updated_at = NOW()
+            WHERE application_id = :application_id
+            AND deleted_at IS NULL
+            AND application_status <> :new_status
+        ");
+    } else {
+        $stmt = $conn->prepare("
+            UPDATE application_tracking 
+            SET application_status = :new_status, updated_at = NULL
+            WHERE application_id = :application_id
+            AND deleted_at IS NULL
+            AND application_status <> :new_status
+        ");
+    }
+
+    $stmt->execute([
+        ':new_status' => $new_status,
+        ':application_id' => $application_id
+    ]);
+
+    if ($stmt->rowCount() === 0) {
+        echo json_encode([
+            "success" => false,
+            "message" => "No changes made (status was already set to this value)"
+        ]);
+    } else {
+        echo json_encode([
+            "success" => true,
+            "message" => "Application status updated successfully"
+        ]);
+    }
 }
+
 
 // ===== Data Formatting Functions ===== //
 

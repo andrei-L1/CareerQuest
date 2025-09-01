@@ -205,6 +205,7 @@ CREATE TABLE IF NOT EXISTS application_tracking (
     ),
     parent_application_id INT,
     applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NULL DEFAULT NULL,
     deleted_at TIMESTAMP NULL,
     FOREIGN KEY (stud_id) REFERENCES student(stud_id),
     FOREIGN KEY (job_id) REFERENCES job_posting(job_id)
