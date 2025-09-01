@@ -2750,7 +2750,7 @@ require '../controllers/update_due_interviews.php';
                     html: `
                         <div class="fc-event-title" style="font-weight: 500;">
                             ${arg.event.title.split(' - ')[0]}<br>
-                            <small class="text-white" style="opacity: 0.8;">${hire.job_title}</small>
+                            <small class="text-black" style="opacity: 0.8;">${hire.job_title}</small>
                         </div>
                     `
                 };
