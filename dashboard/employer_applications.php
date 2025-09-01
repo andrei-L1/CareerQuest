@@ -390,17 +390,29 @@ require '../controllers/update_due_interviews.php';
         
         /* Custom dropdown */
         .dropdown-actions .dropdown-menu {
-            /* Your existing styles */
             border: none;
             box-shadow: 0 4px 20px rgba(0,0,0,0.12);
             border-radius: 12px;
             padding: 0.5rem;
             min-width: 200px;
-
-            /* NEW: Keep absolute positioning but prevent clipping */
-            position: absolute !important; /* Let Bootstrap handle positioning */
-            z-index: 9999 !important; /* High enough to stay on top */
-            inset: auto auto 0 0 !important; /* Fallback position */
+            
+            /* Add left alignment and adjust vertical position */
+            right: auto !important;
+            left: 0 !important;
+            transform: translate(-90%, -10%) !important; /* Moves left and slightly upward */
+        }
+        
+        .dropdown .dropdown-menu {
+            border: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+            border-radius: 12px;
+            padding: 0.5rem;
+            min-width: 200px;
+            
+            /* Left alignment and higher position */
+            right: auto !important;
+            left: 0 !important;
+            transform: translate(-90%, -10%) !important; /* Moves left and slightly upward */
         }
 
         /* Ensure parent containers don't clip the dropdown */
@@ -1900,7 +1912,7 @@ require '../controllers/update_due_interviews.php';
                                                 aria-expanded="false">
                                             <i class="fas fa-ellipsis-v"></i>
                                         </button>
-                                        <ul class="dropdown-menu">
+                                        <ul class="dropdown-menu dropdown-menu-start">
                                             <li><a class="dropdown-item" href="#" onclick="viewApplicantDetails(${applicant.stud_id})"><i class="fas fa-eye me-2"></i> View Profile</a></li>
                                             <li>
                                                 <a class="dropdown-item" href="#" onclick="viewResume(${applicant.stud_id}, '${applicant.resume_file || ''}')">
@@ -2557,7 +2569,7 @@ require '../controllers/update_due_interviews.php';
                                         aria-expanded="false">
                                     <i class="fas fa-ellipsis-v"></i>
                                 </button>
-                                <ul class="dropdown-menu">
+                                <ul class="dropdown-menu dropdown-menu-start">
                                     <li><a class="dropdown-item" href="#" onclick="viewApplicantDetails(${hire.stud_id})">
                                         <i class="fas fa-eye me-2"></i> View Profile
                                     </a></li>
