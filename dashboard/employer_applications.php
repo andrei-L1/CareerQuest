@@ -2365,7 +2365,7 @@ require '../controllers/update_due_interviews.php';
                 document.getElementById('listView').style.display = 'block';
                 document.getElementById('pipelineView').style.display = 'none';
                 document.getElementById('hiredView').style.display = 'none';
-                document.getElementById('search-filter-container').style.display = 'block';
+                //document.querySelector('.search-filter-container').style.display = 'block';
                 loadJobApplications();
             });
 
@@ -2377,7 +2377,7 @@ require '../controllers/update_due_interviews.php';
                     document.getElementById('listView').style.display = 'none';
                     document.getElementById('pipelineView').style.display = 'block';
                     document.getElementById('hiredView').style.display = 'none';
-                    document.getElementById('search-filter-container').style.display = 'block';
+                    //document.querySelector('.search-filter-container').style.display = 'block';
                     loadJobApplications();
                 });
 
