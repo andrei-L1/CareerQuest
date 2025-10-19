@@ -499,13 +499,16 @@ include '../includes/stud_navbar.php';
                         <?php echo htmlspecialchars($student['stud_first_name'] ?? 'No Name') . ' ' . htmlspecialchars($student['stud_last_name'] ?? 'Available'); ?>
                     </h1>
                     <div class="profile-title">
-                        <?php if (!empty($student['course_title'])): ?>
-                            <?php echo htmlspecialchars($student['course_title']); ?>
-                            <?php if (!empty($student['graduation_yr'])): ?>
-                                · Expected <?php echo htmlspecialchars($student['graduation_yr']); ?>
+                        <?php if (isset($student['is_student']) && $student['is_student'] == TRUE): ?>
+                            Student
+                            <?php if (!empty($student['course_title'])): ?>
+                                - <?php echo htmlspecialchars($student['course_title']); ?>
+                                <?php if (!empty($student['graduation_yr'])): ?>
+                                    · Expected <?php echo htmlspecialchars($student['graduation_yr']); ?>
+                                <?php endif; ?>
                             <?php endif; ?>
                         <?php else: ?>
-                            Student
+                            Applicant
                         <?php endif; ?>
                     </div>
                     <div class="profile-meta">

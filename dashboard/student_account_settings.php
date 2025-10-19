@@ -483,12 +483,8 @@ include '../includes/stud_navbar.php';
                                 <a href="student_profile.php" class="text-decoration-none">View Public Profile</a>
                             </li>
                             <li class="list-group-item d-flex align-items-center">
-                                <i class="fas fa-lock me-2 text-primary"></i>
-                                <a href="change_password.php" class="text-decoration-none">Change Password</a>
-                            </li>
-                            <li class="list-group-item d-flex align-items-center">
-                                <i class="fas fa-bell me-2 text-primary"></i>
-                                <a href="notification_settings.php" class="text-decoration-none">Notification Settings</a>
+                                <i class="fas fa-user-edit me-2 text-primary"></i>
+                                <a href="#" class="text-decoration-none" onclick="confirmChangeAccountType()">Change Account Type</a>
                             </li>
                         </ul>
                     </div>
@@ -1122,7 +1118,63 @@ include '../includes/stud_navbar.php';
                 });
             }
         });
-
+        function confirmChangeAccountType() {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "Do you want to proceed with changing your account type?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, proceed!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '../controllers/change_account_type.php',
+                        type: 'POST',
+                        data: {
+                            stud_id: '<?= $stud_id ?>',
+                            csrf_token: '<?= $_SESSION['csrf_token'] ?>'
+                        },
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.status === 'success') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Success!',
+                                    text: response.message,
+                                    showConfirmButton: false,
+                                    timer: 1500
+                                }).then(() => {
+                                    window.location.reload(); // Refresh to update UI if needed
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: response.message || 'Failed to change account type.'
+                                });
+                            }
+                        },
+                        error: function(xhr) {
+                            let errorMsg = 'An error occurred while changing the account type.';
+                            try {
+                                const response = JSON.parse(xhr.responseText);
+                                errorMsg = response.message || errorMsg;
+                            } catch (e) {
+                                errorMsg = xhr.statusText || errorMsg;
+                            }
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: errorMsg
+                            });
+                        }
+                    });
+                }
+            });
+        }
     </script>
 </body>
 </html>
