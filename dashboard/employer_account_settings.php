@@ -429,13 +429,43 @@ $company_logo = !empty($employer['company_logo']) ? '../Uploads/' . $employer['c
                                     <div class="col-md-6">
                                         <label for="document_url" class="form-label">Verification Document</label>
                                         <input type="file" id="document_url" class="form-control" name="document_url" accept=".pdf,.jpg,.jpeg,.png">
-                                        <div class="form-text">Upload a PDF or image (max 10MB) for verification.</div>
+
+                                        <div class="form-text">
+                                            Upload a single PDF or image (max 10MB) for verification.
+                                            <br>
+                                            <a class="text-primary" data-bs-toggle="collapse" href="#verificationDocs" role="button" aria-expanded="false" aria-controls="verificationDocs">
+                                                View Required Documents
+                                            </a>
+                                        </div>
+
+                                        <div class="collapse mt-2" id="verificationDocs">
+                                            <div class="form-text">
+                                                <strong>Required Verification Documents:</strong>
+                                                <ul class="mb-1">
+                                                    <li>Valid government-issued ID of the owner or authorized representative</li>
+                                                    <li>Business registration documents:
+                                                        <ul>
+                                                            <li>DTI Certificate (sole proprietorship)</li>
+                                                            <li>SEC Registration + Articles of Incorporation (corporations/partnerships)</li>
+                                                            <li>Business Permit / Mayor's Permit</li>
+                                                        </ul>
+                                                    </li>
+                                                    <li>Proof of business address (utility bill, lease contract, or barangay clearance)</li>
+                                                    <li>BIR Certificate of Registration (optional but recommended)</li>
+                                                    <li>Authorization letter (if handled by a representative)</li>
+                                                </ul>
+                                                <strong>Please compile all documents into ONE (1) PDF file before uploading.</strong>
+                                            </div>
+                                        </div>
+
                                         <?php if (!empty($employer['document_url'])): ?>
                                             <div class="form-text mt-2">
-                                                Current file: <a href="../Uploads/<?php echo htmlspecialchars($employer['document_url']); ?>" target="_blank">View Document</a>
+                                                Current file:
+                                                <a href="../Uploads/<?php echo htmlspecialchars($employer['document_url']); ?>" target="_blank">View Document</a>
                                             </div>
                                         <?php endif; ?>
                                     </div>
+
                                     <div class="col-md-12">
                                         <label for="company_description" class="form-label">Company Description</label>
                                         <textarea id="company_description" class="form-control auto-save" name="company_description" rows="3"><?php echo htmlspecialchars($employer['company_description'] ?? ''); ?></textarea>

@@ -1,8 +1,3 @@
-
-
-INSERT QUERIES
-
-
 USE career_platform;
 
 INSERT INTO role (role_title, role_description) VALUES
