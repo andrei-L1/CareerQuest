@@ -87,7 +87,98 @@ function getEmployerData(PDO $conn, int $user_id): ?array {
 }
 
 function getJobApplications(PDO $conn, int $employer_id): array {
-    $stmt = $conn->prepare("
+    // Get filter parameters
+    $status_filter = isset($_GET['status']) && $_GET['status'] !== 'all' ? $_GET['status'] : null;
+    $job_filter = isset($_GET['job']) && $_GET['job'] !== 'all' ? (int)$_GET['job'] : null;
+    $date_filter = isset($_GET['date']) && $_GET['date'] !== 'all' ? $_GET['date'] : null;
+    $match_filter = isset($_GET['match']) && $_GET['match'] !== 'all' ? $_GET['match'] : null;
+    $search_filter = isset($_GET['search']) && !empty(trim($_GET['search'])) ? trim($_GET['search']) : null;
+    
+    // Build WHERE conditions
+    $where_conditions = [
+        "jp.employer_id = :employer_id",
+        "jp.moderation_status = 'Approved'",
+        "jp.deleted_at IS NULL",
+        "at.deleted_at IS NULL",
+        "(at.application_status != 'Accepted' OR at.updated_at >= DATE_SUB(NOW(), INTERVAL 20 MINUTE) OR at.updated_at IS NULL)"
+    ];
+    
+    $params = [':employer_id' => $employer_id];
+    
+    // Add status filter
+    if ($status_filter) {
+        // Map filter values to database values (case-insensitive matching)
+        $status_map = [
+            'pending' => 'Pending',
+            'under review' => 'Under Review',
+            'interview scheduled' => 'Interview Scheduled',
+            'interview' => 'Interview',
+            'offered' => 'Offered',
+            'accepted' => 'Accepted',
+            'rejected' => 'Rejected',
+            'withdrawn' => 'Withdrawn'
+        ];
+        
+        $normalized_status = $status_map[strtolower($status_filter)] ?? $status_filter;
+        $where_conditions[] = "at.application_status = :status_filter";
+        $params[':status_filter'] = $normalized_status;
+    }
+    
+    // Add job filter
+    if ($job_filter) {
+        $where_conditions[] = "jp.job_id = :job_filter";
+        $params[':job_filter'] = $job_filter;
+    }
+    
+    // Add date filter
+    if ($date_filter) {
+        switch ($date_filter) {
+            case 'today':
+                $where_conditions[] = "DATE(at.applied_at) = CURDATE()";
+                break;
+            case 'week':
+                $where_conditions[] = "at.applied_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+                break;
+            case 'month':
+                $where_conditions[] = "at.applied_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+                break;
+            case 'custom':
+                // Custom date range would need additional parameters
+                // For now, skip custom filter
+                break;
+        }
+    }
+    
+    // Define match score ranges
+    $match_ranges = [
+        '80-100' => ['min' => 80, 'max' => 100],
+        '60-79' => ['min' => 60, 'max' => 79],
+        '40-59' => ['min' => 40, 'max' => 59],
+        '0-39' => ['min' => 0, 'max' => 39]
+    ];
+    
+    // Store match filter for later use in HAVING clause
+    $match_min = null;
+    $match_max = null;
+    if ($match_filter && isset($match_ranges[$match_filter])) {
+        $match_min = $match_ranges[$match_filter]['min'];
+        $match_max = $match_ranges[$match_filter]['max'];
+    }
+    
+    // Add search filter
+    if ($search_filter) {
+        $where_conditions[] = "(
+            CONCAT(s.stud_first_name, ' ', s.stud_last_name) LIKE :search_filter
+            OR s.stud_email LIKE :search_filter
+            OR sl.skill_name LIKE :search_filter
+            OR jp.title LIKE :search_filter
+        )";
+        $params[':search_filter'] = '%' . $search_filter . '%';
+    }
+    
+    $where_clause = implode(' AND ', $where_conditions);
+    
+    $sql = "
         SELECT 
             jp.job_id,
             jp.title AS job_title,
@@ -113,22 +204,24 @@ function getJobApplications(PDO $conn, int $employer_id): array {
         LEFT JOIN skill_masterlist sl ON ss.skill_id = sl.skill_id
         LEFT JOIN job_skill js ON jp.job_id = js.job_id
         LEFT JOIN skill_matching sm ON sm.user_skills_id = ss.user_skills_id AND sm.job_skills_id = js.job_skills_id
-        WHERE jp.employer_id = :employer_id
-        AND jp.moderation_status = 'Approved'
-        AND jp.deleted_at IS NULL
-        AND at.deleted_at IS NULL
-        AND (
-            at.application_status != 'Accepted'
-            OR at.updated_at >= DATE_SUB(NOW(), INTERVAL 20 MINUTE)
-            OR at.updated_at IS NULL
-        )
+        WHERE {$where_clause}
         GROUP BY at.application_id, jp.job_id, s.stud_id, jp.title, jp.description, jp.location, 
                  jp.posted_at, jp.moderation_status, s.stud_first_name, 
                  s.stud_last_name, s.stud_email, s.resume_file, 
                  at.application_status, at.applied_at, at.updated_at
-        ORDER BY jp.job_id, at.applied_at DESC
-    ");
-    $stmt->bindParam(':employer_id', $employer_id, PDO::PARAM_INT);
+    ";
+    
+    // Add HAVING clause for match score filter if specified
+    if ($match_min !== null && $match_max !== null) {
+        $sql .= " HAVING avg_match_score >= {$match_min} AND avg_match_score <= {$match_max}";
+    }
+    
+    $sql .= " ORDER BY jp.job_id, at.applied_at DESC";
+    
+    $stmt = $conn->prepare($sql);
+    foreach ($params as $key => $value) {
+        $stmt->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+    }
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }

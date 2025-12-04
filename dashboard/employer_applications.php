@@ -566,12 +566,32 @@ require '../controllers/update_due_interviews.php';
         
         /* Search and filter */
         .search-filter-container {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 16px;
+            padding: 2rem;
             margin-bottom: 2rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            border: 1px solid #e2e8f0;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .search-filter-container.show {
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .search-filter-container:hover {
+            box-shadow: 0 12px 32px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06);
         }
         
         .search-input {
@@ -580,52 +600,155 @@ require '../controllers/update_due_interviews.php';
         
         .search-input i {
             position: absolute;
-            left: 1rem;
+            left: 1.25rem;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--gray);
+            color: #6b7280;
             z-index: 10;
+            font-size: 1rem;
+            transition: color 0.2s;
         }
         
         .search-input input {
-            padding-left: 2.75rem;
-            border-radius: 50px;
-            border: 1px solid #e2e8f0;
-            transition: all 0.2s;
+            padding: 0.875rem 1.25rem 0.875rem 3.25rem;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s ease;
+            background: white;
+            font-size: 0.95rem;
+            height: auto;
         }
         
         .search-input input:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.1);
+            box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.1), 0 4px 12px rgba(67, 97, 238, 0.15);
+            outline: none;
+            background: white;
         }
         
-        /* Tags */
+        .search-input input:focus + i,
+        .search-input:has(input:focus) i {
+            color: var(--primary);
+        }
+        
+        /* Filter buttons styling */
+        .search-filter-container .dropdown-toggle,
+        .search-filter-container .btn {
+            border-radius: 10px;
+            padding: 0.75rem 1.25rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            border-width: 2px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .search-filter-container .dropdown-toggle:hover,
+        .search-filter-container .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .search-filter-container .btn-outline-secondary {
+            border-color: #e2e8f0;
+            color: #4b5563;
+            background: white;
+        }
+        
+        .search-filter-container .btn-outline-secondary:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(67, 97, 238, 0.05);
+        }
+        
+        .search-filter-container .btn-outline-danger {
+            border-color: #fee2e2;
+            color: #dc2626;
+            background: white;
+        }
+        
+        .search-filter-container .btn-outline-danger:hover {
+            border-color: #dc2626;
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .search-filter-container .dropdown-menu {
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            padding: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .search-filter-container .dropdown-item {
+            border-radius: 8px;
+            padding: 0.625rem 1rem;
+            margin: 0.125rem 0;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+        
+        .search-filter-container .dropdown-item:hover {
+            background: rgba(67, 97, 238, 0.1);
+            color: var(--primary);
+        }
+        
+        .search-filter-container .dropdown-item.active {
+            background: rgba(67, 97, 238, 0.15);
+            color: var(--primary);
+            font-weight: 600;
+        }
+        
+        /* Tags / Active Filters */
+        #activeFilters {
+            min-height: 2.5rem;
+            padding-top: 0.5rem;
+        }
+        
         .tag {
             display: inline-flex;
             align-items: center;
-            background: #f1f3f5;
-            padding: 0.35rem 0.85rem;
-            border-radius: 50px;
-            font-size: 0.85rem;
+            background: linear-gradient(135deg, rgba(67, 97, 238, 0.1) 0%, rgba(67, 97, 238, 0.05) 100%);
+            color: var(--primary);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
             margin-right: 0.5rem;
             margin-bottom: 0.5rem;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(67, 97, 238, 0.2);
+            box-shadow: 0 2px 4px rgba(67, 97, 238, 0.1);
         }
         
         .tag:hover {
-            background: #e2e8f0;
+            background: linear-gradient(135deg, rgba(67, 97, 238, 0.15) 0%, rgba(67, 97, 238, 0.1) 100%);
+            border-color: rgba(67, 97, 238, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(67, 97, 238, 0.15);
         }
         
         .tag-remove {
-            margin-left: 0.5rem;
+            margin-left: 0.625rem;
             cursor: pointer;
             opacity: 0.7;
             transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: rgba(67, 97, 238, 0.1);
+            color: var(--primary);
+            font-size: 0.75rem;
         }
         
         .tag-remove:hover {
             opacity: 1;
-            transform: scale(1.1);
+            transform: scale(1.15) rotate(90deg);
+            background: rgba(67, 97, 238, 0.2);
         }
         
         /* Animation */
@@ -926,6 +1049,9 @@ require '../controllers/update_due_interviews.php';
                 <p class="dashboard-subtitle">Review and manage candidate applications for your open positions</p>
             </div>
             <div class="d-flex gap-2">
+                <button class="btn btn-outline-secondary" id="toggleFiltersBtn">
+                    <i class="fas fa-filter me-2"></i> Filters
+                </button>
                 <button class="btn btn-outline-primary" id="exportBtn">
                     <i class="fas fa-download me-2"></i> Export
                 </button>
@@ -943,20 +1069,26 @@ require '../controllers/update_due_interviews.php';
 
         <!-- Search and Filter Section -->
         <div class="search-filter-container mb-4" style="display: none;">
-            <div class="row g-3">
-                <div class="col-md-6">
+            <div class="row g-4">
+                <div class="col-lg-5">
+                    <label class="form-label fw-semibold mb-2" style="color: #4b5563; font-size: 0.875rem;">
+                        <i class="fas fa-search me-1"></i> Search Applicants
+                    </label>
                     <div class="search-input">
                         <i class="fas fa-search"></i>
-                        <input type="text" class="form-control ps-4" placeholder="Search applicants by name, skills..." id="searchInput">
+                        <input type="text" class="form-control" placeholder="Search by name, email, skills, or job title..." id="searchInput">
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-lg-7">
+                    <label class="form-label fw-semibold mb-2" style="color: #4b5563; font-size: 0.875rem;">
+                        <i class="fas fa-filter me-1"></i> Filter Options
+                    </label>
                     <div class="d-flex flex-wrap align-items-center gap-2">
                         <div class="dropdown">
                             <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="statusFilter" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-filter me-2"></i> Status
                             </button>
-                            <ul class="dropdown-menu">
+                            <ul class="dropdown-menu" id="statusFilterMenu">
                                 <li><a class="dropdown-item" href="#" data-status="all">All Statuses</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="#" data-status="pending"><span class="badge-pending status-badge me-2">Pending</span></a></li>
@@ -984,7 +1116,7 @@ require '../controllers/update_due_interviews.php';
                             <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="dateFilter" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-calendar me-2"></i> Date
                             </button>
-                            <ul class="dropdown-menu">
+                            <ul class="dropdown-menu" id="dateFilterMenu">
                                 <li><a class="dropdown-item" href="#" data-date="all">All Time</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="#" data-date="today">Today</a></li>
@@ -994,14 +1126,33 @@ require '../controllers/update_due_interviews.php';
                             </ul>
                         </div>
                         
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="matchFilter" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-percentage me-2"></i> Match Score
+                            </button>
+                            <ul class="dropdown-menu" id="matchFilterMenu">
+                                <li><a class="dropdown-item" href="#" data-match="all">All Scores</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="#" data-match="80-100"><span class="badge bg-success me-2">80-100%</span> High Match</a></li>
+                                <li><a class="dropdown-item" href="#" data-match="60-79"><span class="badge bg-info me-2">60-79%</span> Good Match</a></li>
+                                <li><a class="dropdown-item" href="#" data-match="40-59"><span class="badge bg-warning me-2">40-59%</span> Fair Match</a></li>
+                                <li><a class="dropdown-item" href="#" data-match="0-39"><span class="badge bg-danger me-2">0-39%</span> Low Match</a></li>
+                            </ul>
+                        </div>
+                        
                         <button class="btn btn-outline-danger" id="clearFilters">
-                            <i class="fas fa-times me-2"></i> Clear
+                            <i class="fas fa-times me-2"></i> Clear All
                         </button>
                     </div>
-                    
-                    <div class="mt-3" id="activeFilters">
-                       
-                    </div>
+                </div>
+            </div>
+            
+            <!-- Active Filters Display -->
+            <div class="mt-4 pt-3 border-top" id="activeFilters" style="border-color: #e2e8f0 !important;">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="text-muted small fw-semibold me-2">
+                        <i class="fas fa-tags me-1"></i> Active Filters:
+                    </span>
                 </div>
             </div>
         </div>
@@ -1218,6 +1369,7 @@ require '../controllers/update_due_interviews.php';
             status: 'all',
             job: 'all',
             date: 'all',
+            match: 'all',
             search: ''
         };
 
@@ -1260,6 +1412,7 @@ require '../controllers/update_due_interviews.php';
             if (filters.status !== 'all') query.append('status', filters.status);
             if (filters.job !== 'all') query.append('job', filters.job);
             if (filters.date !== 'all') query.append('date', filters.date);
+            if (filters.match !== 'all') query.append('match', filters.match);
             if (filters.search) query.append('search', filters.search);
 
             fetch(`../controllers/employer_job_applicants.php?${query.toString()}`)
@@ -2233,7 +2386,24 @@ require '../controllers/update_due_interviews.php';
         // Update active filters display
         function updateActiveFilters() {
             const activeFiltersContainer = document.getElementById('activeFilters');
-            activeFiltersContainer.innerHTML = '';
+            // Find the container div that holds the label and will hold the tags
+            const containerDiv = activeFiltersContainer.querySelector('.d-flex.align-items-center');
+            
+            // Clear existing tags and "None" message
+            const existingTags = containerDiv ? containerDiv.querySelectorAll('.tag, .text-muted.small') : [];
+            existingTags.forEach(el => el.remove());
+            
+            // If containerDiv doesn't exist, create it
+            let tagsContainer = containerDiv;
+            if (!tagsContainer) {
+                tagsContainer = document.createElement('div');
+                tagsContainer.className = 'd-flex align-items-center gap-2 flex-wrap';
+                const label = document.createElement('span');
+                label.className = 'text-muted small fw-semibold me-2';
+                label.innerHTML = '<i class="fas fa-tags me-1"></i> Active Filters:';
+                tagsContainer.appendChild(label);
+                activeFiltersContainer.appendChild(tagsContainer);
+            }
             
             const activeFilters = [];
             
@@ -2261,6 +2431,22 @@ require '../controllers/update_due_interviews.php';
                 });
             }
             
+            if (filters.match !== 'all') {
+                let matchLabel = filters.match;
+                const matchLabels = {
+                    '80-100': '80-100% (High Match)',
+                    '60-79': '60-79% (Good Match)',
+                    '40-59': '40-59% (Fair Match)',
+                    '0-39': '0-39% (Low Match)'
+                };
+                matchLabel = matchLabels[filters.match] || filters.match;
+                activeFilters.push({
+                    key: 'match',
+                    value: filters.match,
+                    label: `Match Score: ${matchLabel}`
+                });
+            }
+            
             if (filters.search) {
                 activeFilters.push({
                     key: 'search',
@@ -2270,41 +2456,47 @@ require '../controllers/update_due_interviews.php';
             }
             
             if (activeFilters.length > 0) {
-                const filterTags = document.createElement('div');
-                filterTags.className = 'd-flex flex-wrap align-items-center gap-2';
-                
                 activeFilters.forEach(filter => {
                     const tag = document.createElement('span');
                     tag.className = 'tag';
                     tag.innerHTML = `
                         ${filter.label}
-                        <span class="tag-remove" onclick="removeFilter('${filter.key}')">
+                        <span class="tag-remove" onclick="removeFilter('${filter.key}')" title="Remove filter">
                             <i class="fas fa-times"></i>
                         </span>
                     `;
-                    filterTags.appendChild(tag);
+                    tagsContainer.appendChild(tag);
                 });
-                
-                activeFiltersContainer.appendChild(filterTags);
+            } else {
+                // Show "No active filters" message when empty
+                const noFiltersMsg = document.createElement('span');
+                noFiltersMsg.className = 'text-muted small ms-2';
+                noFiltersMsg.textContent = 'None';
+                tagsContainer.appendChild(noFiltersMsg);
             }
         }
         
         // Remove filter
         function removeFilter(key) {
-            filters[key] = key === 'status' ? 'all' : 
-                          key === 'job' ? 'all' : 
-                          key === 'date' ? 'all' : '';
+            if (key === 'status' || key === 'job' || key === 'date' || key === 'match') {
+                filters[key] = 'all';
+            } else if (key === 'search') {
+                filters[key] = '';
+                document.getElementById('searchInput').value = '';
+            }
             
             updateActiveFilters();
             loadJobApplications();
             
             // Reset dropdowns if needed
             if (key === 'status') {
-                document.querySelector('#statusFilter').textContent = 'Status';
+                document.querySelector('#statusFilter').innerHTML = '<i class="fas fa-filter me-2"></i> Status';
             } else if (key === 'job') {
-                document.querySelector('#jobFilter').textContent = 'Job';
+                document.querySelector('#jobFilter').innerHTML = '<i class="fas fa-briefcase me-2"></i> Job';
             } else if (key === 'date') {
-                document.querySelector('#dateFilter').textContent = 'Date';
+                document.querySelector('#dateFilter').innerHTML = '<i class="fas fa-calendar me-2"></i> Date';
+            } else if (key === 'match') {
+                document.querySelector('#matchFilter').innerHTML = '<i class="fas fa-percentage me-2"></i> Match Score';
             } else if (key === 'search') {
                 document.getElementById('searchInput').value = '';
             }
@@ -2365,7 +2557,6 @@ require '../controllers/update_due_interviews.php';
                 document.getElementById('listView').style.display = 'block';
                 document.getElementById('pipelineView').style.display = 'none';
                 document.getElementById('hiredView').style.display = 'none';
-                //document.querySelector('.search-filter-container').style.display = 'block';
                 loadJobApplications();
             });
 
@@ -2377,7 +2568,6 @@ require '../controllers/update_due_interviews.php';
                     document.getElementById('listView').style.display = 'none';
                     document.getElementById('pipelineView').style.display = 'block';
                     document.getElementById('hiredView').style.display = 'none';
-                    //document.querySelector('.search-filter-container').style.display = 'block';
                     loadJobApplications();
                 });
 
@@ -2409,34 +2599,125 @@ require '../controllers/update_due_interviews.php';
                 loadHiredIndividuals(); // Refresh data to ensure consistency
             });
             
+            // Toggle filters visibility
+            document.getElementById('toggleFiltersBtn').addEventListener('click', function() {
+                const filterContainer = document.querySelector('.search-filter-container');
+                const isVisible = filterContainer.style.display !== 'none' && filterContainer.style.display !== '';
+                
+                if (isVisible) {
+                    filterContainer.style.display = 'none';
+                    filterContainer.classList.remove('show');
+                    this.innerHTML = '<i class="fas fa-filter me-2"></i> Filters';
+                    this.classList.remove('active');
+                } else {
+                    filterContainer.style.display = 'block';
+                    // Trigger animation
+                    setTimeout(() => {
+                        filterContainer.classList.add('show');
+                    }, 10);
+                    this.innerHTML = '<i class="fas fa-times me-2"></i> Hide Filters';
+                    this.classList.add('active');
+                }
+            });
+            
+            // Populate job filter menu
+            function populateJobFilter() {
+                fetch('../controllers/employer_job_applicants.php')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (Array.isArray(data) && data.length > 0) {
+                            const jobFilterMenu = document.getElementById('jobFilterMenu');
+                            // Clear existing items except "All Jobs"
+                            const allJobsItem = jobFilterMenu.querySelector('[data-job="all"]').parentElement;
+                            const divider = allJobsItem.nextElementSibling;
+                            jobFilterMenu.innerHTML = '';
+                            jobFilterMenu.appendChild(allJobsItem);
+                            if (divider) jobFilterMenu.appendChild(divider);
+                            
+                            // Add job items
+                            data.forEach(job => {
+                                const li = document.createElement('li');
+                                const a = document.createElement('a');
+                                a.className = 'dropdown-item';
+                                a.href = '#';
+                                a.setAttribute('data-job', job.job_id);
+                                a.textContent = job.title;
+                                li.appendChild(a);
+                                jobFilterMenu.appendChild(li);
+                            });
+                            
+                            // Re-attach event listeners
+                            document.querySelectorAll('#jobFilterMenu .dropdown-item').forEach(item => {
+                                item.addEventListener('click', function(e) {
+                                    e.preventDefault();
+                                    filters.job = this.dataset.job;
+                                    const jobText = this.dataset.job === 'all' ? 'Job' : this.textContent.trim();
+                                    document.getElementById('jobFilter').innerHTML = `<i class="fas fa-briefcase me-2"></i> ${jobText}`;
+                                    updateActiveFilters();
+                                    loadJobApplications();
+                                });
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading jobs for filter:', error);
+                    });
+            }
+            
             // Initialize status filter dropdown items
             document.querySelectorAll('#statusFilterMenu .dropdown-item').forEach(item => {
                 item.addEventListener('click', function(e) {
                     e.preventDefault();
                     filters.status = this.dataset.status;
-                    document.getElementById('statusFilter').textContent = this.textContent.trim();
+                    let statusText = 'Status';
+                    if (this.dataset.status !== 'all') {
+                        // Extract text from badge or use dataset value
+                        const badge = this.querySelector('.status-badge');
+                        if (badge) {
+                            statusText = badge.textContent.trim();
+                        } else {
+                            // Capitalize first letter of each word
+                            statusText = this.dataset.status.split(' ').map(word => 
+                                word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+                            ).join(' ');
+                        }
+                    }
+                    document.getElementById('statusFilter').innerHTML = `<i class="fas fa-filter me-2"></i> ${statusText}`;
                     updateActiveFilters();
                     loadJobApplications();
                 });
             });
             
-            // Initialize job filter dropdown items
-            document.querySelectorAll('#jobFilterMenu .dropdown-item').forEach(item => {
-                item.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    filters.job = this.dataset.job;
-                    document.getElementById('jobFilter').textContent = this.textContent.trim();
-                    updateActiveFilters();
-                    loadJobApplications();
-                });
-            });
+            // Initialize job filter dropdown items (will be populated dynamically)
+            populateJobFilter();
             
             // Initialize date filter dropdown items
             document.querySelectorAll('#dateFilterMenu .dropdown-item').forEach(item => {
                 item.addEventListener('click', function(e) {
                     e.preventDefault();
                     filters.date = this.dataset.date;
-                    document.getElementById('dateFilter').textContent = this.textContent.trim();
+                    const dateText = this.dataset.date === 'all' ? 'Date' : this.textContent.trim();
+                    document.getElementById('dateFilter').innerHTML = `<i class="fas fa-calendar me-2"></i> ${dateText}`;
+                    updateActiveFilters();
+                    loadJobApplications();
+                });
+            });
+            
+            // Initialize match filter dropdown items
+            document.querySelectorAll('#matchFilterMenu .dropdown-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    filters.match = this.dataset.match;
+                    let matchText = 'Match Score';
+                    if (this.dataset.match !== 'all') {
+                        const badge = this.querySelector('.badge');
+                        if (badge) {
+                            matchText = badge.textContent.trim();
+                        } else {
+                            matchText = this.textContent.trim();
+                        }
+                    }
+                    document.getElementById('matchFilter').innerHTML = `<i class="fas fa-percentage me-2"></i> ${matchText}`;
                     updateActiveFilters();
                     loadJobApplications();
                 });
@@ -2460,12 +2741,14 @@ require '../controllers/update_due_interviews.php';
                 filters.status = 'all';
                 filters.job = 'all';
                 filters.date = 'all';
+                filters.match = 'all';
                 filters.search = '';
                 searchInput.value = '';
                 
-                document.getElementById('statusFilter').textContent = 'Status';
-                document.getElementById('jobFilter').textContent = 'Job';
-                document.getElementById('dateFilter').textContent = 'Date';
+                document.getElementById('statusFilter').innerHTML = '<i class="fas fa-filter me-2"></i> Status';
+                document.getElementById('jobFilter').innerHTML = '<i class="fas fa-briefcase me-2"></i> Job';
+                document.getElementById('dateFilter').innerHTML = '<i class="fas fa-calendar me-2"></i> Date';
+                document.getElementById('matchFilter').innerHTML = '<i class="fas fa-percentage me-2"></i> Match Score';
                 
                 updateActiveFilters();
                 loadJobApplications();
@@ -2482,6 +2765,7 @@ require '../controllers/update_due_interviews.php';
                 if (filters.status !== 'all') query.append('status', filters.status);
                 if (filters.job !== 'all') query.append('job', filters.job);
                 if (filters.date !== 'all') query.append('date', filters.date);
+                if (filters.match !== 'all') query.append('match', filters.match);
                 if (filters.search) query.append('search', filters.search);
 
                 // Show loading toast
