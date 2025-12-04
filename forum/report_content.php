@@ -1,6 +1,6 @@
 <?php
 require_once '../config/dbcon.php';
-
+/** @var PDO $conn */
 header('Content-Type: application/json');
 
 if (session_status() === PHP_SESSION_NONE) {

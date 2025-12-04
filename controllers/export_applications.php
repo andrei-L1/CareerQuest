@@ -1,7 +1,7 @@
 <?php
 require '../auth/employer_auth.php';
 require '../config/dbcon.php';
-
+/** @var PDO $conn */
 function cleanData($str) {
     $str = str_replace('"', '""', $str);
     return '"' . $str . '"';

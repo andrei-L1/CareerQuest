@@ -7,6 +7,7 @@ error_reporting(E_ALL);
 date_default_timezone_set('Asia/Manila'); // Adjust as needed
 
 require_once __DIR__ . '/config/dbcon.php'; // Use your PDO $conn
+/** @var PDO $conn */
 
 // Fetch existing role IDs
 $roles = ['Admin', 'Moderator', 'Professional', 'Employer'];

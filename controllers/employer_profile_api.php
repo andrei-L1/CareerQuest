@@ -13,7 +13,7 @@ if (!isset($_SESSION['csrf_token'])) {
 }
 
 require '../config/dbcon.php';
-
+/** @var PDO $conn */
 header('Content-Type: application/json');
 
 // Validate CSRF token

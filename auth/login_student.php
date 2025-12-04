@@ -14,7 +14,7 @@ if (isset($_SESSION['user_id']) || isset($_SESSION['stud_id'])) {
 }
 
 require '../config/dbcon.php';
-
+/** @var PDO $conn */
 // Enforce security settings on PDO
 $conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
 

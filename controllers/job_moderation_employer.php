@@ -1,5 +1,6 @@
 <?php
-require_once '../config/dbcon.php'; 
+require_once '../config/dbcon.php';
+/** @var PDO $conn */
 header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {

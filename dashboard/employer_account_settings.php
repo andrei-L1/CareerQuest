@@ -18,6 +18,7 @@ if (empty($_SESSION['csrf_token'])) {
 }
 
 require '../config/dbcon.php';
+/** @var PDO $conn */
 include '../includes/employer_navbar.php';
 
 // Fetch employer data

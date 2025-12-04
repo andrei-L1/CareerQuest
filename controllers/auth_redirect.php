@@ -6,7 +6,7 @@ session_start();
 session_regenerate_id(true); // Prevent session fixation attacks
 
 require '../config/dbcon.php';
-
+/** @var PDO $conn */
 // Session Timeout (15 min)
 $session_timeout = 900; // 900 seconds = 15 minutes
 if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > $session_timeout)) {

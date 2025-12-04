@@ -1,5 +1,6 @@
 <?php
 require "../config/dbcon.php";
+/** @var PDO $conn */
 require "../auth/auth_check.php"; 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();

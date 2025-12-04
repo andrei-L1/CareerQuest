@@ -1,6 +1,6 @@
 <?php
 require '../config/dbcon.php'; // adjust as needed
-
+/** @var PDO $conn */
 // Set timezone to Philippine Time (UTC+8)
 date_default_timezone_set('Asia/Manila');
 $now = date('Y-m-d H:i:s');

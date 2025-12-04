@@ -17,7 +17,7 @@ if (!isset($_SESSION['user_id']) && !isset($_SESSION['stud_id'])) {
 }
 // Include your external PDO database connection
 require '../config/dbcon.php';
-
+/** @var PDO $conn */
 // Function to fetch student details from the database
 function getStudentDetails($conn, $studentId) {
     $stmt = $conn->prepare("SELECT * FROM student WHERE stud_id = :student_id AND deleted_at IS NULL");

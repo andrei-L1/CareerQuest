@@ -3,7 +3,8 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-require "../config/dbcon.php"; 
+require "../config/dbcon.php";
+/** @var PDO $conn */
 require "../auth/auth_check.php"; 
 
 // Ensure user is logged in

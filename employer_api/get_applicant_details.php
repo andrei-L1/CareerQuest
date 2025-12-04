@@ -1,6 +1,6 @@
 <?php
 require '../config/dbcon.php';
-
+/** @var PDO $conn */
 $applicantId = $_GET['applicantId'] ?? null;
 
 if (!$applicantId) {

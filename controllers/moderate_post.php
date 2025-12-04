@@ -1,6 +1,7 @@
 <?php
 session_start();
 require "../config/dbcon.php";
+/** @var PDO $conn */
 require "../auth/auth_check.php";
 
 error_log("Received POST: " . print_r($_POST, true));

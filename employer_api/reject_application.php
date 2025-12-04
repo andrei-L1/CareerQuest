@@ -14,6 +14,7 @@ if (!isset($_SESSION['employer_id'])) {
 }
 
 require_once '../config/dbcon.php';
+/** @var PDO $conn */
 require '../vendor/autoload.php';
 
 use PHPMailer\PHPMailer\PHPMailer;

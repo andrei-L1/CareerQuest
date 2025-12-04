@@ -12,7 +12,7 @@ if (!isset($_SESSION['user_id'])) {
 
 // Include your external PDO database connection
 require '../config/dbcon.php';
-
+/** @var PDO $conn */
 // Function to fetch employer details from the database
 function getEmployerDetails($conn, $userId) {
     $stmt = $conn->prepare("SELECT * FROM user WHERE user_id = :user_id AND deleted_at IS NULL");

@@ -5,7 +5,7 @@ require "../controllers/admin_user_management.php";
 require '../auth/auth_check.php'; 
 try {
     require '../config/dbcon.php';
-
+    /** @var PDO $conn */
     // Prepare queries for better security (even though no input parameters are involved)
     $queries = [
         "job_type" => "SELECT COUNT(*) FROM job_type",

@@ -1,5 +1,6 @@
 <?php
 require '../config/dbcon.php';
+/** @var PDO $conn */
 require '../auth/auth_check_student.php';
 
 header('Content-Type: application/json');

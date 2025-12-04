@@ -1,4 +1,9 @@
 <?php
+/**
+ * Database connection file
+ * 
+ * @global PDO $conn
+ */
 
 $host = 'sites.local';
 $dbname = 'career_platform';
@@ -11,6 +16,12 @@ try {
 } catch (PDOException $e) {
     die("Database connection failed: " . $e->getMessage());
 }
+
+// Type guard for static analysis - ensures $conn is PDO
+if (!($conn instanceof PDO)) {
+    die("Database connection not available");
+}
+
 
 /*
 $host = 'sql104.byethost9.com';

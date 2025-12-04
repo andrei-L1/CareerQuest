@@ -4,7 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require '../config/dbcon.php';
-
+/** @var PDO $conn */
 // Redirect to login if not authenticated
 if (!isset($_SESSION['user_id'])) {
     error_log("Session lost, redirecting to login.");

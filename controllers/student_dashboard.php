@@ -1,6 +1,6 @@
 <?php
 require '../config/dbcon.php';
-
+/** @var PDO $conn */
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }

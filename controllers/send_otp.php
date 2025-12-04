@@ -1,5 +1,6 @@
 <?php
 require_once '../config/dbcon.php';
+/** @var PDO $conn */
 require '../vendor/autoload.php';
 require '../helpers/generate_otp.php';
 

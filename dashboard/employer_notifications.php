@@ -1,6 +1,7 @@
 <?php
 ob_start();
 require_once '../config/dbcon.php';
+/** @var PDO $conn */
 require_once '../includes/employer_navbar.php';
 require_once '../auth/employer_auth.php';
 require_once '../auth/auth_check.php';

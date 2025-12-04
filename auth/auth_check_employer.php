@@ -6,7 +6,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require '../config/dbcon.php';
-
+/** @var PDO $conn */
 // Redirect to login if not authenticated
 if (!isset($_SESSION['employer_id']) || !is_int($_SESSION['employer_id'])) {
     error_log("Invalid or missing employer_id in session: " . var_export($_SESSION['employer_id'] ?? 'not set', true));

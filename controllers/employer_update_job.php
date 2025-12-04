@@ -1,7 +1,7 @@
 <?php
 require '../auth/employer_auth.php';
 require '../config/dbcon.php';
-
+/** @var PDO $conn */
 // Set JSON content type
 header('Content-Type: application/json');
 

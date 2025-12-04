@@ -1,7 +1,7 @@
 <?php
 session_start();
 require '../config/dbcon.php';
-
+/** @var PDO $conn */
 header('Content-Type: application/json');
 
 // Check authentication

@@ -5,7 +5,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require '../config/dbcon.php';
-
+/** @var PDO $conn */
 // Check if the student is logged in
 if (!isset($_SESSION['stud_id'])) {
     echo json_encode(['error' => 'User is not logged in.']);

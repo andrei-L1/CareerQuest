@@ -12,7 +12,7 @@ if (!isset($_SESSION['stud_id'])) {
 }
 
 require '../config/dbcon.php'; // Database connection (provides $conn)
-
+/** @var PDO $conn */
 header('Content-Type: application/json'); // Ensure JSON response
 
 // CSRF token validation

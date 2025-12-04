@@ -626,7 +626,8 @@ require '../auth/auth_check_student.php';
     </div>
 
     <?php
-        require '../config/dbcon.php'; 
+        require '../config/dbcon.php';
+        /** @var PDO $conn */
         $jobTypes = [];
         $categories = [];
 

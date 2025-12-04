@@ -8,7 +8,7 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 require_once '../config/dbcon.php';
-
+/** @var PDO $conn */
 // Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();

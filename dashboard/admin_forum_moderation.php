@@ -4,6 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require "../config/dbcon.php";
+/** @var PDO $conn */
 require "../auth/auth_check.php";
 include "../includes/sidebar.php";
 

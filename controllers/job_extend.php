@@ -1,5 +1,6 @@
 <?php
 require "../config/dbcon.php";  // Ensure the DB connection is included
+/** @var PDO $conn */
 require "../auth/auth_check.php";  // Optional: Check user permissions if needed
 
 header('Content-Type: application/json'); // Set the response type to JSON

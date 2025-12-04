@@ -1,5 +1,6 @@
 <?php
 require_once '../config/dbcon.php';
+/** @var PDO $conn */
 include '../includes/stud_navbar.php';
 
 if (session_status() === PHP_SESSION_NONE) {

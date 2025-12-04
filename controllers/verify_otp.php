@@ -1,5 +1,6 @@
 <?php
 require_once '../config/dbcon.php';
+/** @var PDO $conn */
 session_start();
 
 header('Content-Type: application/json');

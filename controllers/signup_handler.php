@@ -1,5 +1,6 @@
 <?php
 require '../config/dbcon.php';
+/** @var PDO $conn */
 session_start();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

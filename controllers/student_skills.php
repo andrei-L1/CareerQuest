@@ -4,7 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require '../config/dbcon.php';
-
+/** @var PDO $conn */
 if (!isset($_SESSION['stud_id'])) {
     header("Location: ../index.php");
     exit();

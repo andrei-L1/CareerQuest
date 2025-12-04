@@ -3,7 +3,7 @@ require '../controllers/employer_jobs.php';
 require '../auth/employer_auth.php';
 include '../includes/employer_navbar.php';
 require_once '../config/dbcon.php';
-
+/** @var PDO $conn */
 $successMessage = isset($_GET['success']) ? urldecode($_GET['success']) : null;
 $errorMessage = isset($_GET['error']) ? urldecode($_GET['error']) : null;
 

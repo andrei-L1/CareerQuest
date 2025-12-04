@@ -28,7 +28,7 @@ if (isset($_SESSION['user_id'])) {
 
 // Database connection
 require_once 'config/dbcon.php';
-
+/** @var PDO $conn */
 // Get jobs posted (job_posting table)
 $jobsQuery = "SELECT COUNT(*) AS total_jobs FROM job_posting WHERE deleted_at IS NULL";
 $jobsResult = $conn->query($jobsQuery);

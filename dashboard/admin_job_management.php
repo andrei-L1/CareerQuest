@@ -2,7 +2,7 @@
 include "../includes/sidebar.php";
 require '../auth/auth_check.php'; 
 require '../config/dbcon.php';
-
+/** @var PDO $conn */
 $sql = "SELECT 
             (SELECT COUNT(*) FROM job_posting) AS total_jobs,
             (SELECT COUNT(*) FROM employer) AS total_employers,

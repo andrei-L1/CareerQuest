@@ -1,7 +1,7 @@
 <?php
 session_start();
 require "../config/dbcon.php";
-
+/** @var PDO $conn */
 // Debugging: Log received data
 error_log("Received POST: " . print_r($_POST, true));
 

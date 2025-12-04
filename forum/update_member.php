@@ -1,5 +1,6 @@
 <?php
 require_once '../config/dbcon.php';
+/** @var PDO $conn */
 if (session_status() === PHP_SESSION_NONE) session_start();
 
 // Generate CSRF token if not already set

@@ -17,6 +17,7 @@ if (!isset($_SESSION['user_id']) || !is_numeric($_SESSION['user_id'])) {
 
 // Include files with proper path validation
 require realpath(__DIR__ . '/../config/dbcon.php');
+/** @var PDO $conn */
 require realpath(__DIR__ . '/../auth/auth_check.php');
 
 // Sanitize current page

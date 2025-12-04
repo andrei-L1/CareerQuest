@@ -18,6 +18,7 @@ if (empty($_SESSION['csrf_token'])) {
 }
 
 require '../config/dbcon.php';
+/** @var PDO $conn */
 require '../controllers/student_profile_controller.php';
 include '../includes/stud_navbar.php';
 ?>

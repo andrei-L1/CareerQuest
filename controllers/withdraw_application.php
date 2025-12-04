@@ -1,6 +1,7 @@
 <?php
 session_start();
 require '../config/dbcon.php';
+/** @var PDO $conn */
 require '../auth/auth_check_student.php';
 
 // CSRF token check

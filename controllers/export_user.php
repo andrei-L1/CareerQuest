@@ -1,5 +1,6 @@
 <?php
 require "../config/dbcon.php";
+/** @var PDO $conn */
 require "../auth/auth_check.php"; 
 
 header('Content-Type: text/csv; charset=utf-8');

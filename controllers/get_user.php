@@ -1,5 +1,6 @@
 <?php
 require '../config/dbcon.php';
+/** @var PDO $conn */
 require 'admin_user_management.php';
 
 if (isset($_GET['user_id'])) {

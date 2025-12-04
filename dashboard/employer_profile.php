@@ -1,6 +1,7 @@
 <?php
 require_once '../auth/auth_check_employer.php';
 require_once '../config/dbcon.php';
+/** @var PDO $conn */
 include '../includes/employer_navbar.php';
 
 $csrf_token = bin2hex(random_bytes(32)); // Placeholder; implement your actual CSRF token logic

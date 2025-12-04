@@ -1,6 +1,6 @@
 <?php
 require_once 'config/dbcon.php';
-
+/** @var PDO $conn */
 // Get search parameters
 $search = $_GET['search'] ?? '';
 $location = $_GET['location'] ?? '';

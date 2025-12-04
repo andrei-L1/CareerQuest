@@ -1,6 +1,6 @@
 <?php
 require_once '../config/dbcon.php';
-
+/** @var PDO $conn */
 // Enable error reporting during development
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);

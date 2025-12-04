@@ -6,7 +6,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // Include your existing database connection
 require_once '../config/dbcon.php';
-
+/** @var PDO $conn */
 class EmployerAuth {
     private $conn;
     

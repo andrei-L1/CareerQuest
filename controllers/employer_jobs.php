@@ -16,6 +16,7 @@ if (!isset($_SESSION['user_id'])) {
 
 // Database connection
 require_once '../config/dbcon.php';
+/** @var PDO $conn */
 try {
     // Test database connection
     $conn->query("SELECT 1");

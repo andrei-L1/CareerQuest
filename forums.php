@@ -1,6 +1,6 @@
 <?php
 require_once 'config/dbcon.php';
-
+/** @var PDO $conn */
 // Fetch all public forums from the database
 $query = "SELECT f.*, 
                  CONCAT(COALESCE(u.user_first_name, s.stud_first_name), ' ', COALESCE(u.user_last_name, s.stud_last_name)) AS creator_name,

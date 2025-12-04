@@ -4,7 +4,7 @@ session_start();
 
 // Include database connection
 require '../config/dbcon.php';
-
+/** @var PDO $conn */
 // Set response header to JSON
 header('Content-Type: application/json');
 
