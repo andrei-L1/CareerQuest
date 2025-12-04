@@ -105,8 +105,11 @@ try {
                     <label class="form-label">Salary Range</label>
                     <div class="input-group">
                         <span class="input-group-text">₱</span>
-                        <input type="number" class="form-control" id="jobMinSalary" name="min_salary" min="0" step="0.01" placeholder="Minimum">
-                        <input type="number" class="form-control" id="jobMaxSalary" name="max_salary" min="0" step="0.01" placeholder="Maximum">
+                        <input type="text" class="form-control" id="jobSalaryCombined" placeholder="e.g. 10000 - 15000">
+
+                        <!-- Hidden fields (backend still receives min_salary & max_salary normally) -->
+                        <input type="hidden" id="jobMinSalary" name="min_salary">
+                        <input type="hidden" id="jobMaxSalary" name="max_salary">
                     </div>
                 </div>
                 <div class="col-md-6">
@@ -168,6 +171,35 @@ try {
                 if (!this.checked) {
                     minSalaryInput.value = '';
                     maxSalaryInput.value = '';
+                }
+            });
+            document.getElementById("jobSalaryCombined").addEventListener("input", function () {
+                let value = this.value.replace(/[₱,\s]/g, ''); // Clean input
+                const parts = value.split(/[-–toTO]+/).map(p => p.trim()).filter(Boolean);
+
+                const minField = document.getElementById("jobMinSalary");
+                const maxField = document.getElementById("jobMaxSalary");
+
+                if (parts.length === 2 && parts[0] && parts[1]) {
+                    // Range: 10000 - 20000
+                    minField.value = parseFloat(parts[0]) || '';
+                    maxField.value = parseFloat(parts[1]) || '';
+                } 
+                else if (parts.length === 1 && parts[0]) {
+                    // Single number: 15000 → treat as both min and max
+                    const num = parseFloat(parts[0]);
+                    if (!isNaN(num)) {
+                        minField.value = num;
+                        maxField.value = num;
+                    } else {
+                        minField.value = '';
+                        maxField.value = '';
+                    }
+                } 
+                else {
+                    // Invalid or empty
+                    minField.value = '';
+                    maxField.value = '';
                 }
             });
         });
