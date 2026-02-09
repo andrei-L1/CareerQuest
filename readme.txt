@@ -1,0 +1,51 @@
+<<<<<<< HEAD
+# SkillMatch
+=======
+Gmail Functionalities are currently broke, use default credentials namely
+applicant@example.com
+student@example.com
+employer@example.com
+admin@example.com
+moderator@example.com
+
+Pass: Test1234!
+>>>>>>> 83d24fb15ef9723179502ab2c5409858faf56738
+
+SkillMatch is a web-based platform for job matching, connecting students, employers, and professionals.
+
+## Prerequisites
+
+- XAMPP (or any web server with PHP 7+ and MySQL)
+- Composer (for dependency management)
+
+## Installation
+
+1. Download and install XAMPP from https://www.apachefriends.org/
+2. Clone or download this repository (https://github.com/andrei-L1/CareerQuest.git) and place it in the `htdocs` folder of your XAMPP installation (e.g., `C:\xampp\htdocs\skillmatch`)
+3. Open the command prompt, navigate to the project directory, and run `composer install` to install PHP dependencies
+4. Start XAMPP and ensure Apache and MySQL services are running
+5. Open phpMyAdmin in your browser (https://localhost/phpmyadmin)
+6. Create a new database named `skillmatch`
+7. Import the database schema from `config/database.sql` into the newly created database
+
+## Usage
+
+1. Open your web browser and go to https://localhost/skillmatch
+2. On the homepage, choose to register as a Student, Employer, or Professional
+3. Fill out the registration form and verify your account if required
+4. Log in with your credentials
+5. Explore the dashboard:
+   - Students/Applicants: Browse jobs, apply, manage profile, participate in forums
+   - Employers: Post jobs, review applications, schedule interviews
+   - Admins: Manage users, moderate content, view analytics
+6. Use the navigation menus to access different sections like Jobs, Forums, Messages, etc.
+
+## Features
+
+- Job posting and application system
+- User profiles and skill management
+- Forum for discussions
+- Messaging between users
+- Admin panel for moderation
+
+For more details, refer to the code comments and documentation within the project files.
